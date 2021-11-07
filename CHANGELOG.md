@@ -6,6 +6,8 @@ unreleased (development)
 
 # Component:
 - Bugfix: Input shouldn't take focus when hovered by the mouse.
+- Bugfix: Input used to override user's modified value from |on_enter| and
+  |on_change| events. Now fixed.
 
 0.11.1
 ------

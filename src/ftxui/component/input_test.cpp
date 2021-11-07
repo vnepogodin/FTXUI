@@ -226,6 +226,83 @@ TEST(InputTest, Backspace) {
   EXPECT_EQ(option.cursor_position(), 0u);
 }
 
+TEST(InputTest, UpdateRef) {
+  std::string content;
+  std::string placeholder;
+  auto input = Input(&content, &placeholder);
+
+  input->OnEvent(Event::Character('a'));
+  input->OnEvent(Event::Character('b'));
+  input->OnEvent(Event::Character('c'));
+
+  {
+    auto document = input->Render();
+    auto screen = Screen::Create(Dimension::Fit(document));
+    Render(screen, document);
+    EXPECT_EQ(screen.dimx(), 4u);
+  }
+
+  content = "";
+
+  {
+    auto document = input->Render();
+    auto screen = Screen::Create(Dimension::Fit(document));
+    Render(screen, document);
+    EXPECT_EQ(screen.dimx(), 0u);
+  }
+
+  content = "test";
+
+  {
+    auto document = input->Render();
+    auto screen = Screen::Create(Dimension::Fit(document));
+    Render(screen, document);
+    EXPECT_EQ(screen.dimx(), 4u);
+  }
+}
+
+// Regression test: https://github.com/ArthurSonzogni/FTXUI/issues/251
+// When updating |content| from the |on_enter| event, the value was overridden
+// by the original value.
+TEST(InputTest, UpdateRefOnEnter) {
+  std::string content;
+  std::string placeholder;
+  auto option = InputOption();
+  auto input = Input(&content, &placeholder, &option);
+
+  option.on_enter = [&] { content = "test"; };
+  input->OnEvent(Event::Return);
+  EXPECT_EQ(content, "test");
+}
+
+// Regression test: https://github.com/ArthurSonzogni/FTXUI/issues/251
+// When updating |content| from the |on_enter| event, the value was overridden
+// by the original value.
+TEST(InputTest, UpdateRefOnChange) {
+  std::string content;
+  std::string placeholder;
+  auto option = InputOption();
+  auto input = Input(&content, &placeholder, &option);
+
+  option.on_change = [&] { content = "test"; };
+  input->OnEvent(Event::Character('a'));
+  EXPECT_EQ(content, "test");
+}
+
+// Test the ordering in between changing input's value on event and dispatching
+// the on_change event.
+TEST(InputTest, OnChangeOrder) {
+  std::string content;
+  std::string placeholder;
+  auto option = InputOption();
+  auto input = Input(&content, &placeholder, &option);
+
+  option.on_change = [&] { content += "a"; };
+  input->OnEvent(Event::Character('b'));
+  // TODO(arthursonzogni): This should be "ab" instead.
+  EXPECT_EQ(content, "a");
+}
+
 // Copyright 2021 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in
 // the LICENSE file.

@@ -212,8 +212,13 @@ class InputBase : public WideInputBase {
 
   bool OnEvent(Event event) override {
     wrapped_content_ = to_wstring(*content_);
-    if (WideInputBase::OnEvent(event)) {
-      *content_ = to_string(wrapped_content_);
+    std::string previous_content = *content_;
+    if (WideInputBase::OnEvent(event) ) {
+      // |content| maybe have changed when executing the |on_change| or
+      // |on_enter| callbacks. Make sure we don't override here user's decision.
+      // The long term solution is to abandon WideInputBase.
+      if (previous_content == *content_)
+        *content_ = to_string(wrapped_content_);
       return true;
     }
     return false;
