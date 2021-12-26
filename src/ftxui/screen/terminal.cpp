@@ -58,7 +58,7 @@ void Terminal::SetFallbackSize(const Dimensions& fallbackSize) {
 
 namespace {
 
-const char* Safe(const char* c) {
+constexpr const char* Safe(const char* c) {
   return c ? c : "";
 }
 

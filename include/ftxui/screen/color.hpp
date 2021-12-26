@@ -20,13 +20,23 @@ class Color {
   enum Palette16 : uint8_t;
   enum Palette256 : uint8_t;
 
-  Color();                  // Transparent.
-  Color(Palette1 index);    // Transparent.
-  Color(Palette16 index);   // Implicit conversion from index to Color.
-  Color(Palette256 index);  // Implicit conversion from index to Color.
+  /// @brief Build a transparent color.
+  /// @ingroup screen
+  constexpr Color() = default;
+
+  /// @brief Build a transparent color.
+  /// @ingroup screen
+  constexpr Color(Palette1) : type_(ColorType::Palette1) {}
+
+  /// @brief Build a transparent using Palette16 colors.
+  /// @ingroup screen
+  constexpr Color(Palette16 index)
+      : type_(ColorType::Palette16), index_(index) {}
+
+  Color(Palette256 index);
   Color(uint8_t red, uint8_t green, uint8_t blue);
   static Color RGB(uint8_t red, uint8_t green, uint8_t blue);
-  static Color HSV(uint8_t hue, uint8_t saturation, uint8_t value);
+  static Color HSV(uint8_t h, uint8_t s, uint8_t v);
 
   //---------------------------
   // List of colors:
@@ -300,8 +310,12 @@ class Color {
   // clang-format on
 
   // --- Operators ------
-  bool operator==(const Color& rhs) const;
-  bool operator!=(const Color& rhs) const;
+  constexpr bool operator==(const Color& rhs) const {
+    return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ &&
+           type_ == rhs.type_;
+  }
+
+  constexpr bool operator!=(const Color& rhs) const { return !operator==(rhs); }
 
   std::string Print(bool is_background_color) const;
 
@@ -313,7 +327,7 @@ class Color {
     TrueColor,
   };
 
-  ColorType type_;
+  ColorType type_{ColorType::Palette1};
   union {
     uint8_t index_ = 0;
     uint8_t red_;
@@ -326,7 +340,7 @@ inline namespace literals {
 
 /// @brief Creates a color from a combined hex RGB representation,
 /// e.g. 0x808000_rgb
-Color operator""_rgb(unsigned long long int combined);
+ftxui::Color operator""_rgb(unsigned long long int combined);
 
 }  // namespace literals
 

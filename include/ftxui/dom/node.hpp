@@ -18,15 +18,15 @@ using Elements = std::vector<Element>;
 
 class Node {
  public:
-  Node();
+  constexpr Node() noexcept = default;
   Node(Elements children);
-  virtual ~Node();
+  virtual ~Node() = default;
 
   // Step 1: Compute layout requirement. Tell parent what dimensions this
   //         element wants to be.
   //         Propagated from Children to Parents.
   virtual void ComputeRequirement();
-  Requirement requirement() { return requirement_; }
+  constexpr Requirement requirement() { return requirement_; }
 
   // Step 2: Assign this element its final dimensions.
   //         Propagated from Parents to Children.
@@ -45,9 +45,9 @@ class Node {
   virtual void Check(Status* status);
 
  protected:
-  Elements children_;
-  Requirement requirement_;
-  Box box_;
+  Elements children_{};
+  Requirement requirement_{};
+  Box box_{};
 };
 
 void Render(Screen& screen, const Element& node);

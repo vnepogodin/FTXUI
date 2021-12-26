@@ -10,12 +10,12 @@ namespace ftxui {
 
 struct Canvas {
  public:
-  Canvas() {}
+  constexpr Canvas() = default;
   Canvas(int width, int height);
 
   // Getters:
-  int width() const { return width_; }
-  int height() const { return height_; }
+  constexpr int width() const { return width_; }
+  constexpr int height() const { return height_; }
   Pixel GetPixel(int x, int y) const;
 
   using Stylizer = std::function<void(Pixel&)>;
@@ -103,7 +103,7 @@ struct Canvas {
   void Style(int x, int y, const Stylizer& style);
 
  private:
-  bool IsIn(int x, int y) const {
+  constexpr bool IsIn(int x, int y) const {
     return x >= 0 && x < width_ && y >= 0 && y < height_;
   }
   enum CellType {
@@ -118,18 +118,18 @@ struct Canvas {
   struct XY {
     int x;
     int y;
-    bool operator==(const XY& other) const {
+    constexpr bool operator==(const XY& other) const {
       return x == other.x && y == other.y;
     }
   };
 
   struct XYHash {
-    size_t operator()(const XY& xy) const { return xy.x * 1024 + xy.y; }
+    constexpr size_t operator()(const XY& xy) const { return xy.x * 1024 + xy.y; }
   };
 
   int width_ = 0;
   int height_ = 0;
-  std::unordered_map<XY, Cell, XYHash> storage_;
+  std::unordered_map<XY, Cell, XYHash> storage_{};
 };
 
 }  // namespace ftxui

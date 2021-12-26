@@ -8,21 +8,12 @@
 namespace ftxui {
 
 namespace {
-const char* palette16code[16][2] = {
+constexpr const char* palette16code[16][2] = {
     {"30", "40"},  {"31", "41"},  {"32", "42"},  {"33", "43"},
     {"34", "44"},  {"35", "45"},  {"36", "46"},  {"37", "47"},
     {"90", "100"}, {"91", "101"}, {"92", "102"}, {"93", "103"},
     {"94", "104"}, {"95", "105"}, {"96", "106"}, {"97", "107"},
 };
-}
-
-bool Color::operator==(const Color& rhs) const {
-  return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ &&
-         type_ == rhs.type_;
-}
-
-bool Color::operator!=(const Color& rhs) const {
-  return !operator==(rhs);
 }
 
 std::string Color::Print(bool is_background_color) const {
@@ -44,18 +35,6 @@ std::string Color::Print(bool is_background_color) const {
   }
   return "";
 }
-
-/// @brief Build a transparent color.
-/// @ingroup screen
-Color::Color() : type_(ColorType::Palette1) {}
-
-/// @brief Build a transparent color.
-/// @ingroup screen
-Color::Color(Palette1) : type_(ColorType::Palette1) {}
-
-/// @brief Build a transparent using Palette16 colors.
-/// @ingroup screen
-Color::Color(Palette16 index) : type_(ColorType::Palette16), index_(index) {}
 
 /// @brief Build a transparent using Palette256 colors.
 /// @ingroup screen
