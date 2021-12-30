@@ -63,7 +63,7 @@ Element paragraphAlignJustify(std::string the_text) {
   static const auto config = FlexboxConfig().SetGap(1, 0).Set(
       FlexboxConfig::JustifyContent::SpaceBetween);
   Elements words = Split(std::move(the_text));
-  words.push_back(text("") | xflex);
+  words.push_back(text(std::string_view{}) | xflex);
   return flexbox(std::move(words), config);
 }
 

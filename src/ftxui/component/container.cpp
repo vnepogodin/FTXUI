@@ -1,8 +1,9 @@
 #include <stddef.h>   // for size_t
 #include <algorithm>  // for max, min
 #include <memory>  // for make_shared, __shared_ptr_access, allocator, shared_ptr, allocator_traits<>::value_type
-#include <utility>  // for move
-#include <vector>   // for vector, __alloc_traits<>::value_type
+#include <string_view>  // for std::string_view
+#include <utility>      // for move
+#include <vector>       // for vector, __alloc_traits<>::value_type
 
 #include "ftxui/component/component.hpp"  // for Horizontal, Vertical, Tab
 #include "ftxui/component/component_base.hpp"  // for Components, Component, ComponentBase
@@ -62,7 +63,7 @@ class ContainerBase : public ComponentBase {
   int selected_ = 0;
   int* selector_ = nullptr;
 
-  void MoveSelector(int dir) {
+  void MoveSelector(int dir) noexcept {
     for (int i = *selector_ + dir; i >= 0 && i < (int)children_.size();
          i += dir) {
       if (children_[i]->Focusable()) {
@@ -73,7 +74,8 @@ class ContainerBase : public ComponentBase {
   }
   void MoveSelectorWrap(int dir) {
     for (size_t offset = 1; offset < children_.size(); ++offset) {
-      int i = (*selector_ + offset * dir + children_.size()) % children_.size();
+      const auto i =
+          (*selector_ + offset * dir + children_.size()) % children_.size();
       if (children_[i]->Focusable()) {
         *selector_ = i;
         return;

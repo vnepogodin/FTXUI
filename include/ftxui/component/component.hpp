@@ -22,7 +22,7 @@ struct ToggleOption;
 struct MenuEntryOption;
 
 template <class T, class... Args>
-std::shared_ptr<T> Make(Args&&... args) {
+constexpr std::shared_ptr<T> Make(Args&&... args) {
   return std::make_shared<T>(args...);
 }
 

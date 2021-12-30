@@ -20,7 +20,7 @@ struct MenuOption {
   /// Called when the user presses enter.
   std::function<void()> on_enter = [] {};
 
-  Ref<int> focused_entry = 0;
+  Ref<int> focused_entry{0};
 };
 
 /// @brief Option for the MenuEntry component.
@@ -64,28 +64,28 @@ struct InputOption {
   std::function<void()> on_enter = [] {};
 
   /// Obscure the input content using '*'.
-  Ref<bool> password = false;
+  Ref<bool> password{false};
 
   /// When set different from -1, this attributes is used to store the cursor
   /// position.
-  Ref<int> cursor_position = -1;
+  Ref<int> cursor_position{-1};
 };
 
 /// @brief Option for the Radiobox component.
 /// @ingroup component
 struct RadioboxOption {
-  std::string style_checked = "◉ ";    ///< Prefix for a "checked" state.
-  std::string style_unchecked = "○ ";  ///< Prefix for a "unchecked" state.
-  Decorator style_normal = nothing;    ///< style.
-  Decorator style_focused = inverted;  ///< Style when focused.
-  Decorator style_selected = bold;     ///< Style when selected.
+  std::string_view style_checked = "◉ ";    ///< Prefix for a "checked" state.
+  std::string_view style_unchecked = "○ ";  ///< Prefix for a "unchecked" state.
+  Decorator style_normal = nothing;         ///< style.
+  Decorator style_focused = inverted;       ///< Style when focused.
+  Decorator style_selected = bold;          ///< Style when selected.
   Decorator style_selected_focused =
       Decorator(inverted) | bold;  ///< Style when selected and focused.
 
   /// Called when the selected entry changes.
   std::function<void()> on_change = []() {};
 
-  Ref<int> focused_entry = 0;
+  Ref<int> focused_entry{0};
 };
 
 /// @brief Option for the Toggle component.
@@ -102,7 +102,7 @@ struct ToggleOption {
   /// Called when the user presses enter.
   std::function<void()> on_enter = [] {};
 
-  Ref<int> focused_entry = 0;
+  Ref<int> focused_entry{0};
 };
 
 }  // namespace ftxui

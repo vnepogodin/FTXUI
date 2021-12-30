@@ -3,6 +3,7 @@
 
 #include <ftxui/screen/string.hpp>
 #include <string>
+#include <string_view>
 
 namespace ftxui {
 
@@ -10,32 +11,38 @@ namespace ftxui {
 template <typename T>
 class ConstRef {
  public:
-  ConstRef() {}
-  ConstRef(T t) : owned_(t) {}
-  ConstRef(const T* t) : address_(t) {}
-  const T& operator*() { return address_ ? *address_ : owned_; }
-  const T& operator()() { return address_ ? *address_ : owned_; }
-  const T* operator->() { return address_ ? address_ : &owned_; }
+  constexpr ConstRef() = default;
+  constexpr ConstRef(T t) : owned_(t) {}
+  constexpr ConstRef(const T* t) : address_(t) {}
+  constexpr const T& operator*() const noexcept {
+    return address_ ? *address_ : owned_;
+  }
+  constexpr const T& operator()() const noexcept {
+    return address_ ? *address_ : owned_;
+  }
+  constexpr const T* operator->() const noexcept {
+    return address_ ? address_ : &owned_;
+  }
 
  private:
-  T owned_;
-  const T* address_ = nullptr;
+  T owned_{};
+  const T* address_{nullptr};
 };
 
 /// @brief An adapter. Own or reference an mutable object.
 template <typename T>
 class Ref {
  public:
-  Ref() {}
+  constexpr Ref() = default;
   Ref(T t) : owned_(t) {}
   Ref(T* t) : address_(t) {}
-  T& operator*() { return address_ ? *address_ : owned_; }
-  T& operator()() { return address_ ? *address_ : owned_; }
-  T* operator->() { return address_ ? address_ : &owned_; }
+  constexpr T& operator*() noexcept { return address_ ? *address_ : owned_; }
+  constexpr T& operator()() noexcept { return address_ ? *address_ : owned_; }
+  constexpr T* operator->() noexcept { return address_ ? address_ : &owned_; }
 
  private:
-  T owned_;
-  T* address_ = nullptr;
+  T owned_{};
+  T* address_{nullptr};
 };
 
 /// @brief An adapter. Own or reference a constant string. For convenience, this
@@ -46,12 +53,16 @@ class StringRef {
   StringRef(std::string ref) : owned_(std::move(ref)) {}
   StringRef(const wchar_t* ref) : StringRef(to_string(std::wstring(ref))) {}
   StringRef(const char* ref) : StringRef(std::string(ref)) {}
-  std::string& operator*() { return address_ ? *address_ : owned_; }
-  std::string* operator->() { return address_ ? address_ : &owned_; }
+  constexpr std::string& operator*() noexcept {
+    return address_ ? *address_ : owned_;
+  }
+  constexpr std::string* operator->() noexcept {
+    return address_ ? address_ : &owned_;
+  }
 
  private:
-  std::string owned_;
-  std::string* address_ = nullptr;
+  std::string owned_{};
+  std::string* address_{nullptr};
 };
 
 /// @brief An adapter. Own or reference a constant string. For convenience, this
@@ -63,12 +74,16 @@ class WideStringRef {
   WideStringRef(const wchar_t* ref) : WideStringRef(std::wstring(ref)) {}
   WideStringRef(const char* ref)
       : WideStringRef(to_wstring(std::string(ref))) {}
-  std::wstring& operator*() { return address_ ? *address_ : owned_; }
-  std::wstring* operator->() { return address_ ? address_ : &owned_; }
+  constexpr std::wstring& operator*() noexcept {
+    return address_ ? *address_ : owned_;
+  }
+  constexpr std::wstring* operator->() noexcept {
+    return address_ ? address_ : &owned_;
+  }
 
  private:
-  std::wstring owned_;
-  std::wstring* address_ = nullptr;
+  std::wstring owned_{};
+  std::wstring* address_{nullptr};
 };
 
 /// @brief An adapter. Own or reference a constant string. For convenience, this
@@ -76,18 +91,26 @@ class WideStringRef {
 class ConstStringRef {
  public:
   ConstStringRef(const std::string* ref) : address_(ref) {}
+  ConstStringRef(const std::string_view* ref)
+      : ConstStringRef(to_wstring(std::string(ref->data()))) {}
   ConstStringRef(const std::wstring* ref) : ConstStringRef(to_string(*ref)) {}
   ConstStringRef(std::string ref) : owned_(std::move(ref)) {}
   ConstStringRef(std::wstring ref) : ConstStringRef(to_string(ref)) {}
+  ConstStringRef(std::string_view ref)
+      : ConstStringRef(to_wstring(std::string(ref.data(), ref.size()))) {}
   ConstStringRef(const wchar_t* ref) : ConstStringRef(std::wstring(ref)) {}
   ConstStringRef(const char* ref)
       : ConstStringRef(to_wstring(std::string(ref))) {}
-  const std::string& operator*() { return address_ ? *address_ : owned_; }
-  const std::string* operator->() { return address_ ? address_ : &owned_; }
+  constexpr const std::string& operator*() const noexcept {
+    return address_ ? *address_ : owned_;
+  }
+  constexpr const std::string* operator->() const noexcept {
+    return address_ ? address_ : &owned_;
+  }
 
  private:
-  const std::string owned_;
-  const std::string* address_ = nullptr;
+  const std::string owned_{};
+  const std::string* address_{nullptr};
 };
 
 /// @brief An adapter. Reference a list of strings.
@@ -96,14 +119,16 @@ class ConstStringListRef {
   ConstStringListRef(const std::vector<std::string>* ref) : ref_(ref) {}
   ConstStringListRef(const std::vector<std::wstring>* ref) : ref_wide_(ref) {}
 
-  size_t size() const { return ref_ ? ref_->size() : ref_wide_->size(); }
-  std::string operator[](size_t i) const {
+  size_t size() const noexcept {
+    return ref_ ? ref_->size() : ref_wide_->size();
+  }
+  std::string operator[](size_t i) const noexcept {
     return ref_ ? (*ref_)[i] : to_string((*ref_wide_)[i]);
   }
 
  private:
-  const std::vector<std::string>* ref_ = nullptr;
-  const std::vector<std::wstring>* ref_wide_ = nullptr;
+  const std::vector<std::string>* ref_{nullptr};
+  const std::vector<std::wstring>* ref_wide_{nullptr};
 };
 
 }  // namespace ftxui

@@ -9,14 +9,12 @@
 
 namespace ftxui {
 
-namespace {
-
-}  // namespace
+namespace {}  // namespace
 
 /// @brief Used inside a `frame`, this force the view to be scrolled toward a
 /// a given position. The position is expressed in proportion of the requested
 /// size.
-/// 
+///
 /// For instance:
 /// - (0, 0) means that the view is scrolled toward the upper left.
 /// - (1, 0) means that the view is scrolled toward the upper right.
@@ -59,7 +57,7 @@ Decorator focusPositionRelative(float x, float y) {
 
 /// @brief Used inside a `frame`, this force the view to be scrolled toward a
 /// a given position. The position is expressed in the numbers of cells.
-/// 
+///
 /// @ingroup dom
 ///
 /// ### Example

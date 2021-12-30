@@ -51,17 +51,18 @@ class InputBase : public ComponentBase {
     std::string password_content;
     if (option_->password())
       password_content = PasswordField(content_->size());
-    std::string& content = option_->password() ? password_content : *content_;
+    const std::string& content =
+        option_->password() ? password_content : *content_;
 
-    int size = GlyphCount(content);
+    const int size = GlyphCount(content);
 
     cursor_position() = std::max(0, std::min<int>(size, cursor_position()));
     auto main_decorator = flex | ftxui::size(HEIGHT, EQUAL, 1);
-    bool is_focused = Focused();
+    const bool is_focused = Focused();
 
     // placeholder.
     if (size == 0) {
-      bool hovered = hovered_;
+      const bool hovered = hovered_;
       Decorator decorator = dim | main_decorator;
       if (is_focused)
         decorator = decorator | focus | inverted;
@@ -78,9 +79,11 @@ class InputBase : public ComponentBase {
         return text(content) | main_decorator | reflect(box_);
     }
 
-    int index_before_cursor = GlyphPosition(content, cursor_position());
-    int index_after_cursor = GlyphPosition(content, 1, index_before_cursor);
-    std::string part_before_cursor = content.substr(0, index_before_cursor);
+    const int index_before_cursor = GlyphPosition(content, cursor_position());
+    const int index_after_cursor =
+        GlyphPosition(content, 1, index_before_cursor);
+    const std::string part_before_cursor =
+        content.substr(0, index_before_cursor);
     std::string part_at_cursor = " ";
     if (cursor_position() < size) {
       part_at_cursor = content.substr(index_before_cursor,
@@ -228,7 +231,9 @@ class WideInputBase : public InputBase {
   WideInputBase(WideStringRef content,
                 ConstStringRef placeholder,
                 Ref<InputOption> option)
-      : InputBase(&wrapped_content_, std::move(placeholder), std::move(option)),
+      : InputBase(StringRef{&wrapped_content_},
+                  std::move(placeholder),
+                  std::move(option)),
         content_(std::move(content)),
         wrapped_content_(to_string(*content_)) {}
 
@@ -247,7 +252,7 @@ class WideInputBase : public InputBase {
   }
 
   WideStringRef content_;
-  std::string wrapped_content_;
+  std::string wrapped_content_{};
 };
 
 }  // namespace

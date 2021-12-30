@@ -1,7 +1,8 @@
-#include <algorithm>  // for min
-#include <memory>     // for make_shared
-#include <string>     // for string, wstring
-#include <vector>     // for vector
+#include <algorithm>    // for min
+#include <memory>       // for make_shared
+#include <string>       // for string, wstring
+#include <string_view>  // for string_view
+#include <vector>       // for vector
 
 #include "ftxui/dom/deprecated.hpp"   // for text, vtext
 #include "ftxui/dom/elements.hpp"     // for Element, text, vtext
@@ -17,7 +18,9 @@ using ftxui::Screen;
 
 class Text : public Node {
  public:
-  Text(std::string text) : text_(text) {}
+  Text(const char* text) : text_(text) {}
+  Text(const std::string text) : text_(text) {}
+  Text(const std::string_view text) : text_(text) {}
 
   void ComputeRequirement() override {
     requirement_.min_x = string_width(text_);
@@ -26,7 +29,7 @@ class Text : public Node {
 
   void Render(Screen& screen) override {
     int x = box_.x_min;
-    int y = box_.y_min;
+    const int& y = box_.y_min;
     if (y > box_.y_max)
       return;
     for (const auto& cell : Utf8ToGlyphs(text_)) {
@@ -38,7 +41,7 @@ class Text : public Node {
   }
 
  private:
-  std::string text_;
+  const std::string text_{};
 };
 
 class VText : public Node {
@@ -84,7 +87,15 @@ class VText : public Node {
 /// ```bash
 /// Hello world!
 /// ```
-Element text(std::string text) {
+Element text(const std::string text) {
+  return std::make_shared<Text>(text);
+}
+
+Element text(const std::string_view text) {
+  return std::make_shared<Text>(text);
+}
+
+Element text(const char* text) {
   return std::make_shared<Text>(text);
 }
 

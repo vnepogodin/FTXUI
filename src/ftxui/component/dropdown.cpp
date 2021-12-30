@@ -1,7 +1,8 @@
-#include <algorithm>  // for max, min
-#include <memory>     // for __shared_ptr_access
-#include <string>     // for string
-#include <utility>    // for move
+#include <algorithm>    // for max, min
+#include <memory>       // for __shared_ptr_access
+#include <string>       // for string
+#include <string_view>  // for string_view
+#include <utility>      // for move
 
 #include "ftxui/component/component.hpp"  // for Maybe, Checkbox, Make, Radiobox, Vertical, Dropdown
 #include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
@@ -19,7 +20,7 @@ Component Dropdown(ConstStringListRef entries, int* selected) {
       CheckboxOption option;
       option.style_checked = "↓│";
       option.style_unchecked = "→│";
-      checkbox_ = Checkbox(&title_, &show_, option),
+      checkbox_ = Checkbox(ConstStringRef{&title_}, &show_, Ref{option}),
       radiobox_ = Radiobox(entries_, selected_);
 
       Add(Container::Vertical({
@@ -49,11 +50,11 @@ Component Dropdown(ConstStringListRef entries, int* selected) {
 
    private:
     ConstStringListRef entries_;
-    bool show_ = false;
-    int* selected_;
-    std::string title_;
-    Component checkbox_;
-    Component radiobox_;
+    bool show_{false};
+    int* selected_{};
+    std::string_view title_{};
+    Component checkbox_{};
+    Component radiobox_{};
   };
 
   return Make<Impl>(std::move(entries), selected);

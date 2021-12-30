@@ -56,22 +56,30 @@ struct Event {
   static Event Custom;
 
   //--- Method section ---------------------------------------------------------
-  bool is_character() const { return type_ == Type::Character; }
-  std::string character() const { return input_; }
+  constexpr bool is_character() const noexcept {
+    return type_ == Type::Character;
+  }
+  std::string character() const noexcept { return input_; }
 
-  bool is_mouse() const { return type_ == Type::Mouse; }
+  constexpr bool is_mouse() const noexcept { return type_ == Type::Mouse; }
   struct Mouse& mouse() {
     return mouse_;
   }
 
-  bool is_cursor_reporting() const { return type_ == Type::CursorReporting; }
-  int cursor_x() const { return cursor_.x; }
-  int cursor_y() const { return cursor_.y; }
+  constexpr bool is_cursor_reporting() const noexcept {
+    return type_ == Type::CursorReporting;
+  }
+  constexpr int cursor_x() const noexcept { return cursor_.x; }
+  constexpr int cursor_y() const noexcept { return cursor_.y; }
 
-  const std::string& input() const { return input_; }
+  const std::string& input() const noexcept { return input_; }
 
-  bool operator==(const Event& other) const { return input_ == other.input_; }
-  bool operator!=(const Event& other) const { return !operator==(other); }
+  bool operator==(const Event& other) const noexcept {
+    return input_ == other.input_;
+  }
+  bool operator!=(const Event& other) const noexcept {
+    return !operator==(other);
+  }
 
   //--- State section ----------------------------------------------------------
   ScreenInteractive* screen_ = nullptr;
@@ -85,7 +93,7 @@ struct Event {
     Mouse,
     CursorReporting,
   };
-  Type type_ = Type::Unknown;
+  Type type_{Type::Unknown};
 
   struct Cursor {
     int x;

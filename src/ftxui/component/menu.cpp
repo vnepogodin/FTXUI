@@ -28,19 +28,20 @@ class MenuBase : public ComponentBase {
 
   Element Render() override {
     Elements elements;
-    bool is_menu_focused = Focused();
+    const bool is_menu_focused = Focused();
     boxes_.resize(entries_.size());
     for (size_t i = 0; i < entries_.size(); ++i) {
-      bool is_focused = (focused_entry() == int(i)) && is_menu_focused;
-      bool is_selected = (*selected_ == int(i));
+      const bool is_focused = (focused_entry() == int(i)) && is_menu_focused;
+      const bool is_selected = (*selected_ == int(i));
 
-      auto style = is_selected ? (is_focused ? option_->style_selected_focused
-                                             : option_->style_selected)
-                               : (is_focused ? option_->style_focused
-                                             : option_->style_normal);
-      auto focus_management = !is_selected      ? nothing
-                              : is_menu_focused ? focus
-                                                : select;
+      const auto style =
+          is_selected
+              ? (is_focused ? option_->style_selected_focused
+                            : option_->style_selected)
+              : (is_focused ? option_->style_focused : option_->style_normal);
+      const auto focus_management = !is_selected      ? nothing
+                                    : is_menu_focused ? focus
+                                                      : select;
       auto icon = is_selected ? "> " : "  ";
       elements.push_back(text(icon + entries_[i]) | style | focus_management |
                          reflect(boxes_[i]));
@@ -56,7 +57,7 @@ class MenuBase : public ComponentBase {
       return OnMouseEvent(event);
 
     if (Focused()) {
-      int old_selected = *selected_;
+      const int old_selected = *selected_;
       if (event == Event::ArrowUp || event == Event::Character('k'))
         (*selected_)--;
       if (event == Event::ArrowDown || event == Event::Character('j'))
@@ -124,7 +125,7 @@ class MenuBase : public ComponentBase {
   bool OnMouseWheel(Event event) {
     if (!box_.Contain(event.mouse().x, event.mouse().y))
       return false;
-    int old_selected = *selected_;
+    const int old_selected = *selected_;
 
     if (event.mouse().button == Mouse::WheelUp)
       (*selected_)--;
@@ -143,11 +144,11 @@ class MenuBase : public ComponentBase {
 
  protected:
   ConstStringListRef entries_;
-  int* selected_ = 0;
-  Ref<MenuOption> option_;
+  int* selected_{nullptr};
+  Ref<MenuOption> option_{};
 
-  std::vector<Box> boxes_;
-  Box box_;
+  std::vector<Box> boxes_{};
+  Box box_{};
 };
 
 /// @brief A list of text. The focused element is selected.
@@ -192,14 +193,14 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
 
    private:
     Element Render() override {
-      bool focused = Focused();
-      auto style =
+      const bool focused = Focused();
+      const auto style =
           hovered_ ? (focused ? option_->style_selected_focused
                               : option_->style_selected)
                    : (focused ? option_->style_focused : option_->style_normal);
-      auto focus_management = focused ? select : nothing;
-      auto label = focused ? "> " + (*label_)  //
-                           : "  " + (*label_);
+      const auto focus_management = focused ? select : nothing;
+      auto label = focused ? "> " + std::string(*label_)  //
+                           : "  " + std::string(*label_);
       return text(label) | style | focus_management | reflect(box_);
     }
     bool Focusable() const override { return true; }
@@ -221,8 +222,8 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
       return false;
     }
     ConstStringRef label_;
-    Ref<MenuEntryOption> option_;
-    Box box_;
+    Ref<MenuEntryOption> option_{};
+    Box box_{};
     bool hovered_ = false;
   };
 

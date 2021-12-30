@@ -43,23 +43,23 @@ class RadioboxBase : public ComponentBase {
  private:
   Element Render() override {
     Elements elements;
-    bool is_menu_focused = Focused();
+    const bool is_menu_focused = Focused();
     boxes_.resize(entries_.size());
     for (size_t i = 0; i < entries_.size(); ++i) {
-      bool is_focused = (focused_entry() == int(i)) && is_menu_focused;
-      bool is_selected = (hovered_ == int(i));
+      const bool is_focused = (focused_entry() == int(i)) && is_menu_focused;
+      const bool is_selected = (hovered_ == int(i));
 
-      auto style = is_selected ? (is_focused ? option_->style_selected_focused
-                                             : option_->style_selected)
-                               : (is_focused ? option_->style_focused
-                                             : option_->style_normal);
-      auto focus_management = !is_selected      ? nothing
-                              : is_menu_focused ? focus
-                                                : select;
+      const auto style =
+          is_selected
+              ? (is_focused ? option_->style_selected_focused
+                            : option_->style_selected)
+              : (is_focused ? option_->style_focused : option_->style_normal);
+      const auto focus_management = !is_selected      ? nothing
+                                    : is_menu_focused ? focus
+                                                      : select;
 
-      const std::string& symbol = *selected_ == int(i)
-                                      ? option_->style_checked
-                                      : option_->style_unchecked;
+      const auto& symbol = *selected_ == int(i) ? option_->style_checked
+                                                : option_->style_unchecked;
       elements.push_back(hbox(text(symbol), text(entries_[i]) | style) |
                          focus_management | reflect(boxes_[i]));
     }

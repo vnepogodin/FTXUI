@@ -233,10 +233,7 @@ void Canvas::DrawPointCircle(int x, int y, int radius, const Color& color) {
 /// @param y the y coordinate of the center of the circle.
 /// @param radius the radius of the circle.
 /// @param style the style of the circle.
-void Canvas::DrawPointCircle(int x,
-                             int y,
-                             int radius,
-                             const Stylizer& style) {
+void Canvas::DrawPointCircle(int x, int y, int radius, const Stylizer& style) {
   DrawPointEllipse(x, y, radius, radius, style);
 }
 
@@ -573,10 +570,7 @@ void Canvas::DrawBlockCircle(int x, int y, int radius, const Color& color) {
 /// @param y the y coordinate of the center of the circle.
 /// @param radius the radius of the circle.
 /// @param style the style of the circle.
-void Canvas::DrawBlockCircle(int x,
-                             int y,
-                             int radius,
-                             const Stylizer& style) {
+void Canvas::DrawBlockCircle(int x, int y, int radius, const Stylizer& style) {
   DrawBlockEllipse(x, y, radius, radius, style);
 }
 
@@ -782,7 +776,7 @@ void Canvas::DrawText(int x,
     cell.type = CellType::kText;
     cell.content.character = it;
     style(cell.content);
-    x+=2;
+    x += 2;
   }
 }
 

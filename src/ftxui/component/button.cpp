@@ -25,8 +25,8 @@ class ButtonBase : public ComponentBase {
 
   // Component implementation:
   Element Render() override {
-    auto style = Focused() ? inverted : nothing;
-    auto my_border = option_->border ? border : nothing;
+    const auto style = Focused() ? inverted : nothing;
+    const auto my_border = option_->border ? border : nothing;
     return text(*label_) | my_border | style | reflect(box_);
   }
 
