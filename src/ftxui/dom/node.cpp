@@ -33,22 +33,10 @@ void Node::Check(Status* status) {
   status->need_iteration |= (status->iteration == 0);
 }
 
-#if 0
 /// @brief Display an element on a ftxui::Screen.
 /// @ingroup dom
-void Render(Screen& screen, const Element& element) {
-  Render(screen, element.get());
-}
-
-/// @brief Display an element on a ftxui::Screen.
-/// @ingroup dom
-void Render(Screen& screen, Node* node) {
-  Box box;
-  box.x_min = 0;
-  box.y_min = 0;
-  box.x_max = screen.dimx() - 1;
-  box.y_max = screen.dimy() - 1;
-
+void Render(Screen& screen, Node* node) noexcept {
+  const auto box = Box{0, screen.dimx() - 1, 0, screen.dimy() - 1};
   Node::Status status;
   node->Check(&status);
   while (status.need_iteration && status.iteration < 20) {
@@ -71,7 +59,12 @@ void Render(Screen& screen, Node* node) {
   // Step 4: Apply shaders
   screen.ApplyShader();
 }
-#endif
+
+/// @brief Display an element on a ftxui::Screen.
+/// @ingroup dom
+void Render(Screen& screen, const Element& element) noexcept {
+  Render(screen, element.get());
+}
 
 }  // namespace ftxui
 

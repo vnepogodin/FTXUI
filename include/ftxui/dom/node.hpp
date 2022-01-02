@@ -50,38 +50,8 @@ class Node {
   Box box_{};
 };
 
-/// @brief Display an element on a ftxui::Screen.
-/// @ingroup dom
-constexpr void Render(Screen& screen, Node* node) noexcept {
-  const auto box = Box{0, screen.dimx() - 1, 0, screen.dimy() - 1};
-  Node::Status status;
-  node->Check(&status);
-  while (status.need_iteration && status.iteration < 20) {
-    // Step 1: Find what dimension this elements wants to be.
-    node->ComputeRequirement();
-
-    // Step 2: Assign a dimension to the element.
-    node->SetBox(box);
-
-    // Check if the element needs another iteration of the layout algorithm.
-    status.need_iteration = false;
-    status.iteration++;
-    node->Check(&status);
-  }
-
-  // Step 3: Draw the element.
-  screen.stencil = box;
-  node->Render(screen);
-
-  // Step 4: Apply shaders
-  screen.ApplyShader();
-}
-
-/// @brief Display an element on a ftxui::Screen.
-/// @ingroup dom
-constexpr void Render(Screen& screen, const Element& element) noexcept {
-  Render(screen, element.get());
-}
+void Render(Screen& screen, Node* node) noexcept;
+void Render(Screen& screen, const Element& node) noexcept;
 
 }  // namespace ftxui
 
