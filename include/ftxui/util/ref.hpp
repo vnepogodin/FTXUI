@@ -116,13 +116,17 @@ class ConstStringRef {
 /// @brief An adapter. Reference a list of strings.
 class ConstStringListRef {
  public:
+  ConstStringListRef(const std::string* ref, const size_t size)
+      : ref_(::new std::vector<std::string>(ref, ref + size)) {}
+  ConstStringListRef(const std::wstring* ref, const size_t size)
+      : ref_wide_(::new std::vector<std::wstring>(ref, ref + size)) {}
   ConstStringListRef(const std::vector<std::string>* ref) : ref_(ref) {}
   ConstStringListRef(const std::vector<std::wstring>* ref) : ref_wide_(ref) {}
 
-  size_t size() const noexcept {
+  constexpr size_t size() const noexcept {
     return ref_ ? ref_->size() : ref_wide_->size();
   }
-  std::string operator[](size_t i) const noexcept {
+  std::string operator[](const size_t i) const noexcept {
     return ref_ ? (*ref_)[i] : to_string((*ref_wide_)[i]);
   }
 
