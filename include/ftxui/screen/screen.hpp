@@ -69,8 +69,8 @@ class Screen {
   void Print();
 
   // Get screen dimensions.
-  constexpr int dimx() { return dimx_; }
-  constexpr int dimy() { return dimy_; }
+  constexpr int dimx() const noexcept { return dimx_; }
+  constexpr int dimy() const noexcept { return dimy_; }
 
   // Move the terminal cursor n-lines up with n = dimy().
   std::string ResetPosition(bool clear = false);
@@ -89,10 +89,10 @@ class Screen {
   constexpr void SetCursor(Cursor cursor) noexcept { cursor_ = cursor; }
 
  protected:
-  int dimx_{};
-  int dimy_{};
+  int dimx_;
+  int dimy_;
   std::vector<std::vector<Pixel>> pixels_;
-  Cursor cursor_{};
+  Cursor cursor_;
 };
 
 }  // namespace ftxui

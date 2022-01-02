@@ -36,7 +36,7 @@ void Node::Check(Status* status) {
 /// @brief Display an element on a ftxui::Screen.
 /// @ingroup dom
 void Render(Screen& screen, Node* node) noexcept {
-  const auto box = Box{0, screen.dimx() - 1, 0, screen.dimy() - 1};
+  const Box box{0, screen.dimx() - 1, 0, screen.dimy() - 1};
   Node::Status status;
   node->Check(&status);
   while (status.need_iteration && status.iteration < 20) {
