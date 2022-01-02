@@ -33,6 +33,7 @@ void Node::Check(Status* status) {
   status->need_iteration |= (status->iteration == 0);
 }
 
+#if 0
 /// @brief Display an element on a ftxui::Screen.
 /// @ingroup dom
 void Render(Screen& screen, const Element& element) {
@@ -70,6 +71,7 @@ void Render(Screen& screen, Node* node) {
   // Step 4: Apply shaders
   screen.ApplyShader();
 }
+#endif
 
 }  // namespace ftxui
 

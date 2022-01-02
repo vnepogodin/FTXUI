@@ -98,12 +98,37 @@ struct FlexboxConfig {
   //    .Set(FlexboxConfig::Direction::Row)
   //    .Set(FlexboxConfig::Wrap::Wrap);
   // ```
-  FlexboxConfig& Set(FlexboxConfig::Direction);
-  FlexboxConfig& Set(FlexboxConfig::Wrap);
-  FlexboxConfig& Set(FlexboxConfig::JustifyContent);
-  FlexboxConfig& Set(FlexboxConfig::AlignItems);
-  FlexboxConfig& Set(FlexboxConfig::AlignContent);
-  FlexboxConfig& SetGap(int gap_x, int gap_y);
+
+  constexpr FlexboxConfig& Set(FlexboxConfig::Direction d) {
+    this->direction = d;
+    return *this;
+  }
+
+  constexpr FlexboxConfig& Set(FlexboxConfig::Wrap w) {
+    this->wrap = w;
+    return *this;
+  }
+
+  constexpr FlexboxConfig& Set(FlexboxConfig::JustifyContent j) {
+    this->justify_content = j;
+    return *this;
+  }
+
+  constexpr FlexboxConfig& Set(FlexboxConfig::AlignItems a) {
+    this->align_items = a;
+    return *this;
+  }
+
+  constexpr FlexboxConfig& Set(FlexboxConfig::AlignContent a) {
+    this->align_content = a;
+    return *this;
+  }
+
+  constexpr FlexboxConfig& SetGap(int x, int y) {
+    this->gap_x = x;
+    this->gap_y = y;
+    return *this;
+  }
 };
 
 }  // namespace ftxui

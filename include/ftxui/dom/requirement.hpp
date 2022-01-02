@@ -23,7 +23,7 @@ struct Requirement {
     FOCUSED = 2,
   };
   Selection selection = NORMAL;
-  Box selected_box;
+  Box selected_box{};
 };
 
 }  // namespace ftxui

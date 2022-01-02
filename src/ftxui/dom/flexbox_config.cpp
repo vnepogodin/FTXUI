@@ -2,6 +2,7 @@
 
 namespace ftxui {
 
+#if 0
 FlexboxConfig& FlexboxConfig::Set(FlexboxConfig::Direction d) {
   this->direction = d;
   return *this;
@@ -32,6 +33,7 @@ FlexboxConfig& FlexboxConfig::SetGap(int x, int y) {
   this->gap_y = y;
   return *this;
 }
+#endif
 
 }  // namespace ftxui
 
