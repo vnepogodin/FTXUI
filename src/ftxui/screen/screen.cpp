@@ -19,24 +19,24 @@
 namespace ftxui {
 
 namespace {
-static const char BOLD_SET[] = "\x1B[1m";
-static const char BOLD_RESET[] = "\x1B[22m";  // Can't use 21 here.
+static constexpr const char BOLD_SET[] = "\x1B[1m";
+static constexpr const char BOLD_RESET[] = "\x1B[22m";  // Can't use 21 here.
 
-static const char DIM_SET[] = "\x1B[2m";
-static const char DIM_RESET[] = "\x1B[22m";
+static constexpr const char DIM_SET[] = "\x1B[2m";
+static constexpr const char DIM_RESET[] = "\x1B[22m";
 
-static const char UNDERLINED_SET[] = "\x1B[4m";
-static const char UNDERLINED_RESET[] = "\x1B[24m";
+static constexpr const char UNDERLINED_SET[] = "\x1B[4m";
+static constexpr const char UNDERLINED_RESET[] = "\x1B[24m";
 
-static const char BLINK_SET[] = "\x1B[5m";
-static const char BLINK_RESET[] = "\x1B[25m";
+static constexpr const char BLINK_SET[] = "\x1B[5m";
+static constexpr const char BLINK_RESET[] = "\x1B[25m";
 
-static const char INVERTED_SET[] = "\x1B[7m";
-static const char INVERTED_RESET[] = "\x1B[27m";
+static constexpr const char INVERTED_SET[] = "\x1B[7m";
+static constexpr const char INVERTED_RESET[] = "\x1B[27m";
 
-static const char MOVE_LEFT[] = "\r";
-static const char MOVE_UP[] = "\x1B[1A";
-static const char CLEAR_LINE[] = "\x1B[2K";
+static constexpr const char MOVE_LEFT[] = "\r";
+static constexpr const char MOVE_UP[] = "\x1B[1A";
+static constexpr const char CLEAR_LINE[] = "\x1B[2K";
 
 Pixel dev_null_pixel;
 
@@ -98,7 +98,7 @@ struct TileEncoding {
   unsigned int round : 1;
 
   // clang-format off
-  bool operator<(const TileEncoding& other) const {
+  constexpr bool operator<(const TileEncoding& other) const {
     if (left < other.left) return true;
     if (left > other.left) return false;
     if (top < other.top) return true;
@@ -319,17 +319,10 @@ void UpgradeTopDown(std::string& top, std::string& down) {
 
 }  // namespace
 
-/// A fixed dimension.
-/// @see Fit
-/// @see Full
-Dimensions Dimension::Fixed(int v) {
-  return {v, v};
-}
-
 /// Use the terminal dimensions.
 /// @see Fixed
 /// @see Fit
-Dimensions Dimension::Full() {
+Dimensions Dimension::Full() noexcept {
   return Terminal::Size();
 }
 

@@ -40,8 +40,15 @@ struct Pixel {
 /// @brief Define how the Screen's dimensions should look like.
 /// @ingroup screen
 namespace Dimension {
-Dimensions Fixed(int);
-Dimensions Full();
+
+/// A fixed dimension.
+/// @see Fit
+/// @see Full
+constexpr Dimensions Fixed(int v) {
+  return {v, v};
+}
+Dimensions Full() noexcept;
+
 }  // namespace Dimension
 
 /// @brief A rectangular grid of Pixel.
@@ -62,8 +69,8 @@ class Screen {
   void Print();
 
   // Get screen dimensions.
-  int dimx() { return dimx_; }
-  int dimy() { return dimy_; }
+  constexpr int dimx() { return dimx_; }
+  constexpr int dimy() { return dimy_; }
 
   // Move the terminal cursor n-lines up with n = dimy().
   std::string ResetPosition(bool clear = false);
@@ -78,14 +85,14 @@ class Screen {
     int x = 0;
     int y = 0;
   };
-  Cursor cursor() const { return cursor_; }
-  void SetCursor(Cursor cursor) { cursor_ = cursor; }
+  constexpr Cursor cursor() const noexcept { return cursor_; }
+  constexpr void SetCursor(Cursor cursor) noexcept { cursor_ = cursor; }
 
  protected:
-  int dimx_;
-  int dimy_;
+  int dimx_{};
+  int dimy_{};
   std::vector<std::vector<Pixel>> pixels_;
-  Cursor cursor_;
+  Cursor cursor_{};
 };
 
 }  // namespace ftxui

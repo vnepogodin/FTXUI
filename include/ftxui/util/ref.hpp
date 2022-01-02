@@ -123,7 +123,7 @@ class ConstStringListRef {
   ConstStringListRef(const std::vector<std::string>* ref) : ref_(ref) {}
   ConstStringListRef(const std::vector<std::wstring>* ref) : ref_wide_(ref) {}
 
-  constexpr size_t size() const noexcept {
+  size_t size() const noexcept {
     return ref_ ? ref_->size() : ref_wide_->size();
   }
   std::string operator[](const size_t i) const noexcept {
