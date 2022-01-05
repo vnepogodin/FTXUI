@@ -23,9 +23,7 @@ else()
 endif()
 
 add_library(screen
-  src/ftxui/screen/box.cpp
   src/ftxui/screen/color.cpp
-  src/ftxui/screen/color_info.cpp
   src/ftxui/screen/screen.cpp
   src/ftxui/screen/string.cpp
   src/ftxui/screen/terminal.cpp
@@ -56,7 +54,6 @@ add_library(dom
   src/ftxui/dom/dim.cpp
   src/ftxui/dom/flex.cpp
   src/ftxui/dom/flexbox.cpp
-  src/ftxui/dom/flexbox_config.cpp
   src/ftxui/dom/flexbox_helper.cpp
   src/ftxui/dom/flexbox_helper.hpp
   src/ftxui/dom/focus.cpp

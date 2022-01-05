@@ -52,7 +52,7 @@ Component Dropdown(ConstStringListRef entries, int* selected) {
     ConstStringListRef entries_;
     bool show_{false};
     int* selected_{};
-    std::string_view title_{};
+    std::string title_{};
     Component checkbox_{};
     Component radiobox_{};
   };
