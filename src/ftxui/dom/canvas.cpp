@@ -1,9 +1,20 @@
 #include "ftxui/dom/canvas.hpp"
 
-#include <map>
+#include <stdlib.h>   // for abs
+#include <algorithm>  // for max, min
+#include <cstdint>    // for uint8_t
+#include <map>        // for allocator, map
+#include <memory>     // for make_shared
+#include <utility>    // for move, pair
+#include <vector>     // for vector
 
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/screen/screen.hpp"
+#include "ftxui/dom/elements.hpp"     // for Element, canvas
+#include "ftxui/dom/node.hpp"         // for Node
+#include "ftxui/dom/requirement.hpp"  // for Requirement
+#include "ftxui/screen/box.hpp"       // for Box
+#include "ftxui/screen/screen.hpp"    // for Pixel, Screen
+#include "ftxui/screen/string.hpp"    // for Utf8ToGlyphs
+#include "ftxui/util/ref.hpp"         // for ConstRef
 
 namespace ftxui {
 
@@ -862,3 +873,7 @@ Element canvas(std::function<void(Canvas&)> fn) {
 }
 
 }  // namespace ftxui
+
+// Copyright 2021 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
