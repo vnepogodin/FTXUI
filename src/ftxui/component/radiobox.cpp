@@ -58,7 +58,7 @@ class RadioboxBase : public ComponentBase {
                                     : is_menu_focused ? focus
                                                       : select;
 
-      const std::string& symbol =
+      const auto& symbol =
           *selected_ == i ? option_->style_checked : option_->style_unchecked;
       elements.push_back(hbox(text(symbol), text(entries_[i]) | style) |
                          focus_management | reflect(boxes_[i]));
