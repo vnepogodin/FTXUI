@@ -49,10 +49,11 @@ class RadioboxBase : public ComponentBase {
       const bool is_focused = (focused_entry() == i) && is_menu_focused;
       const bool is_selected = (hovered_ == i);
 
-      const auto style = is_selected ? (is_focused ? option_->style_selected_focused
-                                                   : option_->style_selected)
-                                     : (is_focused ? option_->style_focused
-                                                   : option_->style_normal);
+      const auto style =
+          is_selected
+              ? (is_focused ? option_->style_selected_focused
+                            : option_->style_selected)
+              : (is_focused ? option_->style_focused : option_->style_normal);
       const auto focus_management = !is_selected      ? nothing
                                     : is_menu_focused ? focus
                                                       : select;
