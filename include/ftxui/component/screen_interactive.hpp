@@ -31,9 +31,10 @@ class ScreenInteractive : public Screen {
   void PostEvent(Event event);
   CapturedMouse CaptureMouse();
 
- private:
   void Install();
   void Uninstall();
+
+ private:
   void Main(Component component);
   ScreenInteractive* suspended_screen_ = nullptr;
 
