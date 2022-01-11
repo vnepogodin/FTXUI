@@ -63,6 +63,7 @@ void execute_interactive() {
   int selected = 0;
   auto ok_callback = [&] {
     screen.Uninstall();
+    std::cout << screen.ResetPosition(true) << std::flush;
     system(entries[selected].c_str());
     screen.Install();
 
