@@ -42,10 +42,13 @@ void menu_widget(const std::vector<std::string>& entries,
 
   auto renderer = Renderer(global, [&] {
     return hbox({
-        border(vbox({
-            global->Render(),
-        })),
-    });
+               filler(),
+               border(vbox({
+                   global->Render(),
+               })),
+               filler(),
+           }) |
+           center;
   });
   screen->Loop(renderer);
 }
@@ -53,7 +56,7 @@ void menu_widget(const std::vector<std::string>& entries,
 }  // namespace helper
 
 void execute_interactive() {
-  auto screen = ScreenInteractive::TerminalOutput();
+  auto screen = ScreenInteractive::Fullscreen();
 
   const std::vector<std::string> entries = {
       "bash",
@@ -62,10 +65,9 @@ void execute_interactive() {
   };
   int selected = 0;
   auto ok_callback = [&] {
-    screen.Uninstall();
-    std::cout << screen.ResetPosition(true) << std::flush;
-    system(entries[selected].c_str());
-    screen.Install();
+    screen.Suspend();
+    static_cast<void>(system(entries[selected].c_str()));
+    screen.Resume();
 
     screen.ExitLoopClosure()();
   };
@@ -74,7 +76,7 @@ void execute_interactive() {
 }
 
 int main() {
-  auto screen = ScreenInteractive::TerminalOutput();
+  auto screen = ScreenInteractive::Fullscreen();
 
   const std::vector<std::string> entries = {
       "Interactive",

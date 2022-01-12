@@ -31,10 +31,13 @@ class ScreenInteractive : public Screen {
   void PostEvent(Event event);
   CapturedMouse CaptureMouse();
 
+  void Resume();
+  void Suspend();
+
+ private:
   void Install();
   void Uninstall();
 
- private:
   void Main(Component component);
   ScreenInteractive* suspended_screen_ = nullptr;
 
@@ -66,6 +69,7 @@ class ScreenInteractive : public Screen {
   int cursor_x_ = 1;
   int cursor_y_ = 1;
 
+  bool suspended_ = false;
   bool mouse_captured = false;
   bool previous_frame_resized_ = false;
 };

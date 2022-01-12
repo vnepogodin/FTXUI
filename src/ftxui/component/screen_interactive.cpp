@@ -311,6 +311,20 @@ void ScreenInteractive::Loop(Component component) {
   }
 }
 
+void ScreenInteractive::Resume() {
+  // Restore this screen
+  if (suspended_) {
+    Install();
+  }
+}
+
+void ScreenInteractive::Suspend() {
+  // Suspend this screen
+  suspended_ = true;
+  Uninstall();
+  std::cout << ResetPosition(/*clear=*/true) << std::flush;
+}
+
 void ScreenInteractive::Install() {
   on_exit_functions.push([this] { ExitLoopClosure()(); });
 
