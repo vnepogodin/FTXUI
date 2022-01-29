@@ -322,6 +322,19 @@ ScreenInteractive::Callback ScreenInteractive::WithRestoredIO(Callback fn) {
   };
 }
 
+void ScreenInteractive::Resume() {
+  // Restore this screen
+  if (suspended_) {
+    Install();
+  }
+}
+
+void ScreenInteractive::Suspend() {
+  // Suspend this screen
+  suspended_ = true;
+  Uninstall();
+}
+
 void ScreenInteractive::Install() {
   // After uninstalling the new configuration, flush it to the terminal to
   // ensure it is fully applied:

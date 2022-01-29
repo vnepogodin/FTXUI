@@ -38,6 +38,9 @@ class ScreenInteractive : public Screen {
   // temporarily uninstalled.
   Callback WithRestoredIO(Callback);
 
+  void Resume();
+  void Suspend();
+
  private:
   void Install();
   void Uninstall();
