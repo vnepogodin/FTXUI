@@ -94,7 +94,7 @@ Element ComponentBase::Render() {
 /// true. If none returns true, return false.
 /// @ingroup component
 bool ComponentBase::OnEvent(Event event) {
-  for (Component& child : children_) {
+  for (const Component& child : children_) {
     if (child->OnEvent(event))
       return true;
   }

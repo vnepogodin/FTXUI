@@ -59,7 +59,7 @@ struct Event {
   constexpr bool is_character() const noexcept {
     return type_ == Type::Character;
   }
-  std::string character() const noexcept { return input_; }
+  inline std::string character() const noexcept { return input_; }
 
   constexpr bool is_mouse() const noexcept { return type_ == Type::Mouse; }
   struct Mouse& mouse() {
@@ -74,10 +74,10 @@ struct Event {
 
   const std::string& input() const noexcept { return input_; }
 
-  bool operator==(const Event& other) const noexcept {
+  inline bool operator==(const Event& other) const noexcept {
     return input_ == other.input_;
   }
-  bool operator!=(const Event& other) const noexcept {
+  inline bool operator!=(const Event& other) const noexcept {
     return !operator==(other);
   }
 
