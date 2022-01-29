@@ -20,19 +20,23 @@ using Component = std::shared_ptr<ComponentBase>;
 
 class ScreenInteractive : public Screen {
  public:
+  using Callback = std::function<void()>;
+
   static ScreenInteractive FixedSize(int dimx, int dimy);
   static ScreenInteractive Fullscreen();
   static ScreenInteractive FitComponent();
   static ScreenInteractive TerminalOutput();
 
   void Loop(Component);
-  std::function<void()> ExitLoopClosure();
+  Callback ExitLoopClosure();
 
   void PostEvent(Event event);
   CapturedMouse CaptureMouse();
 
-  void Resume();
-  void Suspend();
+  // Decorate a function. The outputted one will execute similarly to the
+  // inputted one, but with the currently active screen terminal hooks
+  // temporarily uninstalled.
+  Callback WithRestoredIO(Callback);
 
  private:
   void Install();

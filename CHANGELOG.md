@@ -20,9 +20,13 @@ unreleased (development)
   - `paragraphAlignJustify`
 - Add the helper elements based on `flexbox`: `hflow()`, `vflow()`.
 - Add: `focusPositionRelative` and `focusPosition`
+- Add `Table` constructor from 2D vector of Element, instead of string.
 
 #### Component 
 - Add the `collapsible` component.
+- Add the `ScreenInteractive::WithRestoredIO`. This decorates a callback. This
+  runs it with the terminal hooks temporarilly uninstalled. This is useful if
+  you want to execute command using directly stdin/stdout/sterr.
 
 ### Bug
 

@@ -27,11 +27,7 @@ add_library(screen
   src/ftxui/screen/screen.cpp
   src/ftxui/screen/string.cpp
   src/ftxui/screen/terminal.cpp
-  include/ftxui/screen/box.hpp
-  include/ftxui/screen/color.hpp
-  include/ftxui/screen/color_info.hpp
-  include/ftxui/screen/screen.hpp
-  include/ftxui/screen/string.hpp
+  src/ftxui/screen/util.hpp
 )
 
 add_library(dom
