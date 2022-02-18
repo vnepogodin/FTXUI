@@ -7,9 +7,11 @@
 #include <memory>                        // for shared_ptr
 #include <string>                        // for string
 #include <thread>                        // for thread
+#include <variant>                       // for variant
 
 #include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse
 #include "ftxui/component/event.hpp"           // for Event
+#include "ftxui/component/task.hpp"            // for Closure, Task
 #include "ftxui/screen/screen.hpp"             // for Screen
 
 namespace ftxui {
@@ -17,6 +19,7 @@ class ComponentBase;
 struct Event;
 
 using Component = std::shared_ptr<ComponentBase>;
+class ScreenInteractivePrivate;
 
 class ScreenInteractive : public Screen {
  public:
@@ -28,15 +31,17 @@ class ScreenInteractive : public Screen {
   static ScreenInteractive TerminalOutput();
 
   void Loop(Component);
-  Callback ExitLoopClosure();
+  Closure ExitLoopClosure();
 
+  void Post(Task task);
   void PostEvent(Event event);
+
   CapturedMouse CaptureMouse();
 
   // Decorate a function. The outputted one will execute similarly to the
   // inputted one, but with the currently active screen terminal hooks
   // temporarily uninstalled.
-  Callback WithRestoredIO(Callback);
+  Closure WithRestoredIO(Closure);
 
   void Resume();
   void Suspend();
@@ -46,11 +51,11 @@ class ScreenInteractive : public Screen {
   void Uninstall();
 
   void Main(Component component);
-  ScreenInteractive* suspended_screen_ = nullptr;
 
   void Draw(Component component);
-  void EventLoop(Component component);
+  void SigStop();
 
+  ScreenInteractive* suspended_screen_ = nullptr;
   enum class Dimension {
     FitComponent,
     Fixed,
@@ -64,8 +69,8 @@ class ScreenInteractive : public Screen {
                     Dimension dimension,
                     bool use_alternative_screen);
 
-  Sender<Event> event_sender_;
-  Receiver<Event> event_receiver_;
+  Sender<Task> task_sender_;
+  Receiver<Task> task_receiver_;
 
   std::string set_cursor_position;
   std::string reset_cursor_position;
@@ -79,6 +84,13 @@ class ScreenInteractive : public Screen {
   bool suspended_ = false;
   bool mouse_captured = false;
   bool previous_frame_resized_ = false;
+
+ public:
+  class Private {
+   public:
+    static void SigStop(ScreenInteractive& s) { return s.SigStop(); }
+  };
+  friend Private;
 };
 
 }  // namespace ftxui

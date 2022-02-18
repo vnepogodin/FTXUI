@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(ftxui
   LANGUAGES CXX
-  VERSION 0.11.1
+  VERSION 2.0.0
 )
 
 option(FTXUI_BUILD_DOCS "Set to ON to build docs" ON)
@@ -37,6 +37,7 @@ add_library(dom
   include/ftxui/dom/node.hpp
   include/ftxui/dom/requirement.hpp
   include/ftxui/dom/take_any_args.hpp
+  src/ftxui/dom/automerge.cpp
   src/ftxui/dom/blink.cpp
   src/ftxui/dom/bold.cpp
   src/ftxui/dom/border.cpp
@@ -82,6 +83,7 @@ add_library(component
   include/ftxui/component/mouse.hpp
   include/ftxui/component/receiver.hpp
   include/ftxui/component/screen_interactive.hpp
+  include/ftxui/component/task.hpp
   src/ftxui/component/button.cpp
   src/ftxui/component/catch_event.cpp
   src/ftxui/component/checkbox.cpp

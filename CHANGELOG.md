@@ -1,10 +1,37 @@
 Changelog
 =========
 
-unreleased (development) 
-------------------------
+current (development) 
+---------------------
+
+#### DOM:
+- The `inverted` decorator now toggle in the inverted attribute.
+- Add `gauge` for the 4 directions. Expose the following API:
+```cpp
+Element gauge(float ratio);
+Element gaugeLeft(float ratio);
+Element gaugeRight(float ratio);
+Element gaugeUp(float ratio);
+Element gaugeDown(float ratio);
+Element gaugeDirection(float ratio, GaugeDirection);
+```
+- Add the `automerge` decorator. This makes separator characters to be merged
+  with others nearby.
+- Fix the `Table` rendering function, to allow automerging characters.
+- Bugfix: The `vscroll_indicator` now computes its offset and size correctly.
+
+#### Component
+- Support SIGTSTP. (ctrl+z).
+- Support task posting. `ScreenInteractive::Post(Task)`.
+
+2.0.0
+-----
 
 ### Features:
+
+#### Screen
+- Add the `automerge` to the Pixel bit field. This now controls which pixels are
+  automatically merged.
 
 #### DOM:
 - Add the `Canvas` class and `ElementFrom('canvas')` function. Together users of
@@ -29,6 +56,9 @@ unreleased (development)
   you want to execute command using directly stdin/stdout/sterr.
 
 ### Bug
+
+#### Table
+- The `table` horizontal and vertical separator are now correctly expanded.
 
 #### Component 
 - `Input` shouldn't take focus when hovered by the mouse.

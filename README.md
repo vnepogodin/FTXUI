@@ -312,6 +312,7 @@ Feel free to add your projects here:
 - [TimeAccumulator](https://github.com/asari555/TimeAccumulator)
 - [vantage](https://github.com/gokulmaxi/vantage)
 - [tabdeeli](https://github.com/typon/tabdeeli)
+- [tiles](https://github.com/tusharpm/tiles)
 
 ## Hosted on
  * [github](https://github.com/ArthurSonzogni/ftxui)
@@ -325,3 +326,9 @@ way you can specify which commit you would like to depends on.
 If you don't, the following packages have been created:
 - vcpkg ([soon](https://github.com/ArthurSonzogni/FTXUI/issues/112))
 - [Arch Linux PKGBUILD](https://aur.archlinux.org/packages/ftxui-git/).
+
+## Contributors
+
+<a href="https://github.com/ArthurSonzogni/FTXUI/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ArthurSonzogni/FTXUI" />
+</a>
