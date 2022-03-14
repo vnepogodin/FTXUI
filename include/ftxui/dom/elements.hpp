@@ -21,12 +21,14 @@ using Decorator = std::function<Element(Element)>;
 using GraphFunction = std::function<std::vector<int>(int, int)>;
 
 enum BorderStyle { LIGHT, HEAVY, DOUBLE, ROUNDED, EMPTY };
+enum class GaugeDirection { Left, Up, Right, Down };
 
 // Pipe elements into decorator togethers.
 // For instance the next lines are equivalents:
 // -> text("ftxui") | bold | underlined
 // -> underlined(bold(text("FTXUI")))
 Element operator|(Element, Decorator);
+Element& operator|=(Element&, Decorator);
 Elements operator|(Elements, Decorator);
 Decorator operator|(Decorator, Decorator);
 
@@ -41,7 +43,20 @@ Element separatorEmpty();
 Element separatorStyled(BorderStyle);
 Element separator(Pixel);
 Element separatorCharacter(std::string);
+Element separatorHSelector(float left,
+                           float right,
+                           Color background,
+                           Color foreground);
+Element separatorVSelector(float up,
+                           float down,
+                           Color background,
+                           Color foreground);
 Element gauge(float ratio);
+Element gaugeLeft(float ratio);
+Element gaugeRight(float ratio);
+Element gaugeUp(float ratio);
+Element gaugeDown(float ratio);
+Element gaugeDirection(float ratio, GaugeDirection);
 Element border(Element);
 Element borderLight(Element);
 Element borderHeavy(Element);
@@ -75,6 +90,7 @@ Element color(Color, Element);
 Element bgcolor(Color, Element);
 Decorator focusPosition(int x, int y);
 Decorator focusPositionRelative(float x, float y);
+Element automerge(Element);
 
 // --- Layout is
 // Horizontal, Vertical or stacked set of elements.

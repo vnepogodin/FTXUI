@@ -1,4 +1,3 @@
-#include <stddef.h>                // for size_t
 #include <stdio.h>                 // for getchar
 #include <ftxui/dom/elements.hpp>  // for operator|, Element, size, text, hcenter, Fit, vflow, window, EQUAL, bold, border, dim, HEIGHT, WIDTH
 #include <ftxui/screen/screen.hpp>  // for Full, Screen
@@ -10,7 +9,7 @@
 
 int main(int argc, const char* argv[]) {
   using namespace ftxui;
-  auto make_box = [](size_t dimx, size_t dimy) {
+  auto make_box = [](int dimx, int dimy) {
     std::string title = std::to_string(dimx) + "x" + std::to_string(dimy);
     return window(text(title) | hcenter | bold,
                   text("content") | hcenter | dim) |

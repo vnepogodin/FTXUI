@@ -11,7 +11,7 @@
   
   <br/>
   <a href="https://arthursonzogni.github.io/FTXUI/">Documentation</a> ·
-  <a href="https://github.com/ArthurSonzogni/FTXUI/issues">Report Bug</a> ·
+  <a href="https://github.com/ArthurSonzogni/FTXUI/issues">Report a Bug</a> ·
   <a href="https://arthursonzogni.github.io/FTXUI/examples.html">Examples</a> .
   <a href="https://github.com/ArthurSonzogni/FTXUI/issues">Request Feature</a> ·
   <a href="https://github.com/ArthurSonzogni/FTXUI/pulls">Send a Pull Request</a>
@@ -22,21 +22,21 @@
 
 <i>Functional Terminal (X) User interface</i>
 
-A simple C++ library for terminal based user interface.
+A simple C++ library for terminal based user interfaces!
 
 ## Feature
  * Functional style. Inspired by
    [[1]](https://hackernoon.com/building-reactive-terminal-interfaces-in-c-d392ce34e649?gi=d9fb9ce35901)
    and [React](https://reactjs.org/)
- * Simple and elegant syntax (in my opinion).
- * Support for [UTF8](https://en.wikipedia.org/wiki/UTF-8) and [fullwidth chars](https://en.wikipedia.org/wiki/Halfwidth_and_fullwidth_forms) (→ 测试).
- * No dependencies.
- * Cross platform. Linux/mac (main target), Windows (experimental thanks to contributors), WebAssembly.
- * Keyboard & mouse navigation.
+ * Simple and elegant syntax (in my opinion)
+ * Support for [UTF8](https://en.wikipedia.org/wiki/UTF-8) and [fullwidth chars](https://en.wikipedia.org/wiki/Halfwidth_and_fullwidth_forms) (→ 测试)
+ * No dependencies
+ * Cross platform. Linux/MacOS (main target), Windows (experimental thanks to contributors), WebAssembly
+ * Keyboard & mouse navigation
 
 ## Operating systems
 
-- Webassembly
+- WebAssembly
 - Linux
 - MacOS
 - Windows
@@ -120,13 +120,13 @@ An element can be decorated using the functions:
 
 ![image](https://user-images.githubusercontent.com/4759106/147244118-380bf834-9e33-40df-9ff0-07c10f2598ef.png)
   
-FTXUI support the pipe operator. It means: `decorator1(decorator2(element))` and `element | decorator1 | decorator2` can be used.
+FTXUI supports the pipe operator. It means: `decorator1(decorator2(element))` and `element | decorator1 | decorator2` can be used.
   
 </details>
 
 <details><summary>Colors</summary>
 
-FTXUI support every color palettes:
+FTXUI support every color palette:
 
 Color [gallery](https://arthursonzogni.github.io/FTXUI/examples_2dom_2color_gallery_8cpp-example.html):
 ![image](https://user-images.githubusercontent.com/4759106/147248595-04c7245a-5b85-4544-809d-a5984fc6f9e7.png)
@@ -156,7 +156,7 @@ auto document = vbox({
 
 A simple piece of text is represented using `text("content")`.
 
-To support text wrapping following spaces the following function are provided:
+To support text wrapping following spaces the following functions are provided:
 ```cpp
 Element paragraph(std::string text);
 Element paragraphAlignLeft(std::string text);
@@ -312,6 +312,8 @@ Feel free to add your projects here:
 - [TimeAccumulator](https://github.com/asari555/TimeAccumulator)
 - [vantage](https://github.com/gokulmaxi/vantage)
 - [tabdeeli](https://github.com/typon/tabdeeli)
+- [tiles](https://github.com/tusharpm/tiles)
+- [cachyos-cli-installer](https://github.com/cachyos/new-cli-installer)
 
 ## Hosted on
  * [github](https://github.com/ArthurSonzogni/ftxui)
@@ -319,9 +321,30 @@ Feel free to add your projects here:
 
 ## External package
 
-It is **highly** recommanded to use cmake FetchContent to depends on FTXUI. This
-way you can specify which commit you would like to depends on.
+It is **highly** recommended to use CMake FetchContent to depend on FTXUI. This
+way you can specify which commit you would like to depend on.
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+  GIT_TAG v2.0.0
+)
+
+FetchContent_GetProperties(ftxui)
+if(NOT ftxui_POPULATED)
+  FetchContent_Populate(ftxui)
+  add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+```
 
 If you don't, the following packages have been created:
-- vcpkg ([soon](https://github.com/ArthurSonzogni/FTXUI/issues/112))
+- [vcpkg](https://vcpkg.info/port/ftxui)
 - [Arch Linux PKGBUILD](https://aur.archlinux.org/packages/ftxui-git/).
+- [conan.io](https://conan.io/center/ftxui)
+
+## Contributors
+
+<a href="https://github.com/ArthurSonzogni/FTXUI/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ArthurSonzogni/FTXUI" />
+</a>

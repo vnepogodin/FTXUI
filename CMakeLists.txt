@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(ftxui
   LANGUAGES CXX
-  VERSION 0.11.1
+  VERSION 2.0.0
 )
 
 option(FTXUI_BUILD_DOCS "Set to ON to build docs" ON)
@@ -44,6 +44,7 @@ add_library(dom
   include/ftxui/dom/node.hpp
   include/ftxui/dom/requirement.hpp
   include/ftxui/dom/take_any_args.hpp
+  src/ftxui/dom/automerge.cpp
   src/ftxui/dom/blink.cpp
   src/ftxui/dom/bold.cpp
   src/ftxui/dom/border.cpp
@@ -83,18 +84,23 @@ add_library(dom
 )
 
 add_library(component
+  include/ftxui/component/animation.hpp
   include/ftxui/component/captured_mouse.hpp
   include/ftxui/component/component.hpp
   include/ftxui/component/component_base.hpp
+  include/ftxui/component/component_options.hpp
   include/ftxui/component/event.hpp
   include/ftxui/component/mouse.hpp
   include/ftxui/component/receiver.hpp
   include/ftxui/component/screen_interactive.hpp
+  include/ftxui/component/task.hpp
+  src/ftxui/component/animation.cpp
   src/ftxui/component/button.cpp
   src/ftxui/component/catch_event.cpp
   src/ftxui/component/checkbox.cpp
   src/ftxui/component/collapsible.cpp
   src/ftxui/component/component.cpp
+  src/ftxui/component/component_options.cpp
   src/ftxui/component/container.cpp
   src/ftxui/component/dropdown.cpp
   src/ftxui/component/event.cpp
@@ -109,7 +115,7 @@ add_library(component
   src/ftxui/component/slider.cpp
   src/ftxui/component/terminal_input_parser.cpp
   src/ftxui/component/terminal_input_parser.hpp
-  src/ftxui/component/toggle.cpp
+  src/ftxui/component/util.cpp
 )
 
 target_link_libraries(dom

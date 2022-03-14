@@ -13,9 +13,9 @@ class ConstRef {
   ConstRef() {}
   ConstRef(T t) : owned_(t) {}
   ConstRef(const T* t) : address_(t) {}
-  const T& operator*() { return address_ ? *address_ : owned_; }
-  const T& operator()() { return address_ ? *address_ : owned_; }
-  const T* operator->() { return address_ ? address_ : &owned_; }
+  const T& operator*() const { return address_ ? *address_ : owned_; }
+  const T& operator()() const { return address_ ? *address_ : owned_; }
+  const T* operator->() const { return address_ ? address_ : &owned_; }
 
  private:
   T owned_;
@@ -27,7 +27,8 @@ template <typename T>
 class Ref {
  public:
   Ref() {}
-  Ref(T t) : owned_(t) {}
+  Ref(const T& t) : owned_(t) {}
+  Ref(T&& t) : owned_(std::forward<T>(t)) {}
   Ref(T* t) : address_(t) {}
   T& operator*() { return address_ ? *address_ : owned_; }
   T& operator()() { return address_ ? *address_ : owned_; }
@@ -82,8 +83,10 @@ class ConstStringRef {
   ConstStringRef(const wchar_t* ref) : ConstStringRef(std::wstring(ref)) {}
   ConstStringRef(const char* ref)
       : ConstStringRef(to_wstring(std::string(ref))) {}
-  const std::string& operator*() { return address_ ? *address_ : owned_; }
-  const std::string* operator->() { return address_ ? address_ : &owned_; }
+  const std::string& operator*() const { return address_ ? *address_ : owned_; }
+  const std::string* operator->() const {
+    return address_ ? address_ : &owned_;
+  }
 
  private:
   const std::string owned_;

@@ -4,7 +4,7 @@
 namespace ftxui {
 
 // clang-format off
-const ColorInfo palette256[] = {
+static constexpr const ColorInfo palette256[] = {
      {"Black"              , 0   , 0  , 0   , 0   , 0   , 0   , 0   , 0   } ,
      {"Red"                , 1   , 1  , 128 , 0   , 0   , 0   , 255 , 128 } ,
      {"Green"              , 2   , 2  , 0   , 128 , 0   , 85  , 255 , 128 } ,

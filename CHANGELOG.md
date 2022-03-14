@@ -1,10 +1,71 @@
 Changelog
 =========
 
-unreleased (development) 
-------------------------
+current (development) 
+---------------------
+
+### Build
+- **breaking**: The library prefix is now back to "lib" (the default). This
+    means non-cmake users should not link against "libftxui-dom" for instance.
+
+### Component
+- Animations module! Components can implement the `OnAnimation` method and the
+  animation::Animator to define some animated properties.
+  - `Menu` now support animations.
+  - `Button` now supports animations.
+- Support SIGTSTP. (ctrl+z).
+- Support task posting. `ScreenInteractive::Post(Task)`.
+- `Menu` can now be used in the 4 directions, using `MenuOption.direction`.
+- `Menu` can display an animated underline, using
+  `MenuOption.underline.enabled`.
+- **breaking** All the options are now using a transform function.
+- **breaking** The `Toggle` component is now implemented using `Menu`.
+- **bugfix** Container::Tab implements `Focusable()`.
+- **bugfix** Improved default implementations of ComponentBase `Focusable()` and
+  `ActiveChild()` methods.
+- **bugfix** Automatically convert '\r' keys into '\n' for Linux programs that
+  do not send the correct code for the return key, like the 'bind'.
+  https://github.com/ArthurSonzogni/FTXUI/issues/337
+- Add decorator for components:
+  - `operator|(Component, ComponentDecorator)`
+  - `operator|(Component, ElementDecorator)`
+  - `operator|=(Component, ComponentDecorator)`
+  - `operator|=(Component, ElementDecorator)`
+  - Add the `Maybe` decorator.
+  - Add the `CatchEvent` decorator.
+  - Add the `Renderer` decorator.
+
+### DOM:
+- **breaking**: The `inverted` decorator now toggle in the inverted attribute.
+- Add `gauge` for the 4 directions. Expose the following API:
+```cpp
+Element gauge(float ratio);
+Element gaugeLeft(float ratio);
+Element gaugeRight(float ratio);
+Element gaugeUp(float ratio);
+Element gaugeDown(float ratio);
+Element gaugeDirection(float ratio, GaugeDirection);
+```
+- Add `separatorHSelector` and `separatorVSelector` elements. This can be used
+  to highlight an area.
+- Add the `automerge` decorator. This makes separator characters to be merged
+  with others nearby.
+- Fix the `Table` rendering function, to allow automerging characters.
+- **Bugfix**: The `vscroll_indicator` now computes its offset and size
+  correctly.
+- Add the `operator|=(Element, Decorator)`
+
+### Screen:
+- Add: `Color::Interpolate(lambda, color_a, color_b)`.
+
+2.0.0
+-----
 
 ### Features:
+
+#### Screen
+- Add the `automerge` to the Pixel bit field. This now controls which pixels are
+  automatically merged.
 
 #### DOM:
 - Add the `Canvas` class and `ElementFrom('canvas')` function. Together users of
@@ -29,6 +90,9 @@ unreleased (development)
   you want to execute command using directly stdin/stdout/sterr.
 
 ### Bug
+
+#### Table
+- The `table` horizontal and vertical separator are now correctly expanded.
 
 #### Component 
 - `Input` shouldn't take focus when hovered by the mouse.

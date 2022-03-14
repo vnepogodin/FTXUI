@@ -1,4 +1,4 @@
-#include <algorithm>   // for clamp, max
+#include <algorithm>   // for max
 #include <functional>  // for function
 #include <memory>      // for shared_ptr, allocator_traits<>::value_type
 #include <string>      // for string
@@ -14,8 +14,8 @@
 #include "ftxui/component/screen_interactive.hpp"  // for Component
 #include "ftxui/dom/elements.hpp"  // for operator|, reflect, text, Element, hbox, vbox, Elements, focus, nothing, select
 #include "ftxui/screen/box.hpp"    // for Box
-#include "ftxui/screen/util.hpp"
-#include "ftxui/util/ref.hpp"  // for Ref, ConstStringListRef
+#include "ftxui/screen/util.hpp"   // for clamp
+#include "ftxui/util/ref.hpp"      // for Ref, ConstStringListRef
 
 namespace ftxui {
 
@@ -29,14 +29,6 @@ class RadioboxBase : public ComponentBase {
                int* selected,
                Ref<RadioboxOption> option)
       : entries_(entries), selected_(selected), option_(std::move(option)) {
-#if defined(FTXUI_MICROSOFT_TERMINAL_FALLBACK)
-    // Microsoft terminal do not use fonts able to render properly the default
-    // radiobox glyph.
-    if (option_->style_checked == "◉ ")
-      option_->style_checked = "(*)";
-    if (option_->style_unchecked == "○ ")
-      option_->style_unchecked = "( )";
-#endif
     hovered_ = *selected_;
   }
 
@@ -48,19 +40,21 @@ class RadioboxBase : public ComponentBase {
     for (int i = 0; i < size(); ++i) {
       bool is_focused = (focused_entry() == i) && is_menu_focused;
       bool is_selected = (hovered_ == i);
-
-      auto style = is_selected ? (is_focused ? option_->style_selected_focused
-                                             : option_->style_selected)
-                               : (is_focused ? option_->style_focused
-                                             : option_->style_normal);
       auto focus_management = !is_selected      ? nothing
                               : is_menu_focused ? focus
                                                 : select;
+      auto state = EntryState{
+          entries_[i],
+          *selected_ == i,
+          is_selected,
+          is_focused,
+      };
+      auto element =
+          (option_->transform
+               ? option_->transform
+               : RadioboxOption::Simple().transform)(std::move(state));
 
-      const std::string& symbol =
-          *selected_ == i ? option_->style_checked : option_->style_unchecked;
-      elements.push_back(hbox(text(symbol), text(entries_[i]) | style) |
-                         focus_management | reflect(boxes_[i]));
+      elements.push_back(element | focus_management | reflect(boxes_[i]));
     }
     return vbox(std::move(elements)) | reflect(box_);
   }
