@@ -28,6 +28,7 @@ enum class GaugeDirection { Left, Up, Right, Down };
 // -> text("ftxui") | bold | underlined
 // -> underlined(bold(text("FTXUI")))
 Element operator|(Element, Decorator);
+Element& operator|=(Element&, Decorator);
 Elements operator|(Elements, Decorator);
 Decorator operator|(Decorator, Decorator);
 
@@ -44,6 +45,14 @@ Element separatorEmpty();
 Element separatorStyled(BorderStyle);
 Element separator(Pixel);
 Element separatorCharacter(std::string);
+Element separatorHSelector(float left,
+                           float right,
+                           Color background,
+                           Color foreground);
+Element separatorVSelector(float up,
+                           float down,
+                           Color background,
+                           Color foreground);
 Element gauge(float ratio);
 Element gaugeLeft(float ratio);
 Element gaugeRight(float ratio);

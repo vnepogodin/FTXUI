@@ -1,11 +1,42 @@
 Changelog
 =========
 
-current (development) 
+current (development)
 ---------------------
 
-#### DOM:
-- The `inverted` decorator now toggle in the inverted attribute.
+### Build
+- **breaking**: The library prefix is now back to "lib" (the default). This
+    means non-cmake users should not link against "libftxui-dom" for instance.
+
+### Component
+- Animations module! Components can implement the `OnAnimation` method and the
+  animation::Animator to define some animated properties.
+  - `Menu` now support animations.
+  - `Button` now supports animations.
+- Support SIGTSTP. (ctrl+z).
+- Support task posting. `ScreenInteractive::Post(Task)`.
+- `Menu` can now be used in the 4 directions, using `MenuOption.direction`.
+- `Menu` can display an animated underline, using
+  `MenuOption.underline.enabled`.
+- **breaking** All the options are now using a transform function.
+- **breaking** The `Toggle` component is now implemented using `Menu`.
+- **bugfix** Container::Tab implements `Focusable()`.
+- **bugfix** Improved default implementations of ComponentBase `Focusable()` and
+  `ActiveChild()` methods.
+- **bugfix** Automatically convert '\r' keys into '\n' for Linux programs that
+  do not send the correct code for the return key, like the 'bind'.
+  https://github.com/ArthurSonzogni/FTXUI/issues/337
+- Add decorator for components:
+  - `operator|(Component, ComponentDecorator)`
+  - `operator|(Component, ElementDecorator)`
+  - `operator|=(Component, ComponentDecorator)`
+  - `operator|=(Component, ElementDecorator)`
+  - Add the `Maybe` decorator.
+  - Add the `CatchEvent` decorator.
+  - Add the `Renderer` decorator.
+
+### DOM:
+- **breaking**: The `inverted` decorator now toggle in the inverted attribute.
 - Add `gauge` for the 4 directions. Expose the following API:
 ```cpp
 Element gauge(float ratio);
@@ -15,14 +46,17 @@ Element gaugeUp(float ratio);
 Element gaugeDown(float ratio);
 Element gaugeDirection(float ratio, GaugeDirection);
 ```
+- Add `separatorHSelector` and `separatorVSelector` elements. This can be used
+  to highlight an area.
 - Add the `automerge` decorator. This makes separator characters to be merged
   with others nearby.
 - Fix the `Table` rendering function, to allow automerging characters.
-- Bugfix: The `vscroll_indicator` now computes its offset and size correctly.
+- **Bugfix**: The `vscroll_indicator` now computes its offset and size
+  correctly.
+- Add the `operator|=(Element, Decorator)`
 
-#### Component
-- Support SIGTSTP. (ctrl+z).
-- Support task posting. `ScreenInteractive::Post(Task)`.
+### Screen:
+- Add: `Color::Interpolate(lambda, color_a, color_b)`.
 
 2.0.0
 -----
@@ -49,7 +83,7 @@ Element gaugeDirection(float ratio, GaugeDirection);
 - Add: `focusPositionRelative` and `focusPosition`
 - Add `Table` constructor from 2D vector of Element, instead of string.
 
-#### Component 
+#### Component
 - Add the `collapsible` component.
 - Add the `ScreenInteractive::WithRestoredIO`. This decorates a callback. This
   runs it with the terminal hooks temporarilly uninstalled. This is useful if
@@ -60,7 +94,7 @@ Element gaugeDirection(float ratio, GaugeDirection);
 #### Table
 - The `table` horizontal and vertical separator are now correctly expanded.
 
-#### Component 
+#### Component
 - `Input` shouldn't take focus when hovered by the mouse.
 - Modifying `Input`'s during on_enter/on_change event is now working correctly.
 
@@ -152,7 +186,7 @@ This version includes:
              one.
   - `focus`, `select`: scroll the inner view of a frame, to be in view.
   - `flex` & 8 variations. `filler`
-  
+
 - Decorators:
   - `bold`
   - `dim`

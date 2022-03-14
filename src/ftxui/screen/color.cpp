@@ -8,7 +8,7 @@
 namespace ftxui {
 
 namespace {
-constexpr const char* palette16code[16][2] = {
+static constexpr const char* palette16code[16][2] = {
     {"30", "40"},  {"31", "41"},  {"32", "42"},  {"33", "43"},
     {"34", "44"},  {"35", "45"},  {"36", "46"},  {"37", "47"},
     {"90", "100"}, {"91", "101"}, {"92", "102"}, {"93", "103"},
@@ -60,11 +60,11 @@ Color::Color(uint8_t red, uint8_t green, uint8_t blue)
   int closest = 256 * 256 * 3;
   int best = 0;
   for (int i = 16; i < 256; ++i) {
-    ColorInfo color_info = GetColorInfo(Color::Palette256(i));
-    int dr = color_info.red - red;
-    int dg = color_info.green - green;
-    int db = color_info.blue - blue;
-    int dist = dr * dr + dg * dg + db * db;
+    const auto color_info = GetColorInfo(Color::Palette256(i));
+    const int dr = color_info.red - red;
+    const int dg = color_info.green - green;
+    const int db = color_info.blue - blue;
+    const int dist = dr * dr + dg * dg + db * db;
     if (closest > dist) {
       closest = dist;
       best = i;
@@ -104,11 +104,11 @@ Color Color::HSV(uint8_t h, uint8_t s, uint8_t v) {
   if (s == 0)
     return Color(v, v, v);
 
-  uint8_t region = h / 43;
-  uint8_t remainder = (h - (region * 43)) * 6;
-  uint8_t p = (v * (255 - s)) >> 8;
-  uint8_t q = (v * (255 - ((s * remainder) >> 8))) >> 8;
-  uint8_t t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
+  const uint8_t region = h / 43;
+  const uint8_t remainder = (h - (region * 43)) * 6;
+  const uint8_t p = (v * (255 - s)) >> 8;
+  const uint8_t q = (v * (255 - ((s * remainder) >> 8))) >> 8;
+  const uint8_t t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
 
   // clang-format off
   switch (region) {
@@ -122,6 +122,77 @@ Color Color::HSV(uint8_t h, uint8_t s, uint8_t v) {
   // clang-format on
 
   return Color(0, 0, 0);
+}
+
+// static
+Color Color::Interpolate(float t, const Color& a, const Color& b) {
+  float red{};
+  float green{};
+  float blue{};
+  switch (a.type_) {
+    case ColorType::Palette1: {
+      if (t < 0.5)
+        return a;
+      else
+        return b;
+    }
+
+    case ColorType::Palette16: {
+      const auto info = GetColorInfo(Color::Palette16(a.index_));
+      red = info.red * (1 - t);
+      green = info.green * (1 - t);
+      blue = info.blue * (1 - t);
+      break;
+    }
+
+    case ColorType::Palette256: {
+      const auto info = GetColorInfo(Color::Palette256(a.index_));
+      red = info.red * (1 - t);
+      green = info.green * (1 - t);
+      blue = info.blue * (1 - t);
+      break;
+    }
+
+    case ColorType::TrueColor: {
+      red = a.red_ * (1 - t);
+      green = a.green_ * (1 - t);
+      blue = a.blue_ * (1 - t);
+      break;
+    }
+  }
+
+  switch (b.type_) {
+    case ColorType::Palette1: {
+      if (t > 0.5)
+        return a;
+      else
+        return b;
+    }
+
+    case ColorType::Palette16: {
+      const auto info = GetColorInfo(Color::Palette16(b.index_));
+      red += info.red * t;
+      green += info.green * t;
+      blue += info.blue * t;
+      break;
+    }
+
+    case ColorType::Palette256: {
+      const auto info = GetColorInfo(Color::Palette256(b.index_));
+      red += info.red * t;
+      green += info.green * t;
+      blue += info.blue * t;
+      break;
+    }
+
+    case ColorType::TrueColor: {
+      red += b.red_ * t;
+      green += b.green_ * t;
+      blue += b.blue_ * t;
+      break;
+    }
+  }
+  return Color::RGB(red, green, blue);
 }
 
 inline namespace literals {

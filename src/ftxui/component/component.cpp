@@ -12,6 +12,10 @@
 #include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
 #include "ftxui/dom/elements.hpp"                  // for text, Element
 
+namespace ftxui::animation {
+class Params;
+}  // namespace ftxui::animation
+
 namespace ftxui {
 
 namespace {
@@ -101,11 +105,24 @@ bool ComponentBase::OnEvent(Event event) {
   return false;
 }
 
+/// @brief Called in response to an animation event.
+/// @param animation_params the parameters of the animation
+/// The default implementation dispatch the event to every child.
+/// @ingroup component
+void ComponentBase::OnAnimation(animation::Params& params) {
+  for (Component& child : children_)
+    child->OnAnimation(params);
+}
+
 /// @brief Return the currently Active child.
 /// @return the currently Active child.
 /// @ingroup component
 Component ComponentBase::ActiveChild() {
-  return children_.empty() ? nullptr : children_.front();
+  for (auto& child : children_) {
+    if (child->Focusable())
+      return child;
+  }
+  return nullptr;
 }
 
 /// @brief Return true when the component contains focusable elements.
@@ -128,14 +145,15 @@ bool ComponentBase::Active() const {
 
 /// @brief Returns if the elements if focused by the user.
 /// True when the ComponentBase is focused by the user. An element is Focused
-/// when it is with all its ancestors the ActiveChild() of their parents.
+/// when it is with all its ancestors the ActiveChild() of their parents, and it
+/// Focusable().
 /// @ingroup component
 bool ComponentBase::Focused() const {
   auto current = this;
   while (current && current->Active()) {
     current = current->parent_;
   }
-  return !current;
+  return !current && Focusable();
 }
 
 /// @brief Make the |child| to be the "active" one.

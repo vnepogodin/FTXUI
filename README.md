@@ -8,10 +8,10 @@
   <a href="#"><img src="https://img.shields.io/github/repo-size/ArthurSonzogni/FTXUI"></img></a>
   <a href="https://github.com/ArthurSonzogni/FTXUI/issues"><img src="https://img.shields.io/github/issues/ArthurSonzogni/FTXUI"></img></a>
   <a href="https://github.com/ArthurSonzogni/FTXUI/graphs/contributors"><img src="https://img.shields.io/github/contributors/arthursonzogni/FTXUI?color=blue"></img></a>
-  
+
   <br/>
   <a href="https://arthursonzogni.github.io/FTXUI/">Documentation</a> ·
-  <a href="https://github.com/ArthurSonzogni/FTXUI/issues">Report Bug</a> ·
+  <a href="https://github.com/ArthurSonzogni/FTXUI/issues">Report a Bug</a> ·
   <a href="https://arthursonzogni.github.io/FTXUI/examples.html">Examples</a> .
   <a href="https://github.com/ArthurSonzogni/FTXUI/issues">Request Feature</a> ·
   <a href="https://github.com/ArthurSonzogni/FTXUI/pulls">Send a Pull Request</a>
@@ -22,21 +22,21 @@
 
 <i>Functional Terminal (X) User interface</i>
 
-A simple C++ library for terminal based user interface.
+A simple C++ library for terminal based user interfaces!
 
 ## Feature
  * Functional style. Inspired by
    [[1]](https://hackernoon.com/building-reactive-terminal-interfaces-in-c-d392ce34e649?gi=d9fb9ce35901)
    and [React](https://reactjs.org/)
- * Simple and elegant syntax (in my opinion).
- * Support for [UTF8](https://en.wikipedia.org/wiki/UTF-8) and [fullwidth chars](https://en.wikipedia.org/wiki/Halfwidth_and_fullwidth_forms) (→ 测试).
- * No dependencies.
- * Cross platform. Linux/mac (main target), Windows (experimental thanks to contributors), WebAssembly.
- * Keyboard & mouse navigation.
+ * Simple and elegant syntax (in my opinion)
+ * Support for [UTF8](https://en.wikipedia.org/wiki/UTF-8) and [fullwidth chars](https://en.wikipedia.org/wiki/Halfwidth_and_fullwidth_forms) (→ 测试)
+ * No dependencies
+ * Cross platform. Linux/MacOS (main target), Windows (experimental thanks to contributors), WebAssembly
+ * Keyboard & mouse navigation
 
 ## Operating systems
 
-- Webassembly
+- WebAssembly
 - Linux
 - MacOS
 - Windows
@@ -77,7 +77,7 @@ This module defines a hierarchical set of Element. An element manages layout and
 
 They are declared in [<ftxui/dom/elements.hpp>](https://arthursonzogni.github.io/FTXUI/elements_8hpp_source.html
 )
-  
+
 <details><summary>Layout</summary>
 
 Element can be arranged together:
@@ -85,14 +85,14 @@ Element can be arranged together:
   - vertically with `vbox`
   - inside a grid with `gridbox`
   - wrap along one direction using the `flexbox`.
-  
+
 Element can become flexible using the the `flex` decorator.
-  
+
 [Example](https://arthursonzogni.github.io/FTXUI/examples_2dom_2vbox_hbox_8cpp-example.html) using `hbox`, `vbox` and `filler`.
 
 ![image](https://user-images.githubusercontent.com/4759106/147242524-7103b5d9-1a92-4e2d-ac70-b3d6740061e3.png)
-  
-  
+
+
 [Example](https://arthursonzogni.github.io/FTXUI/examples_2dom_2gridbox_8cpp-example.htmlp) using gridbox:
 
 ![image](https://user-images.githubusercontent.com/4759106/147242972-0db1f2e9-0790-496f-86e6-ed2c604f7a73.png)
@@ -119,24 +119,24 @@ An element can be decorated using the functions:
 [Example](https://arthursonzogni.github.io/FTXUI/examples_2dom_2style_gallery_8cpp-example.html)
 
 ![image](https://user-images.githubusercontent.com/4759106/147244118-380bf834-9e33-40df-9ff0-07c10f2598ef.png)
-  
-FTXUI support the pipe operator. It means: `decorator1(decorator2(element))` and `element | decorator1 | decorator2` can be used.
-  
+
+FTXUI supports the pipe operator. It means: `decorator1(decorator2(element))` and `element | decorator1 | decorator2` can be used.
+
 </details>
 
 <details><summary>Colors</summary>
 
-FTXUI support every color palettes:
+FTXUI support every color palette:
 
 Color [gallery](https://arthursonzogni.github.io/FTXUI/examples_2dom_2color_gallery_8cpp-example.html):
 ![image](https://user-images.githubusercontent.com/4759106/147248595-04c7245a-5b85-4544-809d-a5984fc6f9e7.png)
 
 </details>
-  
+
 <details><summary>Border and separator</summary>
 
 Use decorator border and element separator() to subdivide your UI:
-  
+
 ```cpp
 auto document = vbox({
     text("top"),
@@ -147,16 +147,16 @@ auto document = vbox({
 ```
 
 [Demo](https://arthursonzogni.github.io/FTXUI/examples_2dom_2separator_8cpp-example.html):
-  
+
 ![image](https://user-images.githubusercontent.com/4759106/147244514-4135f24b-fb8e-4067-8896-bc53545583f7.png)
-  
+
 </details>
 
 <details><summary>Text and paragraph</summary>
 
 A simple piece of text is represented using `text("content")`.
 
-To support text wrapping following spaces the following function are provided:
+To support text wrapping following spaces the following functions are provided:
 ```cpp
 Element paragraph(std::string text);
 Element paragraphAlignLeft(std::string text);
@@ -164,9 +164,9 @@ Element paragraphAlignRight(std::string text);
 Element paragraphAlignCenter(std::string text);
 Element paragraphAlignJustify(std::string text);
 ```
-  
+
 [Paragraph example](https://arthursonzogni.github.io/FTXUI/examples_2dom_2table_8cpp-example.html):
-  
+
 ![ezgif com-gif-maker (4)](https://user-images.githubusercontent.com/4759106/147251370-983a06e7-6f41-4113-92b8-942f43d34d06.gif)
 
 </details>
@@ -176,7 +176,7 @@ Element paragraphAlignJustify(std::string text);
 A class to easily style a table of data.
 
 [Example](https://arthursonzogni.github.io/FTXUI/examples_2dom_2table_8cpp-example.html):
-  
+
 ![image](https://user-images.githubusercontent.com/4759106/147250766-77d8ec9e-cf2b-486d-9866-1fd9f1bd2e6b.png)
 
 </details>
@@ -184,14 +184,14 @@ A class to easily style a table of data.
 <details><summary>Canvas</summary>
 
 Drawing can be made on a Canvas, using braille, block, or simple characters:
-  
+
 Simple [example](https://github.com/ArthurSonzogni/FTXUI/blob/master/examples/dom/canvas.cpp):
-  
+
 ![image](https://user-images.githubusercontent.com/4759106/147245843-76cc62fb-ccb4-421b-aacf-939f9afb42fe.png)
 
 Complex [examples](https://github.com/ArthurSonzogni/FTXUI/blob/master/examples/component/canvas_animated.cpp):
-  
-![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/4759106/147250538-783a8246-98e0-4a25-b032-3bd3710549d1.gif)  
+
+![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/4759106/147250538-783a8246-98e0-4a25-b032-3bd3710549d1.gif)
 </details>
 
 #### Component
@@ -211,7 +211,7 @@ Prebuilt components are declared in [<ftxui/component/component.hpp>](https://ar
 <details><summary>Radiobox</summary>
 
 [Example](https://arthursonzogni.github.io/FTXUI/examples_2component_2radiobox_8cpp-example.html):
-  
+
 ![image](https://user-images.githubusercontent.com/4759106/147246401-809d14a5-6621-4e36-8dd9-a2d75ef2a94e.png)
 
 </details>
@@ -263,7 +263,7 @@ Prebuilt components are declared in [<ftxui/component/component.hpp>](https://ar
 
 [Example](https://arthursonzogni.github.io/FTXUI/examples_2component_2resizable_split_8cpp-example.html):
 
-![ezgif com-gif-maker](https://user-images.githubusercontent.com/4759106/147248372-c55512fe-9b96-4b08-a1df-d05cf2cae431.gif)  
+![ezgif com-gif-maker](https://user-images.githubusercontent.com/4759106/147248372-c55512fe-9b96-4b08-a1df-d05cf2cae431.gif)
 </details>
 
 
@@ -278,14 +278,14 @@ Prebuilt components are declared in [<ftxui/component/component.hpp>](https://ar
 <details><summary>Tab</summary>
 
 [Vertical](https://arthursonzogni.github.io/FTXUI/examples_2component_2tab_vertical_8cpp-example.html):
-  
+
 ![ezgif com-gif-maker (1)](https://user-images.githubusercontent.com/4759106/147250144-22ff044a-4773-4ff7-a49c-12ba4034acb4.gif)
 
 [Horizontal](https://arthursonzogni.github.io/FTXUI/examples_2component_2tab_horizontal_8cpp-example.html):
-  
+
   ![ezgif com-gif-maker (2)](https://user-images.githubusercontent.com/4759106/147250217-fe447e0f-7a99-4e08-948a-995087d9b40e.gif)
 
-  
+
 
 </details>
 
@@ -313,6 +313,7 @@ Feel free to add your projects here:
 - [vantage](https://github.com/gokulmaxi/vantage)
 - [tabdeeli](https://github.com/typon/tabdeeli)
 - [tiles](https://github.com/tusharpm/tiles)
+- [cachyos-cli-installer](https://github.com/cachyos/new-cli-installer)
 
 ## Hosted on
  * [github](https://github.com/ArthurSonzogni/ftxui)
@@ -320,12 +321,27 @@ Feel free to add your projects here:
 
 ## External package
 
-It is **highly** recommanded to use cmake FetchContent to depends on FTXUI. This
-way you can specify which commit you would like to depends on.
+It is **highly** recommended to use CMake FetchContent to depend on FTXUI. This
+way you can specify which commit you would like to depend on.
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+  GIT_TAG v2.0.0
+)
+
+FetchContent_GetProperties(ftxui)
+if(NOT ftxui_POPULATED)
+  FetchContent_Populate(ftxui)
+  add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+```
 
 If you don't, the following packages have been created:
-- vcpkg ([soon](https://github.com/ArthurSonzogni/FTXUI/issues/112))
+- [vcpkg](https://vcpkg.info/port/ftxui)
 - [Arch Linux PKGBUILD](https://aur.archlinux.org/packages/ftxui-git/).
+- [conan.io](https://conan.io/center/ftxui)
 
 ## Contributors
 

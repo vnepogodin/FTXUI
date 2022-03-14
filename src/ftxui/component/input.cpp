@@ -67,7 +67,7 @@ class InputBase : public ComponentBase {
       const bool hovered = hovered_;
       Decorator decorator = dim | main_decorator;
       if (is_focused)
-        decorator = decorator | focus | inverted;
+        decorator = decorator | focus;
       if (hovered || is_focused)
         decorator = decorator | inverted;
       return text(*placeholder_) | decorator | reflect(box_);
