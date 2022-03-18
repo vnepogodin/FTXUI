@@ -17,14 +17,14 @@ namespace ftxui {
 /// |Radiobox::transform|, |MenuEntryOption::transform|,
 /// |MenuOption::transform|.
 struct EntryState {
-  std::string label; /// < The label to display.
-  bool state;        /// < The state of the button/checkbox/radiobox
-  bool active;       /// < Whether the entry is the active one.
-  bool focused;      /// < Whether the entry is one focused by the user.
+  std::string label{}; /// < The label to display.
+  bool state{};        /// < The state of the button/checkbox/radiobox
+  bool active{};       /// < Whether the entry is the active one.
+  bool focused{};      /// < Whether the entry is one focused by the user.
 };
 
 struct UnderlineOption {
-  bool enabled = false;
+  bool enabled{false};
 
   Color color_active = Color::White;
   Color color_inactive = Color::GrayDark;
@@ -55,23 +55,23 @@ struct AnimatedColorOption {
       animation::Duration duration = std::chrono::milliseconds(250),
       animation::easing::Function function = animation::easing::QuadraticInOut);
 
-  bool enabled = false;
-  Color inactive;
-  Color active;
+  bool enabled{false};
+  Color inactive{};
+  Color active{};
   animation::Duration duration = std::chrono::milliseconds(250);
   animation::easing::Function function = animation::easing::QuadraticInOut;
 };
 
 struct AnimatedColorsOption {
-  AnimatedColorOption background;
-  AnimatedColorOption foreground;
+  AnimatedColorOption background{};
+  AnimatedColorOption foreground{};
 };
 
 /// @brief Option for the MenuEntry component.
 /// @ingroup component
 struct MenuEntryOption {
-  std::function<Element(EntryState state)> transform;
-  AnimatedColorsOption animated_colors;
+  std::function<Element(EntryState state)> transform{};
+  AnimatedColorsOption animated_colors{};
 };
 
 /// @brief Option for the Menu component.
@@ -85,18 +85,18 @@ struct MenuOption {
   static MenuOption Toggle();
 
   // Style:
-  UnderlineOption underline;
-  MenuEntryOption entries;
+  UnderlineOption underline{};
+  MenuEntryOption entries{};
   enum Direction { Up, Down, Left, Right };
   Direction direction = Down;
-  std::function<Element()> elements_prefix;
-  std::function<Element()> elements_infix;
-  std::function<Element()> elements_postfix;
+  std::function<Element()> elements_prefix{};
+  std::function<Element()> elements_infix{};
+  std::function<Element()> elements_postfix{};
 
   // Observers:
-  std::function<void()> on_change;  ///> Called when the seelcted entry changes.
-  std::function<void()> on_enter;   ///> Called when the user presses enter.
-  Ref<int> focused_entry = 0;
+  std::function<void()> on_change{};  ///> Called when the seelcted entry changes.
+  std::function<void()> on_enter{};   ///> Called when the user presses enter.
+  Ref<int> focused_entry{0};
 };
 
 /// @brief Option for the AnimatedButton component.
@@ -105,6 +105,7 @@ struct ButtonOption {
   // Standard constructors:
   static ButtonOption Ascii();
   static ButtonOption Simple();
+  static ButtonOption WithoutBorder();
   static ButtonOption Border();
   static ButtonOption Animated();
   static ButtonOption Animated(Color color);
@@ -115,8 +116,8 @@ struct ButtonOption {
                                Color foreground_active);
 
   // Style:
-  std::function<Element(EntryState)> transform;
-  AnimatedColorsOption animated_colors;
+  std::function<Element(EntryState)> transform{};
+  AnimatedColorsOption animated_colors{};
 };
 
 /// @brief Option for the Checkbox component.
@@ -126,7 +127,7 @@ struct CheckboxOption {
   static CheckboxOption Simple();
 
   // Style:
-  std::function<Element(EntryState)> transform;
+  std::function<Element(EntryState)> transform{};
 
   // Observer:
   /// Called when the user change the state.
@@ -156,7 +157,7 @@ struct RadioboxOption {
   static RadioboxOption Simple();
 
   // Style:
-  std::function<Element(EntryState)> transform;
+  std::function<Element(EntryState)> transform{};
 
   // Observers:
   /// Called when the selected entry changes.

@@ -137,6 +137,19 @@ ButtonOption ButtonOption::Simple() {
   return option;
 }
 
+/// @brief Create a ButtonOption, inverted when focused, but with no border.
+// static
+ButtonOption ButtonOption::WithoutBorder() {
+  ButtonOption option;
+  option.transform = [](EntryState s) {
+    auto element = text(s.label);
+    if (s.focused)
+      element |= inverted;
+    return element;
+  };
+  return option;
+}
+
 /// @brief Create a ButtonOption, using animated colors.
 // static
 ButtonOption ButtonOption::Animated() {

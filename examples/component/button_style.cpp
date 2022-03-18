@@ -29,6 +29,12 @@ int main(int argc, const char* argv[]) {
               }),
               Renderer([] { return separator(); }),
               Container::Vertical({
+                  Button("WithoutBorder 1", action, ButtonOption::WithoutBorder()),
+                  Button("WithoutBorder 2", action, ButtonOption::WithoutBorder()),
+                  Button("WithoutBorder 3", action, ButtonOption::WithoutBorder()),
+              }),
+              Renderer([] { return separator(); }),
+              Container::Vertical({
                   Button("Simple 1", action, ButtonOption::Simple()),
                   Button("Simple 2", action, ButtonOption::Simple()),
                   Button("Simple 3", action, ButtonOption::Simple()),
