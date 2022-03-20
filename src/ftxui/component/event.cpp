@@ -1,52 +1,13 @@
-#include <utility>  // for move
-
-#include "ftxui/component/event.hpp"
-#include "ftxui/component/mouse.hpp"  // for Mouse
-#include "ftxui/screen/string.hpp"    // for to_wstring
+#include <ftxui/component/event.hpp>
 
 namespace ftxui {
 
 // static
-Event Event::Character(std::string input) {
+Event Event::CursorReporting(const std::string& input, int x, int y) noexcept {
   Event event;
-  event.input_ = std::move(input);
-  event.type_ = Type::Character;
-  return event;
-}
-
-// static
-Event Event::Character(char c) {
-  return Event::Character(std::string{c});
-}
-
-// static
-Event Event::Character(wchar_t c) {
-  return Event::Character(to_string(std::wstring{c}));
-}
-
-// static
-Event Event::Mouse(std::string input, struct Mouse mouse) {
-  Event event;
-  event.input_ = std::move(input);
-  event.type_ = Type::Mouse;
-  event.mouse_ = mouse;
-  return event;
-}
-
-// static
-Event Event::Special(std::string input) {
-  Event event;
-  event.input_ = std::move(input);
-  return event;
-}
-
-// static
-Event Event::CursorReporting(std::string input, int x, int y) {
-  Event event;
-  event.input_ = std::move(input);
-  event.type_ = Type::CursorReporting;
-  event.cursor_.x = x;
-  event.cursor_.y = y;
+  event.type_   = Type::CursorReporting;
+  event.input_  = input;
+  event.device_ = Cursor{.x = x, .y = y};
   return event;
 }
 

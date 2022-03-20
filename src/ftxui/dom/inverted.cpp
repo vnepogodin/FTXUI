@@ -13,7 +13,7 @@ class Inverted : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     Node::Render(screen);
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -26,7 +26,7 @@ class Inverted : public NodeDecorator {
 /// @brief Add a filter that will invert the foreground and the background
 /// colors.
 /// @ingroup dom
-Element inverted(Element child) {
+Element inverted(Element child) noexcept {
   return std::make_shared<Inverted>(std::move(child));
 }
 

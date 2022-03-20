@@ -6,9 +6,9 @@
 namespace ftxui {
 
 [[deprecated("use Input with normal std::string instead.")]] Component Input(
-    WideStringRef content,
-    ConstStringRef placeholder,
-    Ref<InputOption> option = {});
+    const WideStringRef& content,
+    const ConstStringRef& placeholder,
+    Ref<InputOption> option = {}) noexcept;
 }  // namespace ftxui
 
 #endif /* FTXUI_COMPONENT_DEPRECATED_HPP */

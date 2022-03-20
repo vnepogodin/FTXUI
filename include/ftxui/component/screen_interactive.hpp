@@ -9,55 +9,55 @@
 #include <thread>                        // for thread
 #include <variant>                       // for variant
 
-#include "ftxui/component/animation.hpp"       // for TimePoint
-#include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse
-#include "ftxui/component/event.hpp"           // for Event
-#include "ftxui/component/task.hpp"            // for Closure, Task
-#include "ftxui/screen/screen.hpp"             // for Screen
+#include <ftxui/component/animation.hpp>       // for TimePoint
+#include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse
+#include <ftxui/component/event.hpp>           // for Event
+#include <ftxui/component/task.hpp>            // for Closure, Task
+#include <ftxui/screen/screen.hpp>             // for Screen
 
 namespace ftxui {
 class ComponentBase;
 struct Event;
 
 using Component = std::shared_ptr<ComponentBase>;
-class ScreenInteractivePrivate;
+class [[maybe_unused]] ScreenInteractivePrivate;
 
 class ScreenInteractive : public Screen {
  public:
   // Constructors:
-  static ScreenInteractive FixedSize(int dimx, int dimy);
-  static ScreenInteractive Fullscreen();
-  static ScreenInteractive FitComponent();
-  static ScreenInteractive TerminalOutput();
+  static ScreenInteractive FixedSize(int dimx, int dimy) noexcept;
+  static ScreenInteractive Fullscreen() noexcept;
+  static ScreenInteractive FitComponent() noexcept;
+  static ScreenInteractive TerminalOutput() noexcept;
 
   // Return the currently active screen, nullptr if none.
-  static ScreenInteractive* Active();
+  static ScreenInteractive* Active() noexcept;
 
-  void Loop(Component);
-  Closure ExitLoopClosure();
+  void Loop(Component) noexcept;
+  Closure ExitLoopClosure() noexcept;
 
-  void Post(Task task);
-  void PostEvent(Event event);
-  void RequestAnimationFrame();
+  void Post(const Task& task) noexcept;
+  void PostEvent(const Event& event) noexcept;
+  void RequestAnimationFrame() noexcept;
 
-  CapturedMouse CaptureMouse();
+  CapturedMouse CaptureMouse() noexcept;
 
   // Decorate a function. The outputted one will execute similarly to the
   // inputted one, but with the currently active screen terminal hooks
   // temporarily uninstalled.
-  Closure WithRestoredIO(Closure);
+  Closure WithRestoredIO(const Closure&) noexcept;
 
-  void Resume();
-  void Suspend();
+  void Resume() noexcept;
+  void Suspend() noexcept;
 
  private:
-  void Install();
-  void Uninstall();
+  void Install() noexcept;
+  void Uninstall() noexcept;
 
-  void Main(Component component);
+  void Main(Component component) noexcept;
 
-  void Draw(Component component);
-  void SigStop();
+  void Draw(const Component& component) noexcept;
+  void SigStop() noexcept;
 
   ScreenInteractive* suspended_screen_ = nullptr;
   enum class Dimension {
@@ -71,7 +71,7 @@ class ScreenInteractive : public Screen {
   ScreenInteractive(int dimx,
                     int dimy,
                     Dimension dimension,
-                    bool use_alternative_screen);
+                    bool use_alternative_screen) noexcept;
 
   Sender<Task> task_sender_;
   Receiver<Task> task_receiver_;
@@ -93,9 +93,9 @@ class ScreenInteractive : public Screen {
   bool previous_frame_resized_ = false;
 
  public:
-  class Private {
+  class [[maybe_unused]] Private {
    public:
-    static void SigStop(ScreenInteractive& s) { return s.SigStop(); }
+    [[maybe_unused]] static void SigStop(ScreenInteractive& s) { return s.SigStop(); }
   };
   friend Private;
 };

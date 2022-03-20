@@ -4,9 +4,9 @@
 #include "ftxui/dom/elements.hpp"
 
 namespace ftxui {
-Element text(std::wstring text);
-Element vtext(std::wstring text);
-Elements paragraph(std::wstring text);
+Element text(const std::wstring& text) noexcept;
+Element vtext(const std::wstring& text) noexcept;
+Elements paragraph(std::wstring text) noexcept;
 }  // namespace ftxui
 
 #endif /* end of include guard: FTXUI_DOM_DEPRECRATED_HPP */

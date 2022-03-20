@@ -3,6 +3,7 @@
 #include <string>       // for string
 #include <string_view>  // for string_view
 #include <utility>      // for move
+#include <ranges>
 
 #include "ftxui/component/component.hpp"  // for Maybe, Checkbox, Make, Radiobox, Vertical, Dropdown
 #include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
@@ -10,15 +11,17 @@
 #include "ftxui/dom/elements.hpp"  // for operator|, Element, border, filler, separator, size, vbox, frame, vscroll_indicator, HEIGHT, LESS_THAN
 #include "ftxui/util/ref.hpp"      // for ConstStringListRef
 
+namespace ranges = std::ranges;
+
 namespace ftxui {
 
-Component Dropdown(ConstStringListRef entries, int* selected) {
+Component Dropdown(ConstStringListRef entries, int* selected) noexcept {
   class Impl : public ComponentBase {
    public:
     Impl(ConstStringListRef entries, int* selected)
-        : entries_(std::move(entries)), selected_(selected) {
+        : entries_(entries), selected_(selected) {
       CheckboxOption option;
-      option.transform = [](EntryState s) {
+      option.transform = [](auto&& s) {
         const auto prefix = text(s.state ? "↓ " : "→ ");
         auto t = text(s.label);
         if (s.active)
@@ -36,8 +39,8 @@ Component Dropdown(ConstStringListRef entries, int* selected) {
       }));
     }
 
-    Element Render() override {
-      *selected_ = std::min((int)entries_.size() - 1, std::max(0, *selected_));
+    Element Render() noexcept override {
+      *selected_ = ranges::min((int)entries_.size() - 1, ranges::max(0, *selected_));
       title_ = entries_[*selected_];
       if (show_) {
         return vbox({
@@ -64,7 +67,7 @@ Component Dropdown(ConstStringListRef entries, int* selected) {
     Component radiobox_{};
   };
 
-  return Make<Impl>(std::move(entries), selected);
+  return Make<Impl>(entries, selected);
 }
 
 }  // namespace ftxui

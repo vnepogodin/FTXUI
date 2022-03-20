@@ -4,12 +4,15 @@
 #include <string>     // for string, basic_string
 #include <utility>    // for move
 #include <vector>     // for vector, __alloc_traits<>::value_type
+#include <ranges>
 
-#include "ftxui/dom/elements.hpp"  // for unpack, Element, Decorator, BorderStyle, ROUNDED, Elements, DOUBLE, EMPTY, HEAVY, LIGHT, border, borderDouble, borderEmpty, borderHeavy, borderLight, borderRounded, borderStyled, borderWith, window
-#include "ftxui/dom/node.hpp"      // for Node, Elements
-#include "ftxui/dom/requirement.hpp"  // for Requirement
-#include "ftxui/screen/box.hpp"       // for Box
-#include "ftxui/screen/screen.hpp"    // for Pixel, Screen
+#include <ftxui/dom/elements.hpp>  // for unpack, Element, Decorator, BorderStyle, ROUNDED, Elements, DOUBLE, EMPTY, HEAVY, LIGHT, border, borderDouble, borderEmpty, borderHeavy, borderLight, borderRounded, borderStyled, borderWith, window
+#include <ftxui/dom/node.hpp>      // for Node, Elements
+#include <ftxui/dom/requirement.hpp>  // for Requirement
+#include <ftxui/screen/box.hpp>       // for Box
+#include <ftxui/screen/screen.hpp>    // for Pixel, Screen
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
@@ -32,20 +35,20 @@ class Border : public Node {
       : Node(std::move(children)),
         charset(std::begin(simple_border_charset[style]),
                 std::end(simple_border_charset[style])) {}
-  Border(Elements children, Pixel pixel)
+  Border(Elements children, const Pixel& pixel)
       : Node(std::move(children)), charset_pixel(10, pixel) {}
 
   std::vector<Pixel> charset_pixel;
   std::vector<std::string> charset;
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     Node::ComputeRequirement();
     requirement_ = children_[0]->requirement();
     requirement_.min_x += 2;
     requirement_.min_y += 2;
     if (children_.size() == 2) {
       requirement_.min_x =
-          std::max(requirement_.min_x, children_[1]->requirement().min_x + 2);
+          ranges::max(requirement_.min_x, children_[1]->requirement().min_x + 2);
     }
     requirement_.selected_box.x_min++;
     requirement_.selected_box.x_max++;
@@ -53,7 +56,7 @@ class Border : public Node {
     requirement_.selected_box.y_max++;
   }
 
-  void SetBox(Box box) override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
     if (children_.size() == 2) {
       Box title_box;
@@ -70,7 +73,7 @@ class Border : public Node {
     children_[0]->SetBox(box);
   }
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     // Draw content.
     children_[0]->Render(screen);
 
@@ -84,7 +87,7 @@ class Border : public Node {
       RenderChar(screen);
   }
 
-  void RenderPixel(Screen& screen) {
+  void RenderPixel(Screen& screen) noexcept {
     screen.at(box_.x_min, box_.y_min) = charset[0];
     screen.at(box_.x_max, box_.y_min) = charset[1];
     screen.at(box_.x_min, box_.y_max) = charset[2];
@@ -112,7 +115,7 @@ class Border : public Node {
       children_[1]->Render(screen);
   }
 
-  void RenderChar(Screen& screen) {
+  void RenderChar(Screen& screen) noexcept {
     screen.PixelAt(box_.x_min, box_.y_min) = charset_pixel[0];
     screen.PixelAt(box_.x_max, box_.y_min) = charset_pixel[1];
     screen.PixelAt(box_.x_min, box_.y_max) = charset_pixel[2];
@@ -164,14 +167,14 @@ class Border : public Node {
 /// │The element│
 /// └───────────┘
 /// ```
-Element border(Element child) {
+Element border(Element child) noexcept {
   return std::make_shared<Border>(unpack(std::move(child)), ROUNDED);
 }
 
 /// @brief Same as border but with a constant Pixel around the element.
 /// @ingroup dom
 /// @see border
-Decorator borderWith(Pixel pixel) {
+Decorator borderWith(const Pixel& pixel) noexcept {
   return [pixel](Element child) {
     return std::make_shared<Border>(unpack(std::move(child)), pixel);
   };
@@ -180,7 +183,7 @@ Decorator borderWith(Pixel pixel) {
 /// @brief Same as border but with different styles.
 /// @ingroup dom
 /// @see border
-Decorator borderStyled(BorderStyle style) {
+Decorator borderStyled(BorderStyle style) noexcept {
   return [style](Element child) {
     return std::make_shared<Border>(unpack(std::move(child)), style);
   };
@@ -216,7 +219,7 @@ Decorator borderStyled(BorderStyle style) {
 /// │The element   │
 /// └──────────────┘
 /// ```
-Element borderLight(Element child) {
+Element borderLight(Element child) noexcept {
   return std::make_shared<Border>(unpack(std::move(child)), LIGHT);
 }
 
@@ -250,7 +253,7 @@ Element borderLight(Element child) {
 /// ┃The element   ┃
 /// ┗━━━━━━━━━━━━━━┛
 /// ```
-Element borderHeavy(Element child) {
+Element borderHeavy(Element child) noexcept {
   return std::make_shared<Border>(unpack(std::move(child)), HEAVY);
 }
 
@@ -284,7 +287,7 @@ Element borderHeavy(Element child) {
 /// ║The element   ║
 /// ╚══════════════╝
 /// ```
-Element borderDouble(Element child) {
+Element borderDouble(Element child) noexcept {
   return std::make_shared<Border>(unpack(std::move(child)), DOUBLE);
 }
 
@@ -318,7 +321,7 @@ Element borderDouble(Element child) {
 /// │The element   │
 /// ╰──────────────╯
 /// ```
-Element borderRounded(Element child) {
+Element borderRounded(Element child) noexcept {
   return std::make_shared<Border>(unpack(std::move(child)), ROUNDED);
 }
 
@@ -352,7 +355,7 @@ Element borderRounded(Element child) {
 ///  The element
 ///
 /// ```
-Element borderEmpty(Element child) {
+Element borderEmpty(Element child) noexcept {
   return std::make_shared<Border>(unpack(std::move(child)), EMPTY);
 }
 
@@ -377,7 +380,7 @@ Element borderEmpty(Element child) {
 /// │content│
 /// └───────┘
 /// ```
-Element window(Element title, Element content) {
+Element window(Element title, Element content) noexcept {
   return std::make_shared<Border>(unpack(std::move(content), std::move(title)),
                                   ROUNDED);
 }

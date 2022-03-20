@@ -252,7 +252,7 @@ static const std::vector<std::vector<std::vector<std::string>>> elements = {
 /// @param image_index The "frame" of the video. You need to increase this for
 /// every "step".
 /// @ingroup dom
-Element spinner(int charset_index, size_t image_index) {
+Element spinner(int charset_index, size_t image_index) noexcept {
   if (charset_index == 0) {
     image_index %= 40;
     if (image_index > 20)

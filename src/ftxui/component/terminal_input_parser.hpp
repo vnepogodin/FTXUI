@@ -5,18 +5,18 @@
 #include <string>  // for string
 #include <vector>  // for vector
 
-#include "ftxui/component/event.hpp"     // for Event (ptr only)
-#include "ftxui/component/mouse.hpp"     // for Mouse
-#include "ftxui/component/receiver.hpp"  // for Sender
-#include "ftxui/component/task.hpp"      // for Task
+#include <ftxui/component/event.hpp>     // for Event (ptr only)
+#include <ftxui/component/mouse.hpp>     // for Mouse
+#include <ftxui/component/receiver.hpp>  // for Sender
+#include <ftxui/component/task.hpp>      // for Task
 
 namespace ftxui {
 struct Event;
 
-// Parse a sequence of |char| accross |time|. Produces |Event|.
+// Parse a sequence of |char| across |time|. Produces |Event|.
 class TerminalInputParser {
  public:
-  TerminalInputParser(Sender<Task> out);
+  explicit TerminalInputParser(Sender<Task> out);
   void Timeout(int time);
   void Add(char c);
 

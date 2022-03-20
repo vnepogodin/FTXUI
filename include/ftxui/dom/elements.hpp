@@ -27,144 +27,144 @@ enum class GaugeDirection { Left, Up, Right, Down };
 // For instance the next lines are equivalents:
 // -> text("ftxui") | bold | underlined
 // -> underlined(bold(text("FTXUI")))
-Element operator|(Element, Decorator);
-Element& operator|=(Element&, Decorator);
-Elements operator|(Elements, Decorator);
-Decorator operator|(Decorator, Decorator);
+Element operator|(Element, const Decorator&) noexcept;
+Element& operator|=(Element&, const Decorator&) noexcept;
+Elements operator|(Elements, const Decorator&) noexcept;
+Decorator operator|(Decorator, Decorator) noexcept;
 
 // --- Widget ---
-Element text(const char* text);
-Element text(const std::string_view text);
-Element text(const std::string text);
-Element vtext(std::string text);
-Element separator(void);
-Element separatorLight();
-Element separatorHeavy();
-Element separatorDouble();
-Element separatorEmpty();
-Element separatorStyled(BorderStyle);
-Element separator(Pixel);
-Element separatorCharacter(std::string);
+Element text(const char* text) noexcept;
+Element text(std::string_view text) noexcept;
+Element text(const std::string& text) noexcept;
+Element vtext(const std::string& text) noexcept;
+Element separator() noexcept;
+Element separatorLight() noexcept;
+Element separatorHeavy() noexcept;
+Element separatorDouble() noexcept;
+Element separatorEmpty() noexcept;
+Element separatorStyled(BorderStyle) noexcept;
+Element separator(const Pixel&) noexcept;
+Element separatorCharacter(const std::string&) noexcept;
 Element separatorHSelector(float left,
                            float right,
                            Color background,
-                           Color foreground);
+                           Color foreground) noexcept;
 Element separatorVSelector(float up,
                            float down,
                            Color background,
-                           Color foreground);
-Element gauge(float ratio);
-Element gaugeLeft(float ratio);
-Element gaugeRight(float ratio);
-Element gaugeUp(float ratio);
-Element gaugeDown(float ratio);
-Element gaugeDirection(float ratio, GaugeDirection);
-Element border(Element);
-Element borderLight(Element);
-Element borderHeavy(Element);
-Element borderDouble(Element);
-Element borderRounded(Element);
-Element borderEmpty(Element);
-Decorator borderStyled(BorderStyle);
-Decorator borderWith(Pixel);
-Element window(Element title, Element content);
-Element spinner(int charset_index, size_t image_index);
-Element paragraph(std::string text);
-Element paragraphAlignLeft(std::string text);
-Element paragraphAlignRight(std::string text);
-Element paragraphAlignCenter(std::string text);
-Element paragraphAlignJustify(std::string text);
-Element graph(GraphFunction);
-Element emptyElement();
-Element canvas(ConstRef<Canvas>);
-Element canvas(int width, int height, std::function<void(Canvas&)>);
-Element canvas(std::function<void(Canvas&)>);
+                           Color foreground) noexcept;
+Element gauge(float ratio) noexcept;
+Element gaugeLeft(float ratio) noexcept;
+Element gaugeRight(float ratio) noexcept;
+Element gaugeUp(float ratio) noexcept;
+Element gaugeDown(float ratio) noexcept;
+Element gaugeDirection(float ratio, GaugeDirection) noexcept;
+Element border(Element) noexcept;
+Element borderLight(Element) noexcept;
+Element borderHeavy(Element) noexcept;
+Element borderDouble(Element) noexcept;
+Element borderRounded(Element) noexcept;
+Element borderEmpty(Element) noexcept;
+Decorator borderStyled(BorderStyle) noexcept;
+Decorator borderWith(const Pixel&) noexcept;
+Element window(Element title, Element content) noexcept;
+Element spinner(int charset_index, size_t image_index) noexcept;
+Element paragraph(const std::string& text) noexcept;
+Element paragraphAlignLeft(const std::string& text) noexcept;
+Element paragraphAlignRight(const std::string& text) noexcept;
+Element paragraphAlignCenter(const std::string& text) noexcept;
+Element paragraphAlignJustify(const std::string& text) noexcept;
+Element graph(const GraphFunction&) noexcept;
+Element emptyElement() noexcept;
+Element canvas(ConstRef<Canvas>) noexcept;
+Element canvas(int width, int height, std::function<void(Canvas&)>) noexcept;
+Element canvas(std::function<void(Canvas&)>) noexcept;
 
 // -- Decorator ---
-Element bold(Element);
-Element dim(Element);
-Element inverted(Element);
-Element underlined(Element);
-Element blink(Element);
-Decorator color(Color);
-Decorator bgcolor(Color);
-Element color(Color, Element);
-Element bgcolor(Color, Element);
-Decorator focusPosition(int x, int y);
-Decorator focusPositionRelative(float x, float y);
-Element automerge(Element);
+Element bold(Element) noexcept;
+Element dim(Element) noexcept;
+Element inverted(Element) noexcept;
+Element underlined(Element) noexcept;
+Element blink(Element) noexcept;
+Decorator color(Color) noexcept;
+Decorator bgcolor(Color) noexcept;
+Element color(Color, Element) noexcept;
+Element bgcolor(Color, Element) noexcept;
+Decorator focusPosition(int x, int y) noexcept;
+Decorator focusPositionRelative(float x, float y) noexcept;
+Element automerge(Element) noexcept;
 
 // --- Layout is
 // Horizontal, Vertical or stacked set of elements.
-Element hbox(Elements);
-Element vbox(Elements);
-Element dbox(Elements);
-Element flexbox(Elements, FlexboxConfig config = FlexboxConfig());
-Element gridbox(std::vector<Elements> lines);
+Element hbox(Elements) noexcept;
+Element vbox(Elements) noexcept;
+Element dbox(Elements) noexcept;
+Element flexbox(Elements, FlexboxConfig config = FlexboxConfig()) noexcept;
+Element gridbox(std::vector<Elements> lines) noexcept;
 
-Element hflow(Elements);  // Helper: default flexbox with row direction.
-Element vflow(Elements);  // Helper: default flexbox with column direction.
+Element hflow(Elements) noexcept;  // Helper: default flexbox with row direction.
+Element vflow(Elements) noexcept;  // Helper: default flexbox with column direction.
 
 // -- Flexibility ---
 // Define how to share the remaining space when not all of it is used inside a
 // container.
-Element flex(Element);         // Expand/Minimize if possible/needed.
-Element flex_grow(Element);    // Expand element if possible.
-Element flex_shrink(Element);  // Minimize element if needed.
+Element flex(Element) noexcept;         // Expand/Minimize if possible/needed.
+Element flex_grow(Element) noexcept;    // Expand element if possible.
+Element flex_shrink(Element) noexcept;  // Minimize element if needed.
 
-Element xflex(Element);         // Expand/Minimize if possible/needed on X axis.
-Element xflex_grow(Element);    // Expand element if possible on X axis.
-Element xflex_shrink(Element);  // Minimize element if needed on X axis.
+Element xflex(Element) noexcept;         // Expand/Minimize if possible/needed on X axis.
+Element xflex_grow(Element) noexcept;    // Expand element if possible on X axis.
+Element xflex_shrink(Element) noexcept;  // Minimize element if needed on X axis.
 
-Element yflex(Element);         // Expand/Minimize if possible/needed on Y axis.
-Element yflex_grow(Element);    // Expand element if possible on Y axis.
-Element yflex_shrink(Element);  // Minimize element if needed on Y axis.
+Element yflex(Element) noexcept;         // Expand/Minimize if possible/needed on Y axis.
+Element yflex_grow(Element) noexcept;    // Expand element if possible on Y axis.
+Element yflex_shrink(Element) noexcept;  // Minimize element if needed on Y axis.
 
-Element notflex(Element);  // Reset the flex attribute.
-Element filler();          // A blank expandable element.
+Element notflex(Element) noexcept;  // Reset the flex attribute.
+Element filler() noexcept;          // A blank expandable element.
 
 // -- Size override;
 enum Direction { WIDTH, HEIGHT };
 enum Constraint { LESS_THAN, EQUAL, GREATER_THAN };
-Decorator size(Direction, Constraint, int value);
+Decorator size(Direction, Constraint, int value) noexcept;
 
 // --
-Decorator reflect(Box& box);
+Decorator reflect(Box& box) noexcept;
 
 // --- Frame ---
 // A frame is a scrollable area. The internal area is potentially larger than
 // the external one. The internal area is scrolled in order to make visible the
 // focused element.
-Element frame(Element);
-Element xframe(Element);
-Element yframe(Element);
-Element focus(Element);
-Element select(Element);
+Element frame(Element) noexcept;
+Element xframe(Element) noexcept;
+Element yframe(Element) noexcept;
+Element focus(Element) noexcept;
+Element select(Element) noexcept;
 
-Element vscroll_indicator(Element);
+Element vscroll_indicator(Element) noexcept;
 
 // --- Util --------------------------------------------------------------------
-Element hcenter(Element);
-Element vcenter(Element);
-Element center(Element);
-Element align_right(Element);
-Element nothing(Element element);
+Element hcenter(Element) noexcept;
+Element vcenter(Element) noexcept;
+Element center(Element) noexcept;
+Element align_right(Element) noexcept;
+Element nothing(Element element) noexcept;
 
 // Before drawing the |element| clear the pixel below. This is useful in
 // combinaison with dbox.
-Element clear_under(Element element);
+Element clear_under(Element element) noexcept;
 
 namespace Dimension {
-Dimensions Fit(Element&);
+Dimensions Fit(Element&) noexcept;
 }  // namespace Dimension
 
 }  // namespace ftxui
 
 // Make container able to take any number of children as input.
-#include "ftxui/dom/take_any_args.hpp"
+#include <ftxui/dom/take_any_args.hpp>
 
 // Include old definitions using wstring.
-#include "ftxui/dom/deprecated.hpp"
+#include <ftxui/dom/deprecated.hpp>
 #endif /* end of include guard: FTXUI_DOM_ELEMENTS_HPP */
 
 // Copyright 2020 Arthur Sonzogni. All rights reserved.

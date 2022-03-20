@@ -5,7 +5,7 @@
 #include <string>  // for string
 #include <vector>  // for vector
 
-#include "ftxui/dom/elements.hpp"  // for Element, BorderStyle, LIGHT, Decorator
+#include <ftxui/dom/elements.hpp>  // for Element, BorderStyle, LIGHT, Decorator
 
 namespace ftxui {
 
@@ -33,58 +33,62 @@ class TableSelection;
 
 class Table {
  public:
-  Table();
-  Table(std::vector<std::vector<std::string>>);
-  Table(std::vector<std::vector<Element>>);
-  TableSelection SelectAll();
-  TableSelection SelectCell(int column, int row);
-  TableSelection SelectRow(int row_index);
-  TableSelection SelectRows(int row_min, int row_max);
-  TableSelection SelectColumn(int column_index);
-  TableSelection SelectColumns(int column_min, int column_max);
+  Table() noexcept;
+  Table(const std::vector<std::vector<std::string>>&) noexcept;
+  Table(const std::vector<std::vector<Element>>&) noexcept;
+  TableSelection SelectAll() noexcept;
+  TableSelection SelectCell(int column, int row) noexcept;
+  TableSelection SelectRow(int row_index) noexcept;
+  TableSelection SelectRows(int row_min, int row_max) noexcept;
+  TableSelection SelectColumn(int column_index) noexcept;
+  TableSelection SelectColumns(int column_min, int column_max) noexcept;
   TableSelection SelectRectangle(int column_min,
                                  int column_max,
                                  int row_min,
-                                 int row_max);
-  Element Render();
+                                 int row_max) noexcept;
+  Element Render() noexcept;
 
  private:
-  void Initialize(std::vector<std::vector<Element>>);
+  void Initialize(std::vector<std::vector<Element>>) noexcept;
   friend TableSelection;
+
+  int input_dim_x_{};
+  int input_dim_y_{};
+  int dim_x_{};
+  int dim_y_{};
+
   std::vector<std::vector<Element>> elements_;
-  int input_dim_x_;
-  int input_dim_y_;
-  int dim_x_;
-  int dim_y_;
 };
 
 class TableSelection {
  public:
-  void Decorate(Decorator);
-  void DecorateAlternateRow(Decorator, int modulo = 2, int shift = 0);
-  void DecorateAlternateColumn(Decorator, int modulo = 2, int shift = 0);
+  void Decorate(const Decorator&) noexcept;
+  void DecorateAlternateRow(const Decorator&, int modulo = 2, int shift = 0) noexcept;
+  void DecorateAlternateColumn(const Decorator&, int modulo = 2, int shift = 0) noexcept;
 
-  void DecorateCells(Decorator);
-  void DecorateCellsAlternateColumn(Decorator, int modulo = 2, int shift = 0);
-  void DecorateCellsAlternateRow(Decorator, int modulo = 2, int shift = 0);
+  void DecorateCells(const Decorator&) noexcept;
+  void DecorateCellsAlternateColumn(const Decorator&, int modulo = 2, int shift = 0) noexcept;
+  void DecorateCellsAlternateRow(const Decorator&, int modulo = 2, int shift = 0) noexcept;
 
-  void Border(BorderStyle border = LIGHT);
-  void BorderLeft(BorderStyle border = LIGHT);
-  void BorderRight(BorderStyle border = LIGHT);
-  void BorderTop(BorderStyle border = LIGHT);
-  void BorderBottom(BorderStyle border = LIGHT);
+  void Border(BorderStyle border = LIGHT) noexcept;
+  void BorderLeft(BorderStyle border = LIGHT) noexcept;
+  void BorderRight(BorderStyle border = LIGHT) noexcept;
+  void BorderTop(BorderStyle border = LIGHT) noexcept;
+  void BorderBottom(BorderStyle border = LIGHT) noexcept;
 
-  void Separator(BorderStyle border = LIGHT);
-  void SeparatorVertical(BorderStyle border = LIGHT);
-  void SeparatorHorizontal(BorderStyle border = LIGHT);
+  void Separator(BorderStyle border = LIGHT) noexcept;
+  void SeparatorVertical(BorderStyle border = LIGHT) noexcept;
+  void SeparatorHorizontal(BorderStyle border = LIGHT) noexcept;
 
  private:
   friend Table;
-  Table* table_;
+
   int x_min_;
   int x_max_;
   int y_min_;
   int y_max_;
+
+  Table* table_;
 };
 
 }  // namespace ftxui

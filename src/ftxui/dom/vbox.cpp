@@ -3,20 +3,23 @@
 #include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
+#include <ranges>
 
-#include "ftxui/dom/box_helper.hpp"   // for Element, Compute
-#include "ftxui/dom/elements.hpp"     // for Element, Elements, vbox
-#include "ftxui/dom/node.hpp"         // for Node, Elements
-#include "ftxui/dom/requirement.hpp"  // for Requirement
-#include "ftxui/screen/box.hpp"       // for Box
+#include <ftxui/dom/box_helper.hpp>   // for Element, Compute
+#include <ftxui/dom/elements.hpp>     // for Element, Elements, vbox
+#include <ftxui/dom/node.hpp>         // for Node, Elements
+#include <ftxui/dom/requirement.hpp>  // for Requirement
+#include <ftxui/screen/box.hpp>       // for Box
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
 class VBox : public Node {
  public:
-  VBox(Elements children) : Node(std::move(children)) {}
+  explicit VBox(Elements children) : Node(std::move(children)) {}
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     requirement_.min_x = 0;
     requirement_.min_y = 0;
     requirement_.flex_grow_x = 0;
@@ -33,11 +36,11 @@ class VBox : public Node {
       }
       requirement_.min_y += child->requirement().min_y;
       requirement_.min_x =
-          std::max(requirement_.min_x, child->requirement().min_x);
+          ranges::max(requirement_.min_x, child->requirement().min_x);
     }
   }
 
-  void SetBox(Box box) override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
 
     std::vector<box_helper::Element> elements(children_.size());
@@ -48,7 +51,7 @@ class VBox : public Node {
       element.flex_grow = requirement.flex_grow_y;
       element.flex_shrink = requirement.flex_shrink_y;
     }
-    int target_size = box.y_max - box.y_min + 1;
+    const int target_size = box.y_max - box.y_min + 1;
     box_helper::Compute(&elements, target_size);
 
     int y = box.y_min;
@@ -74,7 +77,7 @@ class VBox : public Node {
 ///   text("Down"),
 /// });
 /// ```
-Element vbox(Elements children) {
+Element vbox(Elements children) noexcept {
   return std::make_shared<VBox>(std::move(children));
 }
 

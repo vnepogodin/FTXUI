@@ -23,10 +23,10 @@ using Duration = std::chrono::duration<double>;
 // Parameter of Component::OnAnimation(param).
 class Params {
  public:
-  Params(Duration duration) : duration_(duration) {}
+  explicit Params(Duration duration) : duration_(duration) {}
 
   /// The duration this animation step represents.
-  Duration duration() const { return duration_; }
+  [[nodiscard]] Duration duration() const noexcept { return duration_; }
 
  private:
   Duration duration_;
@@ -90,7 +90,7 @@ float BounceInOut(float p);
 
 class Animator {
  public:
-  Animator(float* from,
+  explicit Animator(float* from,
            float to = 0.f,
            Duration duration = std::chrono::milliseconds(250),
            easing::Function easing_function = easing::Linear,
@@ -98,7 +98,7 @@ class Animator {
 
   void OnAnimation(Params&);
 
-  float to() const { return to_; }
+  [[nodiscard]] float to() const noexcept { return to_; }
 
  private:
   float* value_;

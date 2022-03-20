@@ -4,18 +4,21 @@
 #include <string>      // for string
 #include <utility>     // for move
 #include <vector>      // for vector
+#include <ranges>
 
-#include "ftxui/component/captured_mouse.hpp"     // for CapturedMouse
-#include "ftxui/component/component.hpp"          // for Make, Radiobox
-#include "ftxui/component/component_base.hpp"     // for ComponentBase
-#include "ftxui/component/component_options.hpp"  // for RadioboxOption
-#include "ftxui/component/event.hpp"  // for Event, Event::ArrowDown, Event::ArrowUp, Event::End, Event::Home, Event::PageDown, Event::PageUp, Event::Return, Event::Tab, Event::TabReverse
-#include "ftxui/component/mouse.hpp"  // for Mouse, Mouse::WheelDown, Mouse::WheelUp, Mouse::Left, Mouse::Released
-#include "ftxui/component/screen_interactive.hpp"  // for Component
-#include "ftxui/dom/elements.hpp"  // for operator|, reflect, text, Element, hbox, vbox, Elements, focus, nothing, select
-#include "ftxui/screen/box.hpp"    // for Box
-#include "ftxui/screen/util.hpp"   // for clamp
-#include "ftxui/util/ref.hpp"      // for Ref, ConstStringListRef
+#include <ftxui/component/captured_mouse.hpp>     // for CapturedMouse
+#include <ftxui/component/component.hpp>          // for Make, Radiobox
+#include <ftxui/component/component_base.hpp>     // for ComponentBase
+#include <ftxui/component/component_options.hpp>  // for RadioboxOption
+#include <ftxui/component/event.hpp>  // for Event, Event::ArrowDown, Event::ArrowUp, Event::End, Event::Home, Event::PageDown, Event::PageUp, Event::Return, Event::Tab, Event::TabReverse
+#include <ftxui/component/mouse.hpp>  // for Mouse, Mouse::WheelDown, Mouse::WheelUp, Mouse::Left, Mouse::Released
+#include <ftxui/component/screen_interactive.hpp>  // for Component
+#include <ftxui/dom/elements.hpp>  // for operator|, reflect, text, Element, hbox, vbox, Elements, focus, nothing, select
+#include <ftxui/screen/box.hpp>    // for Box
+#include <ftxui/screen/util.hpp>   // for clamp
+#include <ftxui/util/ref.hpp>      // for Ref, ConstStringListRef
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
@@ -28,12 +31,12 @@ class RadioboxBase : public ComponentBase {
   RadioboxBase(ConstStringListRef entries,
                int* selected,
                Ref<RadioboxOption> option)
-      : entries_(entries), selected_(selected), option_(std::move(option)) {
+      : selected_(selected), option_(std::move(option)), entries_(entries) {
     hovered_ = *selected_;
   }
 
  private:
-  Element Render() override {
+  Element Render() noexcept override {
     Clamp();
     Elements elements;
 
@@ -53,14 +56,14 @@ class RadioboxBase : public ComponentBase {
       const auto element =
           (option_->transform
                ? option_->transform
-               : RadioboxOption::Simple().transform)(std::move(state));
+               : RadioboxOption::Simple().transform)(state);
 
       elements.push_back(element | focus_management | reflect(boxes_[i]));
     }
     return vbox(std::move(elements)) | reflect(box_);
   }
 
-  bool OnEvent(Event event) override {
+  bool OnEvent(const Event& event) noexcept override {
     Clamp();
     if (!CaptureMouse(event))
       return false;
@@ -69,7 +72,7 @@ class RadioboxBase : public ComponentBase {
       return OnMouseEvent(event);
 
     if (Focused()) {
-      int old_hovered = hovered_;
+      const int old_hovered = hovered_;
       if (event == Event::ArrowUp || event == Event::Character('k'))
         (hovered_)--;
       if (event == Event::ArrowDown || event == Event::Character('j'))
@@ -105,9 +108,9 @@ class RadioboxBase : public ComponentBase {
     return false;
   }
 
-  bool OnMouseEvent(Event event) {
-    if (event.mouse().button == Mouse::WheelDown ||
-        event.mouse().button == Mouse::WheelUp) {
+  bool OnMouseEvent(const Event& event) noexcept {
+    if (event.mouse().button == Mouse::Button::WheelDown ||
+        event.mouse().button == Mouse::Button::WheelUp) {
       return OnMouseWheel(event);
     }
 
@@ -117,8 +120,8 @@ class RadioboxBase : public ComponentBase {
 
       TakeFocus();
       focused_entry() = i;
-      if (event.mouse().button == Mouse::Left &&
-          event.mouse().motion == Mouse::Released) {
+      if (event.mouse().button == Mouse::Button::Left &&
+          event.mouse().motion == Mouse::Motion::Released) {
         if (*selected_ != i) {
           *selected_ = i;
           option_->on_change();
@@ -130,15 +133,15 @@ class RadioboxBase : public ComponentBase {
     return false;
   }
 
-  bool OnMouseWheel(Event event) {
+  bool OnMouseWheel(const Event& event) noexcept {
     if (!box_.Contain(event.mouse().x, event.mouse().y))
       return false;
 
     int old_hovered = hovered_;
 
-    if (event.mouse().button == Mouse::WheelUp)
+    if (event.mouse().button == Mouse::Button::WheelUp)
       (hovered_)--;
-    if (event.mouse().button == Mouse::WheelDown)
+    if (event.mouse().button == Mouse::Button::WheelDown)
       (hovered_)++;
 
     hovered_ = util::clamp(hovered_, 0, size() - 1);
@@ -149,23 +152,26 @@ class RadioboxBase : public ComponentBase {
     return true;
   }
 
-  void Clamp() {
+  void Clamp() noexcept {
     boxes_.resize(size());
     *selected_ = util::clamp(*selected_, 0, size() - 1);
     focused_entry() = util::clamp(focused_entry(), 0, size() - 1);
     hovered_ = util::clamp(hovered_, 0, size() - 1);
   }
 
-  bool Focusable() const final { return entries_.size(); }
+  [[nodiscard]] bool Focusable() const noexcept final { return entries_.size(); }
   int& focused_entry() { return option_->focused_entry(); }
-  int size() const { return entries_.size(); }
+  [[nodiscard]] int size() const { return static_cast<int>(entries_.size()); }
+
+
+  int* selected_;
+  int hovered_{};
+
+  Box box_{};
+  Ref<RadioboxOption> option_;
 
   ConstStringListRef entries_;
-  int* selected_;
-  int hovered_;
   std::vector<Box> boxes_;
-  Box box_;
-  Ref<RadioboxOption> option_;
 };
 
 }  // namespace
@@ -200,7 +206,7 @@ class RadioboxBase : public ComponentBase {
 /// ```
 Component Radiobox(ConstStringListRef entries,
                    int* selected,
-                   Ref<RadioboxOption> option) {
+                   Ref<RadioboxOption> option) noexcept {
   return Make<RadioboxBase>(entries, selected, std::move(option));
 }
 

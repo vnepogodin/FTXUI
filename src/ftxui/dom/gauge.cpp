@@ -43,13 +43,13 @@ class Gauge : public Node {
   Gauge(float progress, GaugeDirection direction)
       : progress_(progress), direction_(direction) {
     // This handle NAN correctly:
-    if (!(progress_ > 0.f))
+    if (progress_ <= 0.f)
       progress_ = 0.f;
-    if (!(progress_ < 1.f))
+    if (progress_ >= 1.f)
       progress_ = 1.f;
   }
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     switch (direction_) {
       case GaugeDirection::Right:
       case GaugeDirection::Left:
@@ -70,7 +70,7 @@ class Gauge : public Node {
     requirement_.min_y = 1;
   }
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     switch (direction_) {
       case GaugeDirection::Right:
         RenderHorizontal(screen, /*invert=*/false);
@@ -87,7 +87,7 @@ class Gauge : public Node {
     }
   }
 
-  void RenderHorizontal(Screen& screen, bool invert) {
+  void RenderHorizontal(Screen& screen, bool invert) noexcept {
     int y = box_.y_min;
     if (y > box_.y_max)
       return;
@@ -111,8 +111,8 @@ class Gauge : public Node {
     }
   }
 
-  void RenderVertical(Screen& screen, bool invert) {
-    int x = box_.x_min;
+  void RenderVertical(Screen& screen, bool invert) noexcept {
+    const int x = box_.x_min;
     if (x > box_.x_max)
       return;
 
@@ -136,7 +136,7 @@ class Gauge : public Node {
   }
 
  private:
-  float progress_;
+  float progress_{};
   GaugeDirection direction_;
 };
 
@@ -145,7 +145,7 @@ class Gauge : public Node {
 /// @param progress The proportion of the area to be filled. Belong to [0,1].
 //  @param direction Direction of progress bars progression.
 /// @ingroup dom
-Element gaugeDirection(float progress, GaugeDirection direction) {
+Element gaugeDirection(float progress, GaugeDirection direction) noexcept {
   return std::make_shared<Gauge>(progress, direction);
 }
 
@@ -167,7 +167,7 @@ Element gaugeDirection(float progress, GaugeDirection direction) {
 /// │█████████████████████████████████████                                     │
 /// └──────────────────────────────────────────────────────────────────────────┘
 /// ~~~
-Element gaugeRight(float progress) {
+Element gaugeRight(float progress) noexcept {
   return gaugeDirection(progress, GaugeDirection::Right);
 }
 
@@ -189,7 +189,7 @@ Element gaugeRight(float progress) {
 /// │                                     █████████████████████████████████████│
 /// └──────────────────────────────────────────────────────────────────────────┘
 /// ~~~
-Element gaugeLeft(float progress) {
+Element gaugeLeft(float progress) noexcept {
   return gaugeDirection(progress, GaugeDirection::Left);
 }
 
@@ -218,7 +218,7 @@ Element gaugeLeft(float progress) {
 ///  │█│
 ///  └─┘
 /// ~~~
-Element gaugeUp(float progress) {
+Element gaugeUp(float progress) noexcept {
   return gaugeDirection(progress, GaugeDirection::Up);
 }
 
@@ -247,7 +247,7 @@ Element gaugeUp(float progress) {
 ///  │ │
 ///  └─┘
 /// ~~~
-Element gaugeDown(float progress) {
+Element gaugeDown(float progress) noexcept {
   return gaugeDirection(progress, GaugeDirection::Down);
 }
 
@@ -269,7 +269,7 @@ Element gaugeDown(float progress) {
 /// │█████████████████████████████████████                                     │
 /// └──────────────────────────────────────────────────────────────────────────┘
 /// ~~~
-Element gauge(float progress) {
+Element gauge(float progress) noexcept {
   return gaugeRight(progress);
 }
 

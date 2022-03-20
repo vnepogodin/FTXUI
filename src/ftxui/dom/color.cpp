@@ -14,7 +14,7 @@ class BgColor : public NodeDecorator {
   BgColor(Element child, Color color)
       : NodeDecorator(std::move(child)), color_(color) {}
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, y).background_color = color_;
@@ -31,7 +31,7 @@ class FgColor : public NodeDecorator {
   FgColor(Element child, Color color)
       : NodeDecorator(std::move(child)), color_(color) {}
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, y).foreground_color = color_;
@@ -54,7 +54,7 @@ class FgColor : public NodeDecorator {
 /// ```cpp
 /// Element document = color(Color::Green, text("Success")),
 /// ```
-Element color(Color color, Element child) {
+Element color(Color color, Element child) noexcept {
   return std::make_shared<FgColor>(std::move(child), color);
 }
 
@@ -69,7 +69,7 @@ Element color(Color color, Element child) {
 /// ```cpp
 /// Element document = bgcolor(Color::Green, text("Success")),
 /// ```
-Element bgcolor(Color color, Element child) {
+Element bgcolor(Color color, Element child) noexcept {
   return std::make_shared<BgColor>(std::move(child), color);
 }
 
@@ -83,7 +83,7 @@ Element bgcolor(Color color, Element child) {
 /// ```cpp
 /// Element document = text("red") | color(Color::Red);
 /// ```
-Decorator color(Color c) {
+Decorator color(Color c) noexcept {
   return [c](Element child) { return color(c, std::move(child)); };
 }
 
@@ -97,7 +97,7 @@ Decorator color(Color c) {
 /// ```cpp
 /// Element document = text("red") | bgcolor(Color::Red);
 /// ```
-Decorator bgcolor(Color color) {
+Decorator bgcolor(Color color) noexcept {
   return [color](Element child) { return bgcolor(color, std::move(child)); };
 }
 

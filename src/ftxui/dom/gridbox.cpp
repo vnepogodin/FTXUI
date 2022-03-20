@@ -3,22 +3,25 @@
 #include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
+#include <ranges>
 
-#include "ftxui/dom/box_helper.hpp"   // for Element, Compute
-#include "ftxui/dom/elements.hpp"     // for Elements, filler, Element, gridbox
-#include "ftxui/dom/node.hpp"         // for Node
-#include "ftxui/dom/requirement.hpp"  // for Requirement
-#include "ftxui/screen/box.hpp"       // for Box
+#include <ftxui/dom/box_helper.hpp>   // for Element, Compute
+#include <ftxui/dom/elements.hpp>     // for Elements, filler, Element, gridbox
+#include <ftxui/dom/node.hpp>         // for Node
+#include <ftxui/dom/requirement.hpp>  // for Requirement
+#include <ftxui/screen/box.hpp>       // for Box
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 class Screen;
 
 class GridBox : public Node {
  public:
-  GridBox(std::vector<Elements> lines) : Node(), lines_(std::move(lines)) {
+  explicit GridBox(std::vector<Elements> lines) : Node(), lines_(std::move(lines)) {
     y_size = lines_.size();
     for (const auto& line : lines_)
-      x_size = std::max(x_size, (int)line.size());
+      x_size = ranges::max(x_size, (int)line.size());
     for (auto& line : lines_) {
       while (line.size() < (size_t)x_size) {
         line.push_back(filler());
@@ -26,7 +29,7 @@ class GridBox : public Node {
     }
   }
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     requirement_.min_x = 0;
     requirement_.min_y = 0;
     requirement_.flex_grow_x = 0;
@@ -52,7 +55,7 @@ class GridBox : public Node {
     for (int x = 0; x < x_size; ++x) {
       int min_x = 0;
       for (int y = 0; y < y_size; ++y)
-        min_x = std::max(min_x, lines_[y][x]->requirement().min_x);
+        min_x = ranges::max(min_x, lines_[y][x]->requirement().min_x);
       requirement_.min_x += min_x;
     }
 
@@ -60,12 +63,12 @@ class GridBox : public Node {
     for (int y = 0; y < y_size; ++y) {
       int min_y = 0;
       for (int x = 0; x < x_size; ++x)
-        min_y = std::max(min_y, lines_[y][x]->requirement().min_y);
+        min_y = ranges::max(min_y, lines_[y][x]->requirement().min_y);
       requirement_.min_y += min_y;
     }
   }
 
-  void SetBox(Box box) override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
 
     box_helper::Element init;
@@ -81,17 +84,17 @@ class GridBox : public Node {
         const auto& requirement = cell->requirement();
         auto& e_x = elements_x[x];
         auto& e_y = elements_y[y];
-        e_x.min_size = std::max(e_x.min_size, requirement.min_x);
-        e_y.min_size = std::max(e_y.min_size, requirement.min_y);
-        e_x.flex_grow = std::min(e_x.flex_grow, requirement.flex_grow_x);
-        e_y.flex_grow = std::min(e_y.flex_grow, requirement.flex_grow_y);
-        e_x.flex_shrink = std::min(e_x.flex_shrink, requirement.flex_shrink_x);
-        e_y.flex_shrink = std::min(e_y.flex_shrink, requirement.flex_shrink_y);
+        e_x.min_size = ranges::max(e_x.min_size, requirement.min_x);
+        e_y.min_size = ranges::max(e_y.min_size, requirement.min_y);
+        e_x.flex_grow = ranges::min(e_x.flex_grow, requirement.flex_grow_x);
+        e_y.flex_grow = ranges::min(e_y.flex_grow, requirement.flex_grow_y);
+        e_x.flex_shrink = ranges::min(e_x.flex_shrink, requirement.flex_shrink_x);
+        e_y.flex_shrink = ranges::min(e_y.flex_shrink, requirement.flex_shrink_y);
       }
     }
 
-    int target_size_x = box.x_max - box.x_min + 1;
-    int target_size_y = box.y_max - box.y_min + 1;
+    const int target_size_x = box.x_max - box.x_min + 1;
+    const int target_size_y = box.y_max - box.y_min + 1;
     box_helper::Compute(&elements_x, target_size_x);
     box_helper::Compute(&elements_y, target_size_y);
 
@@ -113,7 +116,7 @@ class GridBox : public Node {
     }
   }
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     for (auto& line : lines_) {
       for (auto& cell : line)
         cell->Render(screen);
@@ -151,7 +154,7 @@ class GridBox : public Node {
 ///│south-west││south ││south-east│
 ///╰──────────╯╰──────╯╰──────────╯
 /// ```
-Element gridbox(std::vector<Elements> lines) {
+Element gridbox(std::vector<Elements> lines) noexcept {
   return std::make_shared<GridBox>(std::move(lines));
 }
 

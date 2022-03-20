@@ -25,13 +25,13 @@ namespace ftxui {
 ///   | focusPositionRelative(0.f, 1.f)
 ///   | frame;
 /// ```
-Decorator focusPositionRelative(float x, float y) {
+Decorator focusPositionRelative(float x, float y) noexcept {
   class Impl : public NodeDecorator {
    public:
     Impl(Element child, float x, float y)
-        : NodeDecorator(child), x_(x), y_(y) {}
+        : NodeDecorator(std::move(child)), x_(x), y_(y) {}
 
-    void ComputeRequirement() override {
+    void ComputeRequirement() noexcept override {
       NodeDecorator::ComputeRequirement();
       requirement_.selection = Requirement::Selection::NORMAL;
 
@@ -64,13 +64,13 @@ Decorator focusPositionRelative(float x, float y) {
 ///   | focusPosition(10, 10)
 ///   | frame;
 /// ```
-Decorator focusPosition(int x, int y) {
+Decorator focusPosition(int x, int y) noexcept {
   class Impl : public NodeDecorator {
    public:
     Impl(Element child, float x, float y)
-        : NodeDecorator(child), x_(x), y_(y) {}
+        : NodeDecorator(std::move(child)), x_(x), y_(y) {}
 
-    void ComputeRequirement() override {
+    void ComputeRequirement() noexcept override {
       NodeDecorator::ComputeRequirement();
       requirement_.selection = Requirement::Selection::NORMAL;
 

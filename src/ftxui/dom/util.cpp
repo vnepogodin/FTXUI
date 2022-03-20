@@ -3,18 +3,21 @@
 #include <memory>      // for __shared_ptr_access, make_unique
 #include <utility>     // for move
 #include <vector>      // for vector
+#include <ranges>
 
-#include "ftxui/dom/elements.hpp"  // for Element, Decorator, Elements, operator|, Fit, emptyElement, nothing
-#include "ftxui/dom/node.hpp"         // for Node, Node::Status
-#include "ftxui/dom/requirement.hpp"  // for Requirement
-#include "ftxui/screen/box.hpp"       // for Box
-#include "ftxui/screen/screen.hpp"    // for Full
-#include "ftxui/screen/terminal.hpp"  // for Dimensions
+#include <ftxui/dom/elements.hpp>  // for Element, Decorator, Elements, operator|, Fit, emptyElement, nothing
+#include <ftxui/dom/node.hpp>         // for Node, Node::Status
+#include <ftxui/dom/requirement.hpp>  // for Requirement
+#include <ftxui/screen/box.hpp>       // for Box
+#include <ftxui/screen/screen.hpp>    // for Full
+#include <ftxui/screen/terminal.hpp>  // for Dimensions
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
 namespace {
-Decorator compose(Decorator a, Decorator b) {
+Decorator compose(Decorator a, Decorator b) noexcept {
   return [a = std::move(a), b = std::move(b)](Element element) {
     return b(a(std::move(element)));
   };
@@ -23,7 +26,7 @@ Decorator compose(Decorator a, Decorator b) {
 
 /// @brief A decoration doing absolutely nothing.
 /// @ingroup dom
-Element nothing(Element element) {
+Element nothing(Element element) noexcept {
   return element;
 }
 
@@ -35,14 +38,14 @@ Element nothing(Element element) {
 /// ```cpp
 /// auto decorator = bold | blink;
 /// ```
-Decorator operator|(Decorator a, Decorator b) {
-  return compose(a, b);
+Decorator operator|(Decorator a, Decorator b) noexcept {
+  return compose(std::move(a), std::move(b));
 }
 
 /// @brief From a set of element, apply a decorator to every elements.
 /// @return the set of decorated element.
 /// @ingroup dom
-Elements operator|(Elements elements, Decorator decorator) {
+Elements operator|(Elements elements, const Decorator& decorator) noexcept {
   Elements output;
   for (auto& it : elements)
     output.push_back(std::move(it) | decorator);
@@ -62,7 +65,7 @@ Elements operator|(Elements elements, Decorator decorator) {
 /// ```cpp
 /// text("Hello") | bold;
 /// ```
-Element operator|(Element element, Decorator decorator) {
+Element operator|(Element element, const Decorator& decorator) noexcept {
   return decorator(std::move(element));
 }
 
@@ -77,7 +80,7 @@ Element operator|(Element element, Decorator decorator) {
 /// auto element = text("Hello");
 /// element |= bold;
 /// ```
-Element& operator|=(Element& e, Decorator d) {
+Element& operator|=(Element& e, const Decorator& d) noexcept {
   e = e | d;
   return e;
 }
@@ -85,8 +88,8 @@ Element& operator|=(Element& e, Decorator d) {
 /// The minimal dimension that will fit the given element.
 /// @see Fixed
 /// @see Full
-Dimensions Dimension::Fit(Element& e) {
-  Dimensions fullsize = Dimension::Full();
+Dimensions Dimension::Fit(Element& e) noexcept {
+  const auto fullsize = Dimension::Full();
   Box box;
   box.x_min = 0;
   box.y_min = 0;
@@ -99,8 +102,8 @@ Dimensions Dimension::Fit(Element& e) {
     e->ComputeRequirement();
 
     // Don't give the element more space than it needs:
-    box.x_max = std::min(box.x_max, e->requirement().min_x);
-    box.y_max = std::min(box.y_max, e->requirement().min_y);
+    box.x_max = ranges::min(box.x_max, e->requirement().min_x);
+    box.y_max = ranges::min(box.y_max, e->requirement().min_y);
 
     e->SetBox(box);
     status.need_iteration = false;
@@ -111,8 +114,8 @@ Dimensions Dimension::Fit(Element& e) {
       break;
     // Increase the size of the box until it fits, but not more than the with of
     // the terminal emulator:
-    box.x_max = std::min(e->requirement().min_x, fullsize.dimx);
-    box.y_max = std::min(e->requirement().min_y, fullsize.dimy);
+    box.x_max = ranges::min(e->requirement().min_x, fullsize.dimx);
+    box.y_max = ranges::min(e->requirement().min_y, fullsize.dimy);
   }
 
   return {
@@ -123,9 +126,9 @@ Dimensions Dimension::Fit(Element& e) {
 
 /// An element of size 0x0 drawing nothing.
 /// @ingroup dom
-Element emptyElement() {
+Element emptyElement() noexcept {
   class Impl : public Node {
-    void ComputeRequirement() override {
+    void ComputeRequirement() noexcept override {
       requirement_.min_x = 0;
       requirement_.min_x = 0;
     }

@@ -1,10 +1,9 @@
-#include <string>   // for string
 #include <utility>  // for move
 
-#include "ftxui/component/component.hpp"  // for Checkbox, Maybe, Make, Vertical, Collapsible
-#include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
-#include "ftxui/component/component_options.hpp"  // for CheckboxOption
-#include "ftxui/util/ref.hpp"                     // for Ref, ConstStringRef
+#include <ftxui/component/component.hpp>  // for Checkbox, Maybe, Make, Vertical, Collapsible
+#include <ftxui/component/component_base.hpp>  // for Component, ComponentBase
+#include <ftxui/component/component_options.hpp>  // for CheckboxOption
+#include <ftxui/util/ref.hpp>                     // for Ref, ConstStringRef
 
 namespace ftxui {
 
@@ -25,13 +24,13 @@ namespace ftxui {
 /// ▼ Show details
 /// <details component>
 /// ```
-Component Collapsible(ConstStringRef label, Component child, Ref<bool> show) {
+Component Collapsible(const ConstStringRef& label, const Component& child, Ref<bool> show) noexcept {
   class Impl : public ComponentBase {
    public:
-    Impl(ConstStringRef label, Component child, Ref<bool> show)
-        : label_(label), show_(std::move(show)) {
+    Impl(const ConstStringRef& label, Component child, Ref<bool> show)
+        : show_(show) {
       CheckboxOption opt;
-      opt.transform = [](EntryState s) {
+      opt.transform = [](auto&& s) {
         auto prefix = text(s.state ? "▼ " : "▶ ");
         auto t = text(s.label);
         if (s.active)
@@ -41,15 +40,14 @@ Component Collapsible(ConstStringRef label, Component child, Ref<bool> show) {
         return hbox({prefix, t});
       };
       Add(Container::Vertical({
-          Checkbox(label_, show_.operator->(), opt),
+          Checkbox(label, show_.operator->(), opt),
           Maybe(std::move(child), show_.operator->()),
       }));
     }
-    ConstStringRef label_;
     Ref<bool> show_;
   };
 
-  return Make<Impl>(label, std::move(child), std::move(show));
+  return Make<Impl>(label, child, show);
 }
 
 }  // namespace ftxui

@@ -11,19 +11,18 @@ namespace ftxui {
 class CatchEventBase : public ComponentBase {
  public:
   // Constructor.
-  CatchEventBase(std::function<bool(Event)> on_event)
+  explicit CatchEventBase(std::function<bool(const Event&)> on_event)
       : on_event_(std::move(on_event)) {}
 
   // Component implementation.
-  bool OnEvent(Event event) override {
+  [[nodiscard]] bool OnEvent(const Event& event) noexcept override {
     if (on_event_(event))
       return true;
-    else
-      return ComponentBase::OnEvent(event);
+    return ComponentBase::OnEvent(event);
   }
 
  protected:
-  std::function<bool(Event)> on_event_;
+  std::function<bool(const Event&)> on_event_;
 };
 
 /// @brief Return a component, using |on_event| to catch events. This function
@@ -48,10 +47,10 @@ class CatchEventBase : public ComponentBase {
 /// });
 /// screen.Loop(component);
 /// ```
-Component CatchEvent(Component child,
-                     std::function<bool(Event event)> on_event) {
-  auto out = Make<CatchEventBase>(std::move(on_event));
-  out->Add(std::move(child));
+Component CatchEvent(const Component& child,
+                     const std::function<bool(const Event& event)>& on_event) noexcept {
+  auto&& out = Make<CatchEventBase>(on_event);
+  out->Add(child);
   return out;
 }
 
@@ -74,9 +73,9 @@ Component CatchEvent(Component child,
 /// });
 /// screen.Loop(renderer);
 /// ```
-ComponentDecorator CatchEvent(std::function<bool(Event)> on_event) {
-  return [on_event = std::move(on_event)](Component child) {
-    return CatchEvent(child, [on_event = std::move(on_event)](Event event) {
+ComponentDecorator CatchEvent(const std::function<bool(const Event&)>& on_event) noexcept {
+  return [on_event](auto&& child) {
+    return CatchEvent(child, [on_event](auto&& event) {
       return on_event(event);
     });
   };

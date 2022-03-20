@@ -1,6 +1,7 @@
 #include <functional>  // for function
 #include <memory>      // for allocator, make_shared
 #include <string>      // for string
+#include <utility>
 #include <vector>      // for vector
 
 #include "ftxui/dom/elements.hpp"     // for GraphFunction, Element, graph
@@ -22,9 +23,9 @@ static std::string charset[] =
 
 class Graph : public Node {
  public:
-  Graph(GraphFunction graph_function) : graph_function_(graph_function) {}
+  explicit Graph(GraphFunction graph_function) : graph_function_(std::move(graph_function)) {}
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     requirement_.flex_grow_x = 1;
     requirement_.flex_grow_y = 1;
     requirement_.flex_shrink_x = 1;
@@ -33,10 +34,10 @@ class Graph : public Node {
     requirement_.min_y = 3;
   }
 
-  void Render(Screen& screen) override {
-    int width = (box_.x_max - box_.x_min + 1) * 2;
-    int height = (box_.y_max - box_.y_min + 1) * 2;
-    auto data = graph_function_(width, height);
+  void Render(Screen& screen) noexcept override {
+    const int width = (box_.x_max - box_.x_min + 1) * 2;
+    const int height = (box_.y_max - box_.y_min + 1) * 2;
+    const auto data = graph_function_(width, height);
     int i = 0;
     for (int x = box_.x_min; x <= box_.x_max; ++x) {
       int height_1 = 2 * box_.y_max - data[i++];
@@ -56,7 +57,7 @@ class Graph : public Node {
 
 /// @brief Draw a graph using a GraphFunction.
 /// @param graph_function the function to be called to get the data.
-Element graph(GraphFunction graph_function) {
+Element graph(const GraphFunction& graph_function) noexcept {
   return std::make_shared<Graph>(graph_function);
 }
 

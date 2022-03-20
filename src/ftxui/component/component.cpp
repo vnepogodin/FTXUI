@@ -1,16 +1,19 @@
-#include <stddef.h>   // for size_t
-#include <algorithm>  // for find_if
+#include <cstddef>    // for size_t
+#include <algorithm>  // for find_if, any_of
 #include <cassert>    // for assert
 #include <iterator>   // for begin, end
 #include <utility>    // for move
 #include <vector>     // for vector, __alloc_traits<>::value_type
+#include <ranges>
 
-#include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse, CapturedMouseInterface
-#include "ftxui/component/component.hpp"
-#include "ftxui/component/component_base.hpp"  // for ComponentBase, Components
-#include "ftxui/component/event.hpp"           // for Event
-#include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
-#include "ftxui/dom/elements.hpp"                  // for text, Element
+#include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse, CapturedMouseInterface
+#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>  // for ComponentBase, Components
+#include <ftxui/component/event.hpp>           // for Event
+#include <ftxui/component/screen_interactive.hpp>  // for Component, ScreenInteractive
+#include <ftxui/dom/elements.hpp>                  // for text, Element
+
+namespace ranges = std::ranges;
 
 namespace ftxui::animation {
 class Params;
@@ -22,7 +25,7 @@ namespace {
 class CaptureMouseImpl : public CapturedMouseInterface {};
 }  // namespace
 
-ComponentBase::~ComponentBase() {
+ComponentBase::~ComponentBase() noexcept {
   DetachAllChildren();
 }
 
@@ -30,27 +33,27 @@ ComponentBase::~ComponentBase() {
 /// @see Detach
 /// @see Parent
 /// @ingroup component
-ComponentBase* ComponentBase::Parent() const {
+ComponentBase* ComponentBase::Parent() const noexcept {
   return parent_;
 }
 
 /// @brief Access the child at index `i`.
 /// @ingroup component
-Component& ComponentBase::ChildAt(size_t i) {
+Component& ComponentBase::ChildAt(size_t i) noexcept {
   assert(i < ChildCount());
   return children_[i];
 }
 
 /// @brief Returns the number of children.
 /// @ingroup component
-size_t ComponentBase::ChildCount() const {
+size_t ComponentBase::ChildCount() const noexcept {
   return children_.size();
 }
 
 /// @brief Add a child.
 /// @@param child The child to be attached.
 /// @ingroup component
-void ComponentBase::Add(Component child) {
+void ComponentBase::Add(Component child) noexcept {
   child->Detach();
   child->parent_ = this;
   children_.push_back(std::move(child));
@@ -60,14 +63,14 @@ void ComponentBase::Add(Component child) {
 /// @see Detach
 /// @see Parent
 /// @ingroup component
-void ComponentBase::Detach() {
+void ComponentBase::Detach() noexcept {
   if (!parent_)
     return;
-  auto it = std::find_if(std::begin(parent_->children_),  //
-                         std::end(parent_->children_),    //
-                         [this](const Component& that) {  //
-                           return this == that.get();
-                         });
+
+  auto it = ranges::find_if(parent_->children_,         //
+                            [this](const auto& that) {  //
+                              return this == that.get();
+                            });
   ComponentBase* parent = parent_;
   parent_ = nullptr;
   parent->children_.erase(it);  // Might delete |this|.
@@ -75,7 +78,7 @@ void ComponentBase::Detach() {
 
 /// @brief Remove all children.
 /// @ingroup component
-void ComponentBase::DetachAllChildren() {
+void ComponentBase::DetachAllChildren() noexcept {
   while (!children_.empty())
     children_[0]->Detach();
 }
@@ -84,7 +87,7 @@ void ComponentBase::DetachAllChildren() {
 /// Build a ftxui::Element to be drawn on the ftxi::Screen representing this
 /// ftxui::ComponentBase.
 /// @ingroup component
-Element ComponentBase::Render() {
+Element ComponentBase::Render() noexcept {
   if (children_.size() == 1)
     return children_.front()->Render();
 
@@ -97,19 +100,15 @@ Element ComponentBase::Render() {
 /// The default implementation called OnEvent on every child until one return
 /// true. If none returns true, return false.
 /// @ingroup component
-bool ComponentBase::OnEvent(Event event) {
-  for (const Component& child : children_) {
-    if (child->OnEvent(event))
-      return true;
-  }
-  return false;
+bool ComponentBase::OnEvent(const Event& event) noexcept {
+  return ranges::any_of(children_, [&](auto&& child) { return child->OnEvent(event); });
 }
 
 /// @brief Called in response to an animation event.
 /// @param animation_params the parameters of the animation
 /// The default implementation dispatch the event to every child.
 /// @ingroup component
-void ComponentBase::OnAnimation(animation::Params& params) {
+void ComponentBase::OnAnimation(animation::Params& params) noexcept {
   for (Component& child : children_)
     child->OnAnimation(params);
 }
@@ -117,7 +116,7 @@ void ComponentBase::OnAnimation(animation::Params& params) {
 /// @brief Return the currently Active child.
 /// @return the currently Active child.
 /// @ingroup component
-Component ComponentBase::ActiveChild() {
+Component ComponentBase::ActiveChild() noexcept {
   for (auto& child : children_) {
     if (child->Focusable())
       return child;
@@ -129,17 +128,13 @@ Component ComponentBase::ActiveChild() {
 /// The non focusable Components will be skipped when navigating using the
 /// keyboard.
 /// @ingroup component
-bool ComponentBase::Focusable() const {
-  for (const Component& child : children_) {
-    if (child->Focusable())
-      return true;
-  }
-  return false;
+bool ComponentBase::Focusable() const noexcept {
+  return ranges::any_of(children_, [=](auto&& child) { return child->Focusable(); });
 }
 
 /// @brief Returns if the element if the currently active child of its parent.
 /// @ingroup component
-bool ComponentBase::Active() const {
+bool ComponentBase::Active() const noexcept {
   return !parent_ || parent_->ActiveChild().get() == this;
 }
 
@@ -148,7 +143,7 @@ bool ComponentBase::Active() const {
 /// when it is with all its ancestors the ActiveChild() of their parents, and it
 /// Focusable().
 /// @ingroup component
-bool ComponentBase::Focused() const {
+bool ComponentBase::Focused() const noexcept {
   auto current = this;
   while (current && current->Active()) {
     current = current->parent_;
@@ -159,18 +154,18 @@ bool ComponentBase::Focused() const {
 /// @brief Make the |child| to be the "active" one.
 /// @param child the child to become active.
 /// @ingroup component
-void ComponentBase::SetActiveChild(ComponentBase*) {}
+void ComponentBase::SetActiveChild(const ComponentBase*) noexcept {}
 
 /// @brief Make the |child| to be the "active" one.
 /// @param child the child to become active.
 /// @ingroup component
-void ComponentBase::SetActiveChild(Component child) {
+void ComponentBase::SetActiveChild(const Component& child) noexcept {
   SetActiveChild(child.get());
 }
 
 /// @brief Configure all the ancestors to give focus to this component.
 /// @ingroup component
-void ComponentBase::TakeFocus() {
+void ComponentBase::TakeFocus() noexcept {
   ComponentBase* child = this;
   while (ComponentBase* parent = child->parent_) {
     parent->SetActiveChild(child);
@@ -182,7 +177,7 @@ void ComponentBase::TakeFocus() {
 /// them. It represents a component taking priority over others.
 /// @param event
 /// @ingroup component
-CapturedMouse ComponentBase::CaptureMouse(const Event& event) {
+CapturedMouse ComponentBase::CaptureMouse(const Event& event) noexcept {
   if (event.screen_)
     return event.screen_->CaptureMouse();
   return std::make_unique<CaptureMouseImpl>();

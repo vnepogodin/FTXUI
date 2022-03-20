@@ -9,7 +9,6 @@
 
 namespace ftxui {
 
-class Delegate;
 class Focus;
 struct Event;
 
@@ -27,27 +26,27 @@ using Components = std::vector<Component>;
 class ComponentBase {
  public:
   // virtual Destructor.
-  virtual ~ComponentBase();
+  virtual ~ComponentBase() noexcept;
 
   // Component hierarchy:
-  ComponentBase* Parent() const;
-  Component& ChildAt(size_t i);
-  size_t ChildCount() const;
-  void Add(Component children);
-  void Detach();
-  void DetachAllChildren();
+  [[nodiscard]] ComponentBase* Parent() const noexcept;
+  Component& ChildAt(size_t i) noexcept;
+  [[nodiscard]] std::size_t ChildCount() const noexcept;
+  void Add(Component children) noexcept;
+  void Detach() noexcept;
+  void DetachAllChildren() noexcept;
 
   // Renders the component.
-  virtual Element Render();
+  virtual Element Render() noexcept;
 
   // Handles an event.
   // By default, reduce on children with a lazy OR.
   //
   // Returns whether the event was handled or not.
-  virtual bool OnEvent(Event);
+  virtual bool OnEvent(const Event&) noexcept;
 
   // Handle an animation step.
-  virtual void OnAnimation(animation::Params& params);
+  virtual void OnAnimation(animation::Params& params) noexcept;
 
   // Focus management ----------------------------------------------------------
   //
@@ -56,27 +55,27 @@ class ComponentBase {
   //
   // We say an element has the focus if the chain of ActiveChild() from the
   // root component contains this object.
-  virtual Component ActiveChild();
+  virtual Component ActiveChild() noexcept;
 
   // Return true when the component contains focusable elements.
   // The non focusable Component will be skipped when navigating using the
   // keyboard.
-  virtual bool Focusable() const;
+  [[nodiscard]] virtual bool Focusable() const noexcept;
 
   // Whether this is the active child of its parent.
-  bool Active() const;
+  [[nodiscard]] bool Active() const noexcept;
   // Whether all the ancestors are active.
-  bool Focused() const;
+  [[nodiscard]] bool Focused() const noexcept;
 
   // Make the |child| to be the "active" one.
-  virtual void SetActiveChild(ComponentBase* child);
-  void SetActiveChild(Component child);
+  virtual void SetActiveChild(const ComponentBase* child) noexcept;
+  void SetActiveChild(const Component& child) noexcept;
 
   // Configure all the ancestors to give focus to this component.
-  void TakeFocus();
+  void TakeFocus() noexcept;
 
  protected:
-  CapturedMouse CaptureMouse(const Event& event);
+  CapturedMouse CaptureMouse(const Event& event) noexcept;
 
   Components children_;
 

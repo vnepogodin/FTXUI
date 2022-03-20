@@ -2,6 +2,9 @@
 #define FTXUI_SCREEN_BOX_HPP
 
 #include <algorithm>
+#include <ranges>
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
@@ -16,16 +19,16 @@ struct Box {
   // static
   static constexpr Box Intersection(Box a, Box b) noexcept {
     return Box{
-        std::max(a.x_min, b.x_min),
-        std::min(a.x_max, b.x_max),
-        std::max(a.y_min, b.y_min),
-        std::min(a.y_max, b.y_max),
+        ranges::max(a.x_min, b.x_min),
+        ranges::min(a.x_max, b.x_max),
+        ranges::max(a.y_min, b.y_min),
+        ranges::min(a.y_max, b.y_max),
     };
   }
 
   /// @return whether (x,y) is contained inside the box.
   /// @ingroup screen
-  constexpr bool Contain(int x, int y) const noexcept {
+  [[nodiscard]] constexpr bool Contain(int x, int y) const noexcept {
     return x_min <= x &&  //
            x_max >= x &&  //
            y_min <= y &&  //

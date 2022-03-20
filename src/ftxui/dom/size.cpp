@@ -1,13 +1,16 @@
-#include <stddef.h>   // for size_t
+#include <cstddef>   // for size_t
 #include <algorithm>  // for min, max
 #include <memory>     // for make_shared, __shared_ptr_access
 #include <utility>    // for move
 #include <vector>     // for __alloc_traits<>::value_type
+#include <ranges>
 
-#include "ftxui/dom/elements.hpp"  // for Constraint, Direction, EQUAL, GREATER_THAN, LESS_THAN, WIDTH, unpack, Decorator, Element, size
-#include "ftxui/dom/node.hpp"      // for Node, Elements
-#include "ftxui/dom/requirement.hpp"  // for Requirement
-#include "ftxui/screen/box.hpp"       // for Box
+#include <ftxui/dom/elements.hpp>  // for Constraint, Direction, EQUAL, GREATER_THAN, LESS_THAN, WIDTH, unpack, Decorator, Element, size
+#include <ftxui/dom/node.hpp>      // for Node, Elements
+#include <ftxui/dom/requirement.hpp>  // for Requirement
+#include <ftxui/screen/box.hpp>       // for Box
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
@@ -15,11 +18,11 @@ class Size : public Node {
  public:
   Size(Element child, Direction direction, Constraint constraint, size_t value)
       : Node(unpack(std::move(child))),
+        value_(value),
         direction_(direction),
-        constraint_(constraint),
-        value_(value) {}
+        constraint_(constraint) {}
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     Node::ComputeRequirement();
     requirement_ = children_[0]->requirement();
 
@@ -27,13 +30,13 @@ class Size : public Node {
 
     switch (constraint_) {
       case LESS_THAN:
-        value = std::min(value, value_);
+        value = ranges::min(value, value_);
         break;
       case EQUAL:
         value = value_;
         break;
       case GREATER_THAN:
-        value = std::max(value, value_);
+        value = ranges::max(value, value_);
         break;
     }
 
@@ -46,14 +49,14 @@ class Size : public Node {
     }
   }
 
-  void SetBox(Box box) override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
 
     if (direction_ == WIDTH) {
       switch (constraint_) {
         case LESS_THAN:
         case EQUAL:
-          box.x_max = std::min(box.x_min + value_ + 1, box.x_max);
+          box.x_max = ranges::min(box.x_min + value_ + 1, box.x_max);
           break;
         case GREATER_THAN:
           break;
@@ -62,7 +65,7 @@ class Size : public Node {
       switch (constraint_) {
         case LESS_THAN:
         case EQUAL:
-          box.y_max = std::min(box.y_min + value_ + 1, box.y_max);
+          box.y_max = ranges::min(box.y_min + value_ + 1, box.y_max);
           break;
         case GREATER_THAN:
           break;
@@ -72,18 +75,18 @@ class Size : public Node {
   }
 
  private:
+  int value_{};
   Direction direction_;
   Constraint constraint_;
-  int value_;
 };
 
 /// @brief Apply a constraint on the size of an element.
 /// @param direction Whether the WIDTH of the HEIGHT of the element must be
 ///                  constrained.
-/// @param constraint The type of constaint.
+/// @param constraint The type of constraint.
 /// @param value The value.
 /// @ingroup dom
-Decorator size(Direction direction, Constraint constraint, int value) {
+Decorator size(Direction direction, Constraint constraint, int value) noexcept {
   return [=](Element e) {
     return std::make_shared<Size>(std::move(e), direction, constraint, value);
   };

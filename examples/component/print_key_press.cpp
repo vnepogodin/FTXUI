@@ -29,30 +29,30 @@ std::string Stringify(Event event) {
   } else if (event.is_mouse()) {
     out += "mouse";
     switch (event.mouse().button) {
-      case Mouse::Left:
+      case Mouse::Button::Left:
         out += "_left";
         break;
-      case Mouse::Middle:
+      case Mouse::Button::Middle:
         out += "_middle";
         break;
-      case Mouse::Right:
+      case Mouse::Button::Right:
         out += "_right";
         break;
-      case Mouse::None:
+      case Mouse::Button::None:
         out += "_none";
         break;
-      case Mouse::WheelUp:
+      case Mouse::Button::WheelUp:
         out += "_wheel_up";
         break;
-      case Mouse::WheelDown:
+      case Mouse::Button::WheelDown:
         out += "_wheel_down";
         break;
     }
     switch (event.mouse().motion) {
-      case Mouse::Pressed:
+      case Mouse::Motion::Pressed:
         out += "_pressed";
         break;
-      case Mouse::Released:
+      case Mouse::Motion::Released:
         out += "_released";
         break;
     }

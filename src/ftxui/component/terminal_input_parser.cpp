@@ -17,7 +17,7 @@ void TerminalInputParser::Timeout(int time) {
   if (timeout_ < 50)
     return;
   timeout_ = 0;
-  if (pending_.size())
+  if (!pending_.empty())
     Send(SPECIAL);
 }
 
@@ -47,7 +47,7 @@ void TerminalInputParser::Send(TerminalInputParser::Output output) {
       return;
 
     case CHARACTER:
-      out_->Send(Event::Character(std::move(pending_)));
+      out_->Send(Event::Character(pending_));
       pending_.clear();
       return;
 
@@ -59,17 +59,17 @@ void TerminalInputParser::Send(TerminalInputParser::Output output) {
       if (pending_ == "\r")
         out_->Send(Event::Special("\n"));
       else
-        out_->Send(Event::Special(std::move(pending_)));
+        out_->Send(Event::Special(pending_));
       pending_.clear();
       return;
 
     case MOUSE:
-      out_->Send(Event::Mouse(std::move(pending_), output.mouse));
+      out_->Send(Event::Mouse(pending_, output.mouse));
       pending_.clear();
       return;
 
     case CURSOR_REPORTING:
-      out_->Send(Event::CursorReporting(std::move(pending_), output.cursor.x,
+      out_->Send(Event::CursorReporting(pending_, output.cursor.x,
                                         output.cursor.y));
       pending_.clear();
       return;
@@ -118,7 +118,7 @@ TerminalInputParser::Output TerminalInputParser::Parse() {
 // Then some sequences are illegal if it exist a shorter representation of the
 // same codepoint.
 TerminalInputParser::Output TerminalInputParser::ParseUTF8() {
-  unsigned char head = static_cast<unsigned char>(Current());
+  auto head = static_cast<unsigned char>(Current());
   unsigned char selector = 0b1000'0000;
 
   // The non code-point part of the first byte.

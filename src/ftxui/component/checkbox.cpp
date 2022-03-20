@@ -2,15 +2,15 @@
 #include <memory>      // for shared_ptr
 #include <utility>     // for move
 
-#include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse
-#include "ftxui/component/component.hpp"       // for Make, Component, Checkbox
-#include "ftxui/component/component_base.hpp"  // for ComponentBase
-#include "ftxui/component/component_options.hpp"  // for CheckboxOption
-#include "ftxui/component/event.hpp"              // for Event, Event::Return
-#include "ftxui/component/mouse.hpp"  // for Mouse, Mouse::Left, Mouse::Pressed
-#include "ftxui/dom/elements.hpp"  // for operator|, text, Element, hbox, reflect, focus, nothing, select
-#include "ftxui/screen/box.hpp"  // for Box
-#include "ftxui/util/ref.hpp"    // for Ref, ConstStringRef
+#include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse
+#include <ftxui/component/component.hpp>       // for Make, Component, Checkbox
+#include <ftxui/component/component_base.hpp>  // for ComponentBase
+#include <ftxui/component/component_options.hpp>  // for CheckboxOption
+#include <ftxui/component/event.hpp>              // for Event, Event::Return
+#include <ftxui/component/mouse.hpp>  // for Mouse, Mouse::Left, Mouse::Pressed
+#include <ftxui/dom/elements.hpp>  // for operator|, text, Element, hbox, reflect, focus, nothing, select
+#include <ftxui/screen/box.hpp>  // for Box
+#include <ftxui/util/ref.hpp>    // for Ref, ConstStringRef
 
 namespace ftxui {
 
@@ -18,11 +18,11 @@ namespace {
 class CheckboxBase : public ComponentBase {
  public:
   CheckboxBase(ConstStringRef label, bool* state, Ref<CheckboxOption> option)
-      : label_(label), state_(state), option_(std::move(option)) {}
+      : label_(std::move(label)), state_(state), option_(std::move(option)) {}
 
  private:
   // Component implementation.
-  Element Render() override {
+  Element Render() noexcept override {
     const bool is_focused = Focused();
     const bool is_active = Active();
     const auto focus_management = is_focused ? focus : is_active ? select : nothing;
@@ -34,11 +34,11 @@ class CheckboxBase : public ComponentBase {
     };
     const auto element = (option_->transform
                         ? option_->transform
-                        : CheckboxOption::Simple().transform)(std::move(state));
+                        : CheckboxOption::Simple().transform)(state);
     return element | focus_management | reflect(box_);
   }
 
-  bool OnEvent(Event event) override {
+  [[nodiscard]] bool OnEvent(const Event& event) noexcept override {
     if (!CaptureMouse(event))
       return false;
 
@@ -55,7 +55,7 @@ class CheckboxBase : public ComponentBase {
     return false;
   }
 
-  bool OnMouseEvent(Event event) {
+  bool OnMouseEvent(const Event& event) noexcept {
     hovered_ = box_.Contain(event.mouse().x, event.mouse().y);
 
     if (!CaptureMouse(event))
@@ -64,8 +64,8 @@ class CheckboxBase : public ComponentBase {
     if (!hovered_)
       return false;
 
-    if (event.mouse().button == Mouse::Left &&
-        event.mouse().motion == Mouse::Pressed) {
+    if (event.mouse().button == Mouse::Button::Left &&
+        event.mouse().motion == Mouse::Motion::Pressed) {
       *state_ = !*state_;
       option_->on_change();
       return true;
@@ -74,7 +74,7 @@ class CheckboxBase : public ComponentBase {
     return false;
   }
 
-  bool Focusable() const final { return true; }
+  [[nodiscard]] bool Focusable() const noexcept final { return true; }
 
   ConstStringRef label_;
   bool* const state_{};
@@ -106,9 +106,9 @@ class CheckboxBase : public ComponentBase {
 /// ```bash
 /// ☐ Make a sandwitch
 /// ```
-Component Checkbox(ConstStringRef label,
+Component Checkbox(const ConstStringRef& label,
                    bool* checked,
-                   Ref<CheckboxOption> option) {
+                   Ref<CheckboxOption> option) noexcept {
   return Make<CheckboxBase>(label, checked, std::move(option));
 }
 

@@ -1,20 +1,23 @@
-#include <stddef.h>   // for size_t
+#include <cstddef>   // for size_t
 #include <algorithm>  // for min, max
 #include <memory>  // for __shared_ptr_access, shared_ptr, allocator_traits<>::value_type, make_shared
 #include <utility>  // for move, swap
 #include <vector>   // for vector
+#include <ranges>
 
-#include "ftxui/dom/elements.hpp"  // for Element, Elements, flexbox, hflow, vflow
-#include "ftxui/dom/flexbox_config.hpp"  // for FlexboxConfig, FlexboxConfig::Direction, FlexboxConfig::Direction::Column, FlexboxConfig::AlignContent, FlexboxConfig::Direction::ColumnInversed, FlexboxConfig::Direction::Row, FlexboxConfig::JustifyContent, FlexboxConfig::Wrap, FlexboxConfig::AlignContent::FlexStart, FlexboxConfig::Direction::RowInversed, FlexboxConfig::JustifyContent::FlexStart, FlexboxConfig::Wrap::Wrap
-#include "ftxui/dom/flexbox_helper.hpp"  // for Block, Global, Compute
-#include "ftxui/dom/node.hpp"            // for Node, Elements, Node::Status
-#include "ftxui/dom/requirement.hpp"     // for Requirement
-#include "ftxui/screen/box.hpp"          // for Box
+#include <ftxui/dom/elements.hpp>  // for Element, Elements, flexbox, hflow, vflow
+#include <ftxui/dom/flexbox_config.hpp>  // for FlexboxConfig, FlexboxConfig::Direction, FlexboxConfig::Direction::Column, FlexboxConfig::AlignContent, FlexboxConfig::Direction::ColumnInversed, FlexboxConfig::Direction::Row, FlexboxConfig::JustifyContent, FlexboxConfig::Wrap, FlexboxConfig::AlignContent::FlexStart, FlexboxConfig::Direction::RowInversed, FlexboxConfig::JustifyContent::FlexStart, FlexboxConfig::Wrap::Wrap
+#include <ftxui/dom/flexbox_helper.hpp>  // for Block, Global, Compute
+#include <ftxui/dom/node.hpp>            // for Node, Elements, Node::Status
+#include <ftxui/dom/requirement.hpp>     // for Requirement
+#include <ftxui/screen/box.hpp>          // for Box
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
 namespace {
-void Normalize(FlexboxConfig::Direction& direction) {
+constexpr void Normalize(FlexboxConfig::Direction& direction) noexcept {
   switch (direction) {
     case FlexboxConfig::Direction::Row:
     case FlexboxConfig::Direction::RowInversed: {
@@ -27,19 +30,19 @@ void Normalize(FlexboxConfig::Direction& direction) {
   }
 }
 
-void Normalize(FlexboxConfig::AlignContent& align_content) {
+constexpr void Normalize(FlexboxConfig::AlignContent& align_content) noexcept {
   align_content = FlexboxConfig::AlignContent::FlexStart;
 }
 
-void Normalize(FlexboxConfig::JustifyContent& justify_content) {
+constexpr void Normalize(FlexboxConfig::JustifyContent& justify_content) noexcept {
   justify_content = FlexboxConfig::JustifyContent::FlexStart;
 }
 
-void Normalize(FlexboxConfig::Wrap& wrap) {
+constexpr void Normalize(FlexboxConfig::Wrap& wrap) noexcept {
   wrap = FlexboxConfig::Wrap::Wrap;
 }
 
-FlexboxConfig Normalize(FlexboxConfig config) {
+FlexboxConfig Normalize(FlexboxConfig config) noexcept {
   Normalize(config.direction);
   Normalize(config.wrap);
   Normalize(config.justify_content);
@@ -60,13 +63,13 @@ class Flexbox : public Node {
       std::swap(requirement_.flex_grow_x, requirement_.flex_grow_y);
   }
 
-  bool IsColumnOriented() {
+  [[nodiscard]] bool IsColumnOriented() const noexcept {
     return config_.direction == FlexboxConfig::Direction::Column ||
            config_.direction == FlexboxConfig::Direction::ColumnInversed;
   }
 
   void Layout(flexbox_helper::Global& global,
-              bool compute_requirement = false) {
+              bool compute_requirement = false) noexcept {
     for (auto& child : children_) {
       flexbox_helper::Block block;
       block.min_size_x = child->requirement().min_x;
@@ -83,7 +86,7 @@ class Flexbox : public Node {
     flexbox_helper::Compute(global);
   }
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     for (auto& child : children_)
       child->ComputeRequirement();
     flexbox_helper::Global global;
@@ -110,20 +113,20 @@ class Flexbox : public Node {
     box.y_max = global.blocks[0].y + global.blocks[0].dim_y;
 
     for (auto& b : global.blocks) {
-      box.x_min = std::min(box.x_min, b.x);
-      box.y_min = std::min(box.y_min, b.y);
-      box.x_max = std::max(box.x_max, b.x + b.dim_x);
-      box.y_max = std::max(box.y_max, b.y + b.dim_y);
+      box.x_min = ranges::min(box.x_min, b.x);
+      box.y_min = ranges::min(box.y_min, b.y);
+      box.x_max = ranges::max(box.x_max, b.x + b.dim_x);
+      box.y_max = ranges::max(box.y_max, b.y + b.dim_y);
     }
 
     requirement_.min_x = box.x_max - box.x_min;
     requirement_.min_y = box.y_max - box.y_min;
   }
 
-  void SetBox(Box box) override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
 
-    asked_ = std::min(asked_, IsColumnOriented() ? box.y_max - box.y_min + 1
+    asked_ = ranges::min(asked_, IsColumnOriented() ? box.y_max - box.y_min + 1
                                                  : box.x_max - box.x_min + 1);
     flexbox_helper::Global global;
     global.config = config_;
@@ -149,7 +152,7 @@ class Flexbox : public Node {
     }
   }
 
-  void Check(Status* status) override {
+  void Check(Status* status) noexcept override {
     for (auto& child : children_)
       child->Check(status);
 
@@ -189,8 +192,8 @@ class Flexbox : public Node {
 //       .SetGapCrossAxis(1)
 //  )
 /// ```
-Element flexbox(Elements children, FlexboxConfig config) {
-  return std::make_shared<Flexbox>(std::move(children), std::move(config));
+Element flexbox(Elements children, FlexboxConfig config) noexcept {
+  return std::make_shared<Flexbox>(std::move(children), config);
 }
 
 /// @brief A container displaying elements in rows from left to right. When
@@ -207,7 +210,7 @@ Element flexbox(Elements children, FlexboxConfig config) {
 ///   text("element 3"),
 /// });
 /// ```
-Element hflow(Elements children) {
+Element hflow(Elements children) noexcept {
   return flexbox(std::move(children), FlexboxConfig());
 }
 
@@ -227,7 +230,7 @@ Element hflow(Elements children) {
 ///   text("element 3"),
 /// });
 /// ```
-Element vflow(Elements children) {
+Element vflow(Elements children) noexcept {
   return flexbox(std::move(children),
                  FlexboxConfig().Set(FlexboxConfig::Direction::Column));
 }

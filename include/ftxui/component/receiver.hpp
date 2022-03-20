@@ -43,7 +43,7 @@ template<class T> class ReceiverImpl;
 
 template<class T> using Sender = std::unique_ptr<SenderImpl<T>>;
 template<class T> using Receiver = std::unique_ptr<ReceiverImpl<T>>;
-template<class T> Receiver<T> MakeReceiver();
+template<class T> constexpr Receiver<T> MakeReceiver();
 // clang-format on
 
 // ---- Implementation part ----
@@ -51,14 +51,14 @@ template<class T> Receiver<T> MakeReceiver();
 template <class T>
 class SenderImpl {
  public:
-  void Send(T t) { receiver_->Receive(std::move(t)); }
+  void Send(T t) { receiver_->Receive(t); }
   ~SenderImpl() { receiver_->ReleaseSender(); }
 
   Sender<T> Clone() { return receiver_->MakeSender(); }
 
  private:
   friend class ReceiverImpl<T>;
-  SenderImpl(ReceiverImpl<T>* consumer) : receiver_(consumer) {}
+  explicit SenderImpl(ReceiverImpl<T>* consumer) : receiver_(consumer) {}
   ReceiverImpl<T>* receiver_;
 };
 
@@ -94,7 +94,7 @@ class ReceiverImpl {
  private:
   friend class SenderImpl<T>;
 
-  void Receive(T t) {
+  [[maybe_unused]] void Receive(const T& t) {
     {
       std::unique_lock<std::mutex> lock(mutex_);
       queue_.push(std::move(t));
@@ -114,7 +114,7 @@ class ReceiverImpl {
 };
 
 template <class T>
-Receiver<T> MakeReceiver() {
+constexpr Receiver<T> MakeReceiver() {
   return std::make_unique<ReceiverImpl<T>>();
 }
 

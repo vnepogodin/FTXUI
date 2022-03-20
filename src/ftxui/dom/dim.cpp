@@ -13,7 +13,7 @@ class Dim : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     Node::Render(screen);
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -25,7 +25,7 @@ class Dim : public NodeDecorator {
 
 /// @brief Use a light font, for elements with less emphasis.
 /// @ingroup dom
-Element dim(Element child) {
+Element dim(Element child) noexcept {
   return std::make_shared<Dim>(std::move(child));
 }
 

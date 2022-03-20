@@ -3,10 +3,18 @@
 
 #include <functional>
 #include <variant>
-#include "ftxui/component/event.hpp"
+#include <ftxui/component/event.hpp>
 
 namespace ftxui {
-class AnimationTask {};
+class AnimationTask {
+ public:
+  AnimationTask() = default;
+  AnimationTask(const AnimationTask&) = default;
+  AnimationTask(AnimationTask&&) = default;
+  AnimationTask& operator=(const AnimationTask&) = default;
+  AnimationTask& operator=(AnimationTask&&) = default;
+  ~AnimationTask() = default;
+};
 using Closure = std::function<void()>;
 using Task = std::variant<Event, Closure, AnimationTask>;
 }  // namespace ftxui

@@ -1,10 +1,7 @@
-#include <stdio.h>    // for fileno, stdin
-#include <algorithm>  // for copy, max, min
+#include <cstdio>    // for fileno, stdin
 #include <chrono>  // for operator-, duration, operator>=, milliseconds, time_point, common_type<>::type
 #include <csignal>  // for signal, raise, SIGTSTP, SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGWINCH
-#include <cstdlib>  // for NULL
 #include <functional>        // for function
-#include <initializer_list>  // for initializer_list
 #include <iostream>  // for cout, ostream, basic_ostream, operator<<, endl, flush
 #include <stack>     // for stack
 #include <thread>    // for thread, sleep_for
@@ -12,17 +9,19 @@
 #include <utility>      // for swap, move
 #include <variant>      // for visit
 #include <vector>       // for vector
+#include <ranges>
 
-#include "ftxui/component/animation.hpp"  // for TimePoint, Clock, Duration, Params, RequestAnimationFrame
-#include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse, CapturedMouseInterface
-#include "ftxui/component/component_base.hpp"  // for ComponentBase
-#include "ftxui/component/event.hpp"           // for Event
-#include "ftxui/component/receiver.hpp"  // for ReceiverImpl, Sender, MakeReceiver, SenderImpl, Receiver
-#include "ftxui/component/screen_interactive.hpp"
-#include "ftxui/component/terminal_input_parser.hpp"  // for TerminalInputParser
-#include "ftxui/dom/node.hpp"                         // for Node, Render
-#include "ftxui/dom/requirement.hpp"                  // for Requirement
-#include "ftxui/screen/terminal.hpp"                  // for Size, Dimensions
+#include <ftxui/component/animation.hpp>  // for TimePoint, Clock, Duration, Params, RequestAnimationFrame
+#include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse, CapturedMouseInterface
+#include <ftxui/component/component_base.hpp>  // for ComponentBase
+#include <ftxui/component/event.hpp>           // for Event
+#include <ftxui/component/receiver.hpp>  // for ReceiverImpl, Sender, MakeReceiver, SenderImpl, Receiver
+#include <ftxui/component/screen_interactive.hpp>
+#include <ftxui/component/terminal_input_parser.hpp>  // for TerminalInputParser
+#include <ftxui/dom/node.hpp>                         // for Node, Render
+#include <ftxui/screen/terminal.hpp>                  // for Size, Dimensions
+
+namespace ranges = std::ranges;
 
 #if defined(_WIN32)
 #define DEFINE_CONSOLEV2_PROPERTIES
@@ -133,7 +132,7 @@ void EventListener(std::atomic<bool>* quit, Sender<Task> out) {
 }
 
 #else
-#include <sys/time.h>  // for timeval
+#include <ctime>  // for timeval
 
 int CheckStdinReady(int usec_timeout) {
   timeval tv = {0, usec_timeout};
@@ -157,7 +156,7 @@ void EventListener(std::atomic<bool>* quit, Sender<Task> out) {
     }
 
     char buff[buffer_size];
-    int l = read(fileno(stdin), buff, buffer_size);
+    const int l = static_cast<int>(read(fileno(stdin), buff, buffer_size));
     for (int i = 0; i < l; ++i)
       parser.Add(buff[i]);
   }
@@ -186,7 +185,7 @@ enum class DSRMode {
   kCursor = 6,
 };
 
-const std::string Serialize(std::vector<DECMode> parameters) {
+std::string Serialize(const std::vector<DECMode>& parameters) {
   bool first = true;
   std::string out;
   for (DECMode parameter : parameters) {
@@ -199,17 +198,17 @@ const std::string Serialize(std::vector<DECMode> parameters) {
 }
 
 // DEC Private Mode Set (DECSET)
-const std::string Set(std::vector<DECMode> parameters) {
+std::string Set(const std::vector<DECMode>& parameters) {
   return CSI + "?" + Serialize(parameters) + "h";
 }
 
 // DEC Private Mode Reset (DECRST)
-const std::string Reset(std::vector<DECMode> parameters) {
+std::string Reset(const std::vector<DECMode>& parameters) {
   return CSI + "?" + Serialize(parameters) + "l";
 }
 
 // Device Status Report (DSR)
-const std::string DeviceStatusReport(DSRMode ps) {
+std::string DeviceStatusReport(DSRMode ps) {
   return CSI + std::to_string(int(ps)) + "n";
 }
 
@@ -233,20 +232,20 @@ void OnResize(int /* signal */) {
   on_resize();
 }
 
-void OnSigStop(int /*signal*/) {
-  ScreenInteractive::Private::SigStop(*g_active_screen);
-}
+//void OnSigStop(int /*signal*/) {
+//  ScreenInteractive::Private::SigStop(*g_active_screen);
+//}
 
 class CapturedMouseImpl : public CapturedMouseInterface {
  public:
-  CapturedMouseImpl(std::function<void(void)> callback) : callback_(callback) {}
-  ~CapturedMouseImpl() override { callback_(); }
+  explicit CapturedMouseImpl(std::function<void(void)> callback) : callback_(std::move(callback)) {}
+  ~CapturedMouseImpl() noexcept override { callback_(); }
 
  private:
   std::function<void(void)> callback_;
 };
 
-void AnimationListener(std::atomic<bool>* quit, Sender<Task> out) {
+void AnimationListener(std::atomic<bool>* quit, Sender<Task> out) noexcept {
   while (!*quit) {
     out->Send(AnimationTask());
     std::this_thread::sleep_for(std::chrono::milliseconds(15));
@@ -258,7 +257,7 @@ void AnimationListener(std::atomic<bool>* quit, Sender<Task> out) {
 ScreenInteractive::ScreenInteractive(int dimx,
                                      int dimy,
                                      Dimension dimension,
-                                     bool use_alternative_screen)
+                                     bool use_alternative_screen) noexcept
     : Screen(dimx, dimy),
       dimension_(dimension),
       use_alternative_screen_(use_alternative_screen) {
@@ -266,34 +265,34 @@ ScreenInteractive::ScreenInteractive(int dimx,
 }
 
 // static
-ScreenInteractive ScreenInteractive::FixedSize(int dimx, int dimy) {
-  return ScreenInteractive(dimx, dimy, Dimension::Fixed, false);
+[[maybe_unused]] ScreenInteractive ScreenInteractive::FixedSize(int dimx, int dimy) noexcept {
+  return {dimx, dimy, Dimension::Fixed, false};
 }
 
 // static
-ScreenInteractive ScreenInteractive::Fullscreen() {
-  return ScreenInteractive(0, 0, Dimension::Fullscreen, true);
+ScreenInteractive ScreenInteractive::Fullscreen() noexcept {
+  return {0, 0, Dimension::Fullscreen, true};
 }
 
 // static
-ScreenInteractive ScreenInteractive::TerminalOutput() {
-  return ScreenInteractive(0, 0, Dimension::TerminalOutput, false);
+ScreenInteractive ScreenInteractive::TerminalOutput() noexcept {
+  return {0, 0, Dimension::TerminalOutput, false};
 }
 
 // static
-ScreenInteractive ScreenInteractive::FitComponent() {
-  return ScreenInteractive(0, 0, Dimension::FitComponent, false);
+ScreenInteractive ScreenInteractive::FitComponent() noexcept {
+  return {0, 0, Dimension::FitComponent, false};
 }
 
-void ScreenInteractive::Post(Task task) {
+void ScreenInteractive::Post(const Task& task) noexcept {
   if (!quit_)
     task_sender_->Send(task);
 }
-void ScreenInteractive::PostEvent(Event event) {
-  Post(event);
+void ScreenInteractive::PostEvent(const Event& event) noexcept {
+  Post((const Task&)event);
 }
 
-void ScreenInteractive::RequestAnimationFrame() {
+void ScreenInteractive::RequestAnimationFrame() noexcept {
   if (animation_requested_)
     return;
   animation_requested_ = true;
@@ -302,7 +301,7 @@ void ScreenInteractive::RequestAnimationFrame() {
     previous_animation_time = now;
 }
 
-CapturedMouse ScreenInteractive::CaptureMouse() {
+CapturedMouse ScreenInteractive::CaptureMouse() noexcept {
   if (mouse_captured)
     return nullptr;
   mouse_captured = true;
@@ -310,7 +309,7 @@ CapturedMouse ScreenInteractive::CaptureMouse() {
       [this] { mouse_captured = false; });
 }
 
-void ScreenInteractive::Loop(Component component) {
+void ScreenInteractive::Loop(Component component) noexcept {
   // Suspend previously active screen:
   if (g_active_screen) {
     std::swap(suspended_screen_, g_active_screen);
@@ -324,7 +323,7 @@ void ScreenInteractive::Loop(Component component) {
   // This screen is now active:
   g_active_screen = this;
   g_active_screen->Install();
-  g_active_screen->Main(component);
+  g_active_screen->Main(std::move(component));
   g_active_screen->Uninstall();
   g_active_screen = nullptr;
 
@@ -346,9 +345,9 @@ void ScreenInteractive::Loop(Component component) {
 }
 
 /// @brief Decorate a function. It executes the same way, but with the currently
-/// active screen terminal hooks temporarilly uninstalled during its execution.
+/// active screen terminal hooks temporarily uninstalled during its execution.
 /// @param fn The function to decorate.
-Closure ScreenInteractive::WithRestoredIO(Closure fn) {
+Closure ScreenInteractive::WithRestoredIO(const Closure& fn) noexcept {
   return [this, fn] {
     Uninstall();
     fn();
@@ -356,25 +355,25 @@ Closure ScreenInteractive::WithRestoredIO(Closure fn) {
   };
 }
 
-void ScreenInteractive::Resume() {
+void ScreenInteractive::Resume() noexcept {
   // Restore this screen
   if (suspended_) {
     Install();
   }
 }
 
-void ScreenInteractive::Suspend() {
+void ScreenInteractive::Suspend() noexcept {
   // Suspend this screen
   suspended_ = true;
   Uninstall();
 }
 
 // static
-ScreenInteractive* ScreenInteractive::Active() {
+ScreenInteractive* ScreenInteractive::Active() noexcept {
   return g_active_screen;
 }
 
-void ScreenInteractive::Install() {
+void ScreenInteractive::Install() noexcept {
   // After uninstalling the new configuration, flush it to the terminal to
   // ensure it is fully applied:
   on_exit_functions.push([] { Flush(); });
@@ -418,7 +417,7 @@ void ScreenInteractive::Install() {
   SetConsoleMode(stdin_handle, in_mode);
   SetConsoleMode(stdout_handle, out_mode);
 #else
-  struct termios terminal;
+  struct termios terminal{};
   tcgetattr(STDIN_FILENO, &terminal);
   on_exit_functions.push([=] { tcsetattr(STDIN_FILENO, TCSANOW, &terminal); });
 
@@ -437,15 +436,15 @@ void ScreenInteractive::Install() {
   install_signal_handler(SIGWINCH, OnResize);
 
   // Handle SIGTSTP/SIGCONT.
-  install_signal_handler(SIGTSTP, OnSigStop);
+  //install_signal_handler(SIGTSTP, OnSigStop);
 #endif
 
-  auto enable = [&](std::vector<DECMode> parameters) {
+  auto enable = [&](const std::vector<DECMode>& parameters) {
     std::cout << Set(parameters);
     on_exit_functions.push([=] { std::cout << Reset(parameters); });
   };
 
-  auto disable = [&](std::vector<DECMode> parameters) {
+  auto disable = [&](const std::vector<DECMode>& parameters) {
     std::cout << Reset(parameters);
     on_exit_functions.push([=] { std::cout << Set(parameters); });
   };
@@ -480,7 +479,7 @@ void ScreenInteractive::Install() {
       std::thread(&AnimationListener, &quit_, task_receiver_->MakeSender());
 }
 
-void ScreenInteractive::Uninstall() {
+void ScreenInteractive::Uninstall() noexcept {
   ExitLoopClosure()();
   event_listener_.join();
   animation_listener_.join();
@@ -488,7 +487,7 @@ void ScreenInteractive::Uninstall() {
   OnExit(0);
 }
 
-void ScreenInteractive::Main(Component component) {
+void ScreenInteractive::Main(Component component) noexcept {
   previous_animation_time = animation::Clock::now();
 
   auto draw = [&] {
@@ -558,7 +557,7 @@ void ScreenInteractive::Main(Component component) {
   }
 }
 
-void ScreenInteractive::Draw(Component component) {
+void ScreenInteractive::Draw(const Component& component) noexcept {
   auto document = component->Render();
   int dimx = 0;
   int dimy = 0;
@@ -579,8 +578,8 @@ void ScreenInteractive::Draw(Component component) {
     case Dimension::FitComponent:
       auto terminal = Terminal::Size();
       document->ComputeRequirement();
-      dimx = std::min(document->requirement().min_x, terminal.dimx);
-      dimy = std::min(document->requirement().min_y, terminal.dimy);
+      dimx = ranges::min(document->requirement().min_x, terminal.dimx);
+      dimy = ranges::min(document->requirement().min_y, terminal.dimy);
       break;
   }
 
@@ -637,14 +636,14 @@ void ScreenInteractive::Draw(Component component) {
   }
 }
 
-Closure ScreenInteractive::ExitLoopClosure() {
+Closure ScreenInteractive::ExitLoopClosure() noexcept {
   return [this] {
     quit_ = true;
     task_sender_.reset();
   };
 }
 
-void ScreenInteractive::SigStop() {
+void ScreenInteractive::SigStop() noexcept {
 #if defined(_WIN32)
   // Windows do no support SIGTSTP.
 #else

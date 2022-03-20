@@ -13,7 +13,7 @@ class Blink : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     Node::Render(screen);
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -25,7 +25,7 @@ class Blink : public NodeDecorator {
 
 /// @brief The text drawn alternates in between visible and hidden.
 /// @ingroup dom
-Element blink(Element child) {
+Element blink(Element child) noexcept {
   return std::make_shared<Blink>(std::move(child));
 }
 

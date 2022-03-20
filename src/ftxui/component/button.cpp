@@ -20,7 +20,7 @@ namespace ftxui {
 
 namespace {
 
-Element DefaultTransform(EntryState params) {
+Element DefaultTransform(const EntryState& params) noexcept {
   auto element = text(params.label) | border;
   if (params.active)
     element |= bold;
@@ -54,18 +54,18 @@ Element DefaultTransform(EntryState params) {
 /// │Click to quit│
 /// └─────────────┘
 /// ```
-Component Button(ConstStringRef label,
+Component Button(const ConstStringRef& label,
                  std::function<void()> on_click,
-                 Ref<ButtonOption> option) {
+                 Ref<ButtonOption> option) noexcept {
   class Impl : public ComponentBase {
    public:
     Impl(ConstStringRef label,
          std::function<void()> on_click,
          Ref<ButtonOption> option)
-        : label_(label), on_click_(on_click), option_(std::move(option)) {}
+        : label_(std::move(label)),  option_(std::move(option)), on_click_(std::move(on_click)) {}
 
     // Component implementation:
-    Element Render() override {
+    Element Render() noexcept override {
       const float target = Focused() ? 1.0 : 0.f;
       if (target != animator_background_.to())
         SetAnimationTarget(target);
@@ -83,7 +83,7 @@ Component Button(ConstStringRef label,
       return element | AnimatedColorStyle() | reflect(box_);
     }
 
-    Decorator AnimatedColorStyle() {
+    Decorator AnimatedColorStyle() noexcept {
       Decorator style = nothing;
       if (option_->animated_colors.background.enabled) {
         style = style | bgcolor(Color::Interpolate(
@@ -115,19 +115,19 @@ Component Button(ConstStringRef label,
       }
     }
 
-    void OnAnimation(animation::Params& p) override {
+    void OnAnimation(animation::Params& p) noexcept override {
       animator_background_.OnAnimation(p);
       animator_foreground_.OnAnimation(p);
     }
 
-    void OnClick() {
+    void OnClick() noexcept {
       on_click_();
       animation_background_ = 0.5f;
       animation_foreground_ = 0.5f;
       SetAnimationTarget(1.f);
     }
 
-    bool OnEvent(Event event) override {
+    bool OnEvent(const Event& event) noexcept override {
       if (event.is_mouse())
         return OnMouseEvent(event);
 
@@ -138,7 +138,7 @@ Component Button(ConstStringRef label,
       return false;
     }
 
-    bool OnMouseEvent(Event event) {
+    bool OnMouseEvent(const Event& event) noexcept {
       mouse_hover_ =
           box_.Contain(event.mouse().x, event.mouse().y) && CaptureMouse(event);
 
@@ -147,8 +147,8 @@ Component Button(ConstStringRef label,
 
       TakeFocus();
 
-      if (event.mouse().button == Mouse::Left &&
-          event.mouse().motion == Mouse::Pressed) {
+      if (event.mouse().button == Mouse::Button::Left &&
+          event.mouse().motion == Mouse::Motion::Pressed) {
         OnClick();
         return true;
       }
@@ -156,16 +156,16 @@ Component Button(ConstStringRef label,
       return false;
     }
 
-    bool Focusable() const final { return true; }
+    [[nodiscard]] bool Focusable() const noexcept final { return true; }
 
    private:
-    ConstStringRef label_;
-    std::function<void()> on_click_;
     bool mouse_hover_ = false;
-    Box box_;
+    float animation_background_{};
+    float animation_foreground_{};
+    ConstStringRef label_;
+    Box box_{};
     Ref<ButtonOption> option_;
-    float animation_background_ = 0;
-    float animation_foreground_ = 0;
+    std::function<void()> on_click_;
     animation::Animator animator_background_ =
         animation::Animator(&animation_background_);
     animation::Animator animator_foreground_ =

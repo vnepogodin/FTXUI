@@ -2,15 +2,19 @@
 #include <memory>       // for make_shared
 #include <string>       // for string, wstring
 #include <string_view>  // for string_view
+#include <utility>
 #include <vector>       // for vector
+#include <ranges>
 
-#include "ftxui/dom/deprecated.hpp"   // for text, vtext
-#include "ftxui/dom/elements.hpp"     // for Element, text, vtext
-#include "ftxui/dom/node.hpp"         // for Node
-#include "ftxui/dom/requirement.hpp"  // for Requirement
-#include "ftxui/screen/box.hpp"       // for Box
-#include "ftxui/screen/screen.hpp"    // for Pixel, Screen
-#include "ftxui/screen/string.hpp"  // for string_width, Utf8ToGlyphs, to_string
+#include <ftxui/dom/deprecated.hpp>   // for text, vtext
+#include <ftxui/dom/elements.hpp>     // for Element, text, vtext
+#include <ftxui/dom/node.hpp>         // for Node
+#include <ftxui/dom/requirement.hpp>  // for Requirement
+#include <ftxui/screen/box.hpp>       // for Box
+#include <ftxui/screen/screen.hpp>    // for Pixel, Screen
+#include <ftxui/screen/string.hpp>  // for string_width, Utf8ToGlyphs, to_string
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
@@ -18,9 +22,9 @@ using ftxui::Screen;
 
 class Text : public Node {
  public:
-  Text(const char* text) : text_(text) {}
-  Text(const std::string text) : text_(text) {}
-  Text(const std::string_view text) : text_(text) {}
+  explicit Text(const char* text) : text_(text) {}
+  explicit Text(std::string text) : text_(std::move(text)) {}
+  explicit Text(const std::string_view text) : text_(text) {}
 
   void ComputeRequirement() override {
     requirement_.min_x = string_width(text_);
@@ -46,15 +50,15 @@ class Text : public Node {
 
 class VText : public Node {
  public:
-  VText(std::string text)
-      : text_(text), width_{std::min(string_width(text_), 1)} {}
+  explicit VText(std::string text)
+      : text_(std::move(text)), width_{ranges::min(string_width(text_), 1)} {}
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     requirement_.min_x = width_;
     requirement_.min_y = string_width(text_);
   }
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     const int& x = box_.x_min;
     int y = box_.y_min;
     if (x + width_ - 1 > box_.x_max)
@@ -87,15 +91,15 @@ class VText : public Node {
 /// ```bash
 /// Hello world!
 /// ```
-Element text(const std::string text) {
+Element text(const std::string& text) noexcept {
   return std::make_shared<Text>(text);
 }
 
-Element text(const std::string_view text) {
+Element text(const std::string_view text) noexcept {
   return std::make_shared<Text>(text);
 }
 
-Element text(const char* text) {
+Element text(const char* text) noexcept {
   return std::make_shared<Text>(text);
 }
 
@@ -114,8 +118,8 @@ Element text(const char* text) {
 /// ```bash
 /// Hello world!
 /// ```
-Element text(std::wstring text) {
-  return std::make_shared<Text>(to_string(text));
+Element text(const std::wstring& text) noexcept {
+  return std::make_shared<Text>(ftxui::to_string(text));
 }
 
 /// @brief Display a piece of unicode text vertically.
@@ -144,7 +148,7 @@ Element text(std::wstring text) {
 /// d
 /// !
 /// ```
-Element vtext(std::string text) {
+Element vtext(const std::string& text) noexcept {
   return std::make_shared<VText>(text);
 }
 
@@ -174,8 +178,8 @@ Element vtext(std::string text) {
 /// d
 /// !
 /// ```
-Element vtext(std::wstring text) {
-  return std::make_shared<VText>(to_string(text));
+Element vtext(const std::wstring& text) noexcept {
+  return std::make_shared<VText>(ftxui::to_string(text));
 }
 
 }  // namespace ftxui

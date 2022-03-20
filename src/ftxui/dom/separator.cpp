@@ -1,5 +1,6 @@
 #include <memory>  // for make_shared, allocator
 #include <string>  // for string
+#include <utility>
 
 #include "ftxui/dom/elements.hpp"  // for Element, BorderStyle, LIGHT, separator, DOUBLE, EMPTY, HEAVY, separatorCharacter, separatorDouble, separatorEmpty, separatorHSelector, separatorHeavy, separatorLight, separatorStyled, separatorVSelector
 #include "ftxui/dom/node.hpp"      // for Node
@@ -22,14 +23,14 @@ const std::string charset[][2] = {
 
 class Separator : public Node {
  public:
-  Separator(std::string value) : value_(value) {}
+  explicit Separator(std::string value) : value_(std::move(value)) {}
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     requirement_.min_x = 1;
     requirement_.min_y = 1;
   }
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         Pixel& pixel = screen.PixelAt(x, y);
@@ -44,14 +45,14 @@ class Separator : public Node {
 
 class SeparatorAuto : public Node {
  public:
-  SeparatorAuto(BorderStyle style) : style_(style) {}
+  explicit SeparatorAuto(BorderStyle style) : style_(style) {}
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     requirement_.min_x = 1;
     requirement_.min_y = 1;
   }
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     bool is_column = (box_.x_max == box_.x_min);
     bool is_line = (box_.y_min == box_.y_max);
 
@@ -71,10 +72,10 @@ class SeparatorAuto : public Node {
 
 class SeparatorWithPixel : public SeparatorAuto {
  public:
-  SeparatorWithPixel(Pixel pixel) : SeparatorAuto(LIGHT), pixel_(pixel) {
+  explicit SeparatorWithPixel(Pixel pixel) : SeparatorAuto(LIGHT), pixel_(std::move(pixel)) {
     pixel_.automerge = true;
   }
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, y) = pixel_;
@@ -83,7 +84,7 @@ class SeparatorWithPixel : public SeparatorAuto {
   }
 
  private:
-  Pixel pixel_;
+  Pixel pixel_{};
 };
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -118,7 +119,7 @@ class SeparatorWithPixel : public SeparatorAuto {
 /// ────
 /// down
 /// ```
-Element separator() {
+Element separator() noexcept {
   return std::make_shared<SeparatorAuto>(LIGHT);
 }
 
@@ -155,7 +156,7 @@ Element separator() {
 /// ════
 /// down
 /// ```
-Element separatorStyled(BorderStyle style) {
+Element separatorStyled(BorderStyle style) noexcept {
   return std::make_shared<SeparatorAuto>(style);
 }
 
@@ -191,7 +192,7 @@ Element separatorStyled(BorderStyle style) {
 /// ────
 /// down
 /// ```
-Element separatorLight() {
+Element separatorLight() noexcept {
   return std::make_shared<SeparatorAuto>(LIGHT);
 }
 
@@ -227,7 +228,7 @@ Element separatorLight() {
 /// ━━━━
 /// down
 /// ```
-Element separatorHeavy() {
+Element separatorHeavy() noexcept {
   return std::make_shared<SeparatorAuto>(HEAVY);
 }
 
@@ -263,7 +264,7 @@ Element separatorHeavy() {
 /// ════
 /// down
 /// ```
-Element separatorDouble() {
+Element separatorDouble() noexcept {
   return std::make_shared<SeparatorAuto>(DOUBLE);
 }
 
@@ -299,7 +300,7 @@ Element separatorDouble() {
 ///
 /// down
 /// ```
-Element separatorEmpty() {
+Element separatorEmpty() noexcept {
   return std::make_shared<SeparatorAuto>(EMPTY);
 }
 
@@ -336,7 +337,7 @@ Element separatorEmpty() {
 /// ────
 /// down
 /// ```
-Element separatorCharacter(std::string value) {
+Element separatorCharacter(const std::string& value) noexcept {
   return std::make_shared<Separator>(value);
 }
 
@@ -366,7 +367,7 @@ Element separatorCharacter(std::string value) {
 ///
 /// Down
 /// ```
-Element separator(Pixel pixel) {
+Element separator(const Pixel& pixel) noexcept {
   return std::make_shared<SeparatorWithPixel>(pixel);
 }
 
@@ -385,7 +386,7 @@ Element separator(Pixel pixel) {
 Element separatorHSelector(float left,
                            float right,
                            Color selected_color,
-                           Color unselected_color) {
+                           Color unselected_color) noexcept {
   class Impl : public Node {
    public:
     Impl(float left, float right, Color selected_color, Color unselected_color)
@@ -393,27 +394,27 @@ Element separatorHSelector(float left,
           right_(right),
           selected_color_(selected_color),
           unselected_color_(unselected_color) {}
-    void ComputeRequirement() override {
+    void ComputeRequirement() noexcept override {
       requirement_.min_x = 1;
       requirement_.min_y = 1;
     }
 
-    void Render(Screen& screen) override {
+    void Render(Screen& screen) noexcept override {
       if (box_.y_max < box_.y_min)
         return;
 
       // This are the two location with an empty demi-cell.
-      int demi_cell_left = left_ * 2 - 1;
-      int demi_cell_right = right_ * 2 + 2;
+      const int demi_cell_left = left_ * 2 - 1;
+      const int demi_cell_right = right_ * 2 + 2;
 
-      int y = box_.y_min;
+      const int y = box_.y_min;
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         Pixel& pixel = screen.PixelAt(x, y);
 
-        int a = (x - box_.x_min) * 2;
-        int b = a + 1;
-        bool a_empty = demi_cell_left == a || demi_cell_right == a;
-        bool b_empty = demi_cell_left == b || demi_cell_right == b;
+        const int a = (x - box_.x_min) * 2;
+        const int b = a + 1;
+        const bool a_empty = demi_cell_left == a || demi_cell_right == a;
+        const bool b_empty = demi_cell_left == b || demi_cell_right == b;
 
         if (!a_empty && !b_empty) {
           pixel.character = "─";
@@ -430,15 +431,15 @@ Element separatorHSelector(float left,
       }
     }
 
-    float left_;
-    float right_;
-    Color selected_color_;
-    Color unselected_color_;
+    float left_{};
+    float right_{};
+    Color selected_color_{};
+    Color unselected_color_{};
   };
   return std::make_shared<Impl>(left, right, selected_color, unselected_color);
 }
 
-/// @brief Draw an vertical bar, with the area in between up/downcolored
+/// @brief Draw an vertical bar, with the area in between up/down colored
 /// differently.
 /// @param up the left limit of the active area.
 /// @param down the right limit of the active area.
@@ -453,7 +454,7 @@ Element separatorHSelector(float left,
 Element separatorVSelector(float up,
                            float down,
                            Color selected_color,
-                           Color unselected_color) {
+                           Color unselected_color) noexcept {
   class Impl : public Node {
    public:
     Impl(float up, float down, Color selected_color, Color unselected_color)
@@ -461,27 +462,27 @@ Element separatorVSelector(float up,
           down_(down),
           selected_color_(selected_color),
           unselected_color_(unselected_color) {}
-    void ComputeRequirement() override {
+    void ComputeRequirement() noexcept override {
       requirement_.min_x = 1;
       requirement_.min_y = 1;
     }
 
-    void Render(Screen& screen) override {
+    void Render(Screen& screen) noexcept override {
       if (box_.x_max < box_.x_min)
         return;
 
       // This are the two location with an empty demi-cell.
-      int demi_cell_up = up_ * 2 - 1;
-      int demi_cell_down = down_ * 2 + 2;
+      const int demi_cell_up = up_ * 2 - 1;
+      const int demi_cell_down = down_ * 2 + 2;
 
-      int x = box_.x_min;
+      const int x = box_.x_min;
       for (int y = box_.y_min; y <= box_.y_max; ++y) {
         Pixel& pixel = screen.PixelAt(x, y);
 
-        int a = (y - box_.y_min) * 2;
-        int b = a + 1;
-        bool a_empty = demi_cell_up == a || demi_cell_down == a;
-        bool b_empty = demi_cell_up == b || demi_cell_down == b;
+        const int a = (y - box_.y_min) * 2;
+        const int b = a + 1;
+        const bool a_empty = demi_cell_up == a || demi_cell_down == a;
+        const bool b_empty = demi_cell_up == b || demi_cell_down == b;
 
         if (!a_empty && !b_empty) {
           pixel.character = "│";
@@ -498,10 +499,10 @@ Element separatorVSelector(float up,
       }
     }
 
-    float up_;
-    float down_;
-    Color selected_color_;
-    Color unselected_color_;
+    float up_{};
+    float down_{};
+    Color selected_color_{};
+    Color unselected_color_{};
   };
   return std::make_shared<Impl>(up, down, selected_color, unselected_color);
 }

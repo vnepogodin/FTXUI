@@ -16,18 +16,18 @@ class Reflect : public Node {
   Reflect(Element child, Box& box)
       : Node(unpack(std::move(child))), reflected_box_(box) {}
 
-  void ComputeRequirement() final {
+  void ComputeRequirement() noexcept final {
     Node::ComputeRequirement();
     requirement_ = children_[0]->requirement();
   }
 
-  void SetBox(Box box) final {
+  void SetBox(Box box) noexcept final {
     reflected_box_ = box;
     Node::SetBox(box);
     children_[0]->SetBox(box);
   }
 
-  void Render(Screen& screen) final {
+  void Render(Screen& screen) noexcept final {
     reflected_box_ = Box::Intersection(screen.stencil, reflected_box_);
     return Node::Render(screen);
   }
@@ -36,7 +36,7 @@ class Reflect : public Node {
   Box& reflected_box_;
 };
 
-Decorator reflect(Box& box) {
+Decorator reflect(Box& box) noexcept {
   return [&](Element child) -> Element {
     return std::make_shared<Reflect>(std::move(child), box);
   };

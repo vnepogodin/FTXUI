@@ -2,9 +2,11 @@
 #define FTXUI_COMPONENT_EVENT_HPP
 
 #include <ftxui/component/mouse.hpp>  // for Mouse
+#include <ftxui/screen/string.hpp>    // for to_wstring
 #include <functional>
 #include <string>  // for string, operator==
 #include <vector>
+#include <variant>
 
 namespace ftxui {
 
@@ -24,13 +26,52 @@ class ComponentBase;
 /// Useful documentation about xterm specification:
 /// https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
 struct Event {
+  struct Cursor {
+    int x{};
+    int y{};
+  };
+  enum class Type {
+    Unknown,
+    Character,
+    Mouse,
+    CursorReporting,
+  };
+
+  Event() = default;
+  Event(const Event&) = default;
+  Event(Event&&) = default;
+  Event& operator=(const Event&) = default;
+  Event& operator=(Event&&) = default;
+  ~Event() = default;
+
   // --- Constructor section ---------------------------------------------------
-  static Event Character(std::string);
-  static Event Character(char);
-  static Event Character(wchar_t);
-  static Event Special(std::string);
-  static Event Mouse(std::string, Mouse mouse);
-  static Event CursorReporting(std::string, int x, int y);
+  //static Event Character(const std::string&) noexcept;
+  static Event Character(const std::string& input) noexcept {
+    Event event;
+    event.type_ = Type::Character;
+    event.input_ = input;
+    event.device_ = Cursor{};
+    return event;
+  }
+  static inline Event Character(char ch) noexcept {
+    return Event::Character(std::string{ch});
+  };
+  [[maybe_unused]] static inline Event Character(wchar_t ch) noexcept {
+    return Event::Character(ftxui::to_string(std::wstring{ch}));
+  };
+  static inline Event Special(const std::string& input) noexcept {
+    Event event;
+    event.input_ = input;
+    return event;
+  }
+  static inline Event Mouse(const std::string& input, struct Mouse mouse) noexcept {
+    Event event;
+    event.type_ = Type::Mouse;
+    event.input_ = input;
+    event.device_ = mouse;
+    return event;
+  }
+  static Event CursorReporting(const std::string&, int x, int y) noexcept;
 
   // --- Arrow ---
   static const Event ArrowLeft;
@@ -55,25 +96,37 @@ struct Event {
 
   // --- Custom ---
   static Event Custom;
+  //static Event Custom = Event::Special({0});
 
   //--- Method section ---------------------------------------------------------
-  constexpr bool is_character() const noexcept {
+  [[nodiscard]] constexpr bool is_character() const noexcept {
     return type_ == Type::Character;
   }
-  inline std::string character() const noexcept { return input_; }
+  [[nodiscard]] inline std::string character() const noexcept { return input_; }
 
-  constexpr bool is_mouse() const noexcept { return type_ == Type::Mouse; }
-  struct Mouse& mouse() {
-    return mouse_;
+  [[nodiscard]] constexpr bool is_mouse() const noexcept { return type_ == Type::Mouse; }
+  struct Mouse& mouse() noexcept {
+    return std::get<struct Mouse>(device_);
   }
 
-  constexpr bool is_cursor_reporting() const noexcept {
+  [[nodiscard]] constexpr const struct Mouse& mouse() const noexcept {
+    return std::get<struct Mouse>(device_);
+  }
+  struct Cursor& cursor() noexcept {
+    return std::get<struct Cursor>(device_);
+  }
+
+  [[nodiscard]] constexpr struct Cursor& cursor() const noexcept {
+    return const_cast<Cursor&>(std::get<struct Cursor>(device_));
+  }
+
+  [[nodiscard]] constexpr bool is_cursor_reporting() const noexcept {
     return type_ == Type::CursorReporting;
   }
-  constexpr int cursor_x() const noexcept { return cursor_.x; }
-  constexpr int cursor_y() const noexcept { return cursor_.y; }
+  [[nodiscard]] constexpr int cursor_x() const noexcept { return cursor().x; }
+  [[nodiscard]] constexpr int cursor_y() const noexcept { return cursor().y; }
 
-  const std::string& input() const noexcept { return input_; }
+  [[nodiscard]] const std::string& input() const noexcept { return input_; }
 
   inline bool operator==(const Event& other) const noexcept {
     return input_ == other.input_;
@@ -85,27 +138,14 @@ struct Event {
   //--- State section ----------------------------------------------------------
   ScreenInteractive* screen_ = nullptr;
 
- private:
+ //private:
   friend ComponentBase;
   friend ScreenInteractive;
-  enum class Type {
-    Unknown,
-    Character,
-    Mouse,
-    CursorReporting,
-  };
+
   Type type_{Type::Unknown};
 
-  struct Cursor {
-    int x;
-    int y;
-  };
-
-  union {
-    struct Mouse mouse_;
-    struct Cursor cursor_;
-  };
-  std::string input_;
+  std::variant<struct Mouse, struct Cursor> device_{};
+  std::string input_{};
 };
 
 }  // namespace ftxui

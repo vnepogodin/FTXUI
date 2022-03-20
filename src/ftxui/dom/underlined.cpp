@@ -13,7 +13,7 @@ class Underlined : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     Node::Render(screen);
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -25,7 +25,7 @@ class Underlined : public NodeDecorator {
 
 /// @brief Make the underlined element to be underlined.
 /// @ingroup dom
-Element underlined(Element child) {
+Element underlined(Element child) noexcept {
   return std::make_shared<Underlined>(std::move(child));
 }
 

@@ -1,12 +1,16 @@
 #ifndef FTXUI_COMPONENT_MOUSE_HPP
 #define FTXUI_COMPONENT_MOUSE_HPP
+
 namespace ftxui {
 
 /// @brief A mouse event. It contains the coordinate of the mouse, the button
 /// pressed and the modifier (shift, ctrl, meta).
 /// @ingroup component
 struct Mouse {
-  enum Button {
+  //Mouse() = default;
+  //~Mouse() = default;
+
+  enum class Button {
     Left = 0,
     Middle = 1,
     Right = 2,
@@ -15,25 +19,25 @@ struct Mouse {
     WheelDown = 5,
   };
 
-  enum Motion {
+  enum class Motion {
     Released = 0,
     Pressed = 1,
   };
 
-  // Button
-  Button button;
-
-  // Motion
-  Motion motion;
-
   // Modifiers:
-  bool shift;
-  bool meta;
-  bool control;
+  bool shift{};
+  bool meta{};
+  bool control{};
 
   // Coordinates:
-  int x;
-  int y;
+  int x{};
+  int y{};
+
+  // Motion
+  Motion motion{};
+
+  // Button
+  Button button{};
 };
 
 }  // namespace ftxui

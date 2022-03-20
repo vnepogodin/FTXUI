@@ -6,25 +6,25 @@
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
 
-#include "ftxui/component/animation.hpp"  // for Animator, Linear, Params (ptr only)
-#include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse
-#include "ftxui/component/component.hpp"  // for Make, Menu, MenuEntry, Toggle
-#include "ftxui/component/component_base.hpp"     // for ComponentBase
-#include "ftxui/component/component_options.hpp"  // for MenuOption, MenuEntryOption, MenuOption::Direction, UnderlineOption, AnimatedColorOption, AnimatedColorsOption, MenuOption::Down, MenuOption::Left, MenuOption::Right, MenuOption::Up
-#include "ftxui/component/event.hpp"  // for Event, Event::ArrowDown, Event::ArrowLeft, Event::ArrowRight, Event::ArrowUp, Event::End, Event::Home, Event::PageDown, Event::PageUp, Event::Return, Event::Tab, Event::TabReverse
-#include "ftxui/component/mouse.hpp"  // for Mouse, Mouse::Left, Mouse::Released, Mouse::WheelDown, Mouse::WheelUp, Mouse::None
-#include "ftxui/component/screen_interactive.hpp"  // for Component
-#include "ftxui/dom/elements.hpp"  // for operator|, Element, reflect, Decorator, nothing, Elements, bgcolor, color, hbox, separatorHSelector, separatorVSelector, vbox, xflex, yflex, text, bold, focus, inverted, select
-#include "ftxui/screen/box.hpp"    // for Box
-#include "ftxui/screen/color.hpp"  // for Color
-#include "ftxui/screen/util.hpp"   // for clamp
-#include "ftxui/util/ref.hpp"  // for Ref, ConstStringListRef, ConstStringRef
+#include <ftxui/component/animation.hpp>  // for Animator, Linear, Params (ptr only)
+#include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse
+#include <ftxui/component/component.hpp>  // for Make, Menu, MenuEntry, Toggle
+#include <ftxui/component/component_base.hpp>     // for ComponentBase
+#include <ftxui/component/component_options.hpp>  // for MenuOption, MenuEntryOption, MenuOption::Direction, UnderlineOption, AnimatedColorOption, AnimatedColorsOption, MenuOption::Down, MenuOption::Left, MenuOption::Right, MenuOption::Up
+#include <ftxui/component/event.hpp>  // for Event, Event::ArrowDown, Event::ArrowLeft, Event::ArrowRight, Event::ArrowUp, Event::End, Event::Home, Event::PageDown, Event::PageUp, Event::Return, Event::Tab, Event::TabReverse
+#include <ftxui/component/mouse.hpp>  // for Mouse, Mouse::Left, Mouse::Released, Mouse::WheelDown, Mouse::WheelUp, Mouse::None
+#include <ftxui/component/screen_interactive.hpp>  // for Component
+#include <ftxui/dom/elements.hpp>  // for operator|, Element, reflect, Decorator, nothing, Elements, bgcolor, color, hbox, separatorHSelector, separatorVSelector, vbox, xflex, yflex, text, bold, focus, inverted, select
+#include <ftxui/screen/box.hpp>    // for Box
+#include <ftxui/screen/color.hpp>  // for Color
+#include <ftxui/screen/util.hpp>   // for clamp
+#include <ftxui/util/ref.hpp>  // for Ref, ConstStringListRef, ConstStringRef
 
 namespace ftxui {
 
 namespace {
 
-Element DefaultOptionTransform(EntryState state) {
+Element DefaultOptionTransform(EntryState state) noexcept {
   state.label = (state.active ? "> " : "  ") + state.label;
   Element e = text(state.label);
   if (state.focused)
@@ -34,7 +34,7 @@ Element DefaultOptionTransform(EntryState state) {
   return e;
 }
 
-bool IsInverted(MenuOption::Direction direction) {
+bool IsInverted(MenuOption::Direction direction) noexcept {
   switch (direction) {
     case MenuOption::Direction::Up:
     case MenuOption::Direction::Left:
@@ -46,7 +46,7 @@ bool IsInverted(MenuOption::Direction direction) {
   return false; // NOT_REACHED()
 }
 
-bool IsHorizontal(MenuOption::Direction direction) {
+bool IsHorizontal(MenuOption::Direction direction) noexcept {
   switch (direction) {
     case MenuOption::Direction::Left:
     case MenuOption::Direction::Right:
@@ -65,26 +65,26 @@ bool IsHorizontal(MenuOption::Direction direction) {
 class MenuBase : public ComponentBase {
  public:
   MenuBase(ConstStringListRef entries, int* selected, Ref<MenuOption> option)
-      : entries_(entries), selected_(selected), option_(option) {}
+      : entries_(entries), selected_(selected), option_(std::move(option)) {}
 
-  bool IsHorizontal() { return ftxui::IsHorizontal(option_->direction); }
-  void OnChange() {
+  [[nodiscard]] bool IsHorizontal() noexcept { return ftxui::IsHorizontal(option_->direction); }
+  void OnChange() noexcept {
     if (option_->on_change)
       option_->on_change();
   }
 
-  void OnEnter() {
+  void OnEnter() noexcept {
     if (option_->on_enter)
       option_->on_enter();
   }
 
-  void Clamp() {
+  void Clamp() noexcept {
     boxes_.resize(size());
     *selected_ = util::clamp(*selected_, 0, size() - 1);
     focused_entry() = util::clamp(focused_entry(), 0, size() - 1);
   }
 
-  void OnAnimation(animation::Params& params) override {
+  void OnAnimation(animation::Params& params) noexcept override {
     animator_first_.OnAnimation(params);
     animator_second_.OnAnimation(params);
     for (auto& animator : animator_background_)
@@ -93,7 +93,7 @@ class MenuBase : public ComponentBase {
       animator.OnAnimation(params);
   }
 
-  Element Render() override {
+  Element Render() noexcept override {
     Clamp();
     UpdateAnimationTarget();
 
@@ -156,7 +156,7 @@ class MenuBase : public ComponentBase {
            reflect(box_);
   }
 
-  void OnUp() {
+  void OnUp() noexcept {
     switch (option_->direction) {
       case MenuOption::Direction::Up:
         (*selected_)++;
@@ -170,7 +170,7 @@ class MenuBase : public ComponentBase {
     }
   }
 
-  void OnDown() {
+  void OnDown() noexcept {
     switch (option_->direction) {
       case MenuOption::Direction::Up:
         (*selected_)--;
@@ -184,7 +184,7 @@ class MenuBase : public ComponentBase {
     }
   }
 
-  void OnLeft() {
+  void OnLeft() noexcept {
     switch (option_->direction) {
       case MenuOption::Direction::Left:
         (*selected_)++;
@@ -198,7 +198,7 @@ class MenuBase : public ComponentBase {
     }
   }
 
-  void OnRight() {
+  void OnRight() noexcept {
     switch (option_->direction) {
       case MenuOption::Direction::Left:
         (*selected_)--;
@@ -212,7 +212,7 @@ class MenuBase : public ComponentBase {
     }
   }
 
-  bool OnEvent(Event event) override {
+  bool OnEvent(const Event& event) noexcept override {
     Clamp();
     if (!CaptureMouse(event))
       return false;
@@ -260,26 +260,27 @@ class MenuBase : public ComponentBase {
     return false;
   }
 
-  bool OnMouseEvent(Event event) {
-    if (event.mouse().button == Mouse::WheelDown ||
-        event.mouse().button == Mouse::WheelUp) {
+  bool OnMouseEvent(const Event& event) noexcept {
+    if (event.mouse().button == Mouse::Button::WheelDown ||
+        event.mouse().button == Mouse::Button::WheelUp) {
       return OnMouseWheel(event);
     }
 
-    if (event.mouse().button != Mouse::None &&
-        event.mouse().button != Mouse::Left) {
+    if (event.mouse().button != Mouse::Button::None &&
+        event.mouse().button != Mouse::Button::Left) {
       return false;
     }
     if (!CaptureMouse(event))
       return false;
+
     for (int i = 0; i < size(); ++i) {
       if (!boxes_[i].Contain(event.mouse().x, event.mouse().y))
         continue;
 
       TakeFocus();
       focused_entry() = i;
-      if (event.mouse().button == Mouse::Left &&
-          event.mouse().motion == Mouse::Released) {
+      if (event.mouse().button == Mouse::Button::Left &&
+          event.mouse().motion == Mouse::Motion::Released) {
         if (*selected_ != i) {
           *selected_ = i;
           OnChange();
@@ -290,14 +291,14 @@ class MenuBase : public ComponentBase {
     return false;
   }
 
-  bool OnMouseWheel(Event event) {
+  bool OnMouseWheel(const Event& event) noexcept {
     if (!box_.Contain(event.mouse().x, event.mouse().y))
       return false;
     const int old_selected = *selected_;
 
-    if (event.mouse().button == Mouse::WheelUp)
+    if (event.mouse().button == Mouse::Button::WheelUp)
       (*selected_)--;
-    if (event.mouse().button == Mouse::WheelDown)
+    if (event.mouse().button == Mouse::Button::WheelDown)
       (*selected_)++;
 
     *selected_ = util::clamp(*selected_, 0, size() - 1);
@@ -307,12 +308,12 @@ class MenuBase : public ComponentBase {
     return true;
   }
 
-  void UpdateAnimationTarget() {
+  void UpdateAnimationTarget() noexcept {
     UpdateColorTarget();
     UpdateUnderlineTarget();
   }
 
-  void UpdateColorTarget() {
+  void UpdateColorTarget() noexcept {
     if (size() != (int)animation_background_.size()) {
       animation_background_.resize(size());
       animation_foreground_.resize(size());
@@ -331,11 +332,11 @@ class MenuBase : public ComponentBase {
       }
     }
 
-    bool is_menu_focused = Focused();
+    const bool is_menu_focused = Focused();
     for (int i = 0; i < size(); ++i) {
-      bool is_focused = (focused_entry() == i) && is_menu_focused;
-      bool is_selected = (*selected_ == i);
-      float target = is_selected ? 1.f : is_focused ? 0.5f : 0.f;
+      const bool is_focused = (focused_entry() == i) && is_menu_focused;
+      const bool is_selected = (*selected_ == i);
+      const float target = is_selected ? 1.f : is_focused ? 0.5f : 0.f;
       if (animator_background_[i].to() != target) {
         animator_background_[i] = animation::Animator(
             &animation_background_[i], target,
@@ -349,7 +350,7 @@ class MenuBase : public ComponentBase {
     }
   }
 
-  Decorator AnimatedColorStyle(int i) {
+  Decorator AnimatedColorStyle(int i) noexcept {
     Decorator style = nothing;
     if (option_->entries.animated_colors.foreground.enabled) {
       style = style | color(Color::Interpolate(
@@ -367,7 +368,7 @@ class MenuBase : public ComponentBase {
     return style;
   }
 
-  void UpdateUnderlineTarget() {
+  void UpdateUnderlineTarget() noexcept {
     if (!option_->underline.enabled)
       return;
 
@@ -397,17 +398,17 @@ class MenuBase : public ComponentBase {
     }
   }
 
-  bool Focusable() const final { return entries_.size(); }
+  [[nodiscard]] bool Focusable() const noexcept final { return entries_.size(); }
   int& focused_entry() { return option_->focused_entry(); }
-  int size() const { return entries_.size(); }
-  int FirstTarget() {
-    if (boxes_.size() == 0)
+  [[nodiscard]] int size() const { return static_cast<int>(entries_.size()); }
+  int FirstTarget() noexcept {
+    if (boxes_.empty())
       return 0;
     return IsHorizontal() ? boxes_[*selected_].x_min - box_.x_min
                           : boxes_[*selected_].y_min - box_.y_min;
   }
-  int SecondTarget() {
-    if (boxes_.size() == 0)
+  int SecondTarget() noexcept {
+    if (boxes_.empty())
       return 0;
     return IsHorizontal() ? boxes_[*selected_].x_max - box_.x_min
                           : boxes_[*selected_].y_max - box_.y_min;
@@ -461,7 +462,7 @@ class MenuBase : public ComponentBase {
 /// ```
 Component Menu(ConstStringListRef entries,
                int* selected,
-               Ref<MenuOption> option) {
+               Ref<MenuOption> option) noexcept {
   return Make<MenuBase>(entries, selected, std::move(option));
 }
 
@@ -470,7 +471,7 @@ Component Menu(ConstStringListRef entries,
 /// @param selected Reference the selected entry.
 /// @param See also |Menu|.
 /// @ingroup component
-Component Toggle(ConstStringListRef entries, int* selected) {
+Component Toggle(ConstStringListRef entries, int* selected) noexcept {
   return Menu(entries, selected, MenuOption::Toggle());
 }
 
@@ -500,14 +501,14 @@ Component Toggle(ConstStringListRef entries, int* selected) {
 ///   entry 2
 ///   entry 3
 /// ```
-Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
+Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) noexcept {
   class Impl : public ComponentBase {
    public:
     Impl(ConstStringRef label, Ref<MenuEntryOption> option)
         : label_(std::move(label)), option_(std::move(option)) {}
 
    private:
-    Element Render() override {
+    Element Render() noexcept override {
       const bool focused = Focused();
       UpdateAnimationTarget();
 
@@ -526,8 +527,8 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
       return element | AnimatedColorStyle() | focus_management | reflect(box_);
     }
 
-    void UpdateAnimationTarget() {
-      bool focused = Focused();
+    void UpdateAnimationTarget() noexcept {
+      const bool focused = Focused();
       float target = focused ? 1.0f : hovered_ ? 0.5f : 0.0f;
       if (target == animator_background_.to())
         return;
@@ -541,7 +542,7 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
                               option_->animated_colors.foreground.function);
     }
 
-    Decorator AnimatedColorStyle() {
+    Decorator AnimatedColorStyle() noexcept {
       Decorator style = nothing;
       if (option_->animated_colors.foreground.enabled) {
         style = style | color(Color::Interpolate(
@@ -559,8 +560,8 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
       return style;
     }
 
-    bool Focusable() const override { return true; }
-    bool OnEvent(Event event) override {
+    [[nodiscard]] bool Focusable() const noexcept override { return true; }
+    bool OnEvent(const Event& event) noexcept override {
       if (!event.is_mouse())
         return false;
 
@@ -569,8 +570,8 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
       if (!hovered_)
         return false;
 
-      if (event.mouse().button == Mouse::Left &&
-          event.mouse().motion == Mouse::Released) {
+      if (event.mouse().button == Mouse::Button::Left &&
+          event.mouse().motion == Mouse::Motion::Released) {
         TakeFocus();
         return true;
       }
@@ -578,18 +579,19 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) {
       return false;
     }
 
-    void OnAnimation(animation::Params& params) override {
+    void OnAnimation(animation::Params& params) noexcept override {
       animator_background_.OnAnimation(params);
       animator_foreground_.OnAnimation(params);
     }
+    bool hovered_{false};
 
+    float animation_background_{};
+    float animation_foreground_{};
+
+    Box box_{};
     ConstStringRef label_;
     Ref<MenuEntryOption> option_{};
-    Box box_{};
-    bool hovered_ = false;
 
-    float animation_background_ = 0.f;
-    float animation_foreground_ = 0.f;
     animation::Animator animator_background_ =
         animation::Animator(&animation_background_, 0.f);
     animation::Animator animator_foreground_ =

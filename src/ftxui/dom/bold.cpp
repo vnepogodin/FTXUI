@@ -13,7 +13,7 @@ class Bold : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, y).bold = true;
@@ -25,7 +25,7 @@ class Bold : public NodeDecorator {
 
 /// @brief Use a bold font, for elements with more emphasis.
 /// @ingroup dom
-Element bold(Element child) {
+Element bold(Element child) noexcept {
   return std::make_shared<Bold>(std::move(child));
 }
 

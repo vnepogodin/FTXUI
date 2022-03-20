@@ -2,34 +2,34 @@
 #include <memory>  // for make_unique, __shared_ptr_access, __shared_ptr_access<>::element_type, shared_ptr
 #include <utility>  // for move
 
-#include "ftxui/component/component.hpp"  // for ComponentDecorator, Maybe, Make
-#include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
-#include "ftxui/component/event.hpp"           // for Event
-#include "ftxui/dom/elements.hpp"              // for Element
-#include "ftxui/dom/node.hpp"                  // for Node
+#include <ftxui/component/component.hpp>  // for ComponentDecorator, Maybe, Make
+#include <ftxui/component/component_base.hpp>  // for Component, ComponentBase
+#include <ftxui/component/event.hpp>           // for Event
+#include <ftxui/dom/elements.hpp>              // for Element
+#include <ftxui/dom/node.hpp>                  // for Node
 
 namespace ftxui {
 
-Component Maybe(Component child, std::function<bool()> show) {
+Component Maybe(Component child, const std::function<bool()>& show) noexcept {
   class Impl : public ComponentBase {
    public:
-    Impl(std::function<bool()> show) : show_(std::move(show)) {}
+    explicit Impl(std::function<bool()> show) : show_(std::move(show)) {}
 
    private:
-    Element Render() override {
+    Element Render() noexcept override {
       return show_() ? ComponentBase::Render() : std::make_unique<Node>();
     }
-    bool Focusable() const override {
+    [[nodiscard]] bool Focusable() const noexcept override {
       return show_() && ComponentBase::Focusable();
     }
-    bool OnEvent(Event event) override {
+    bool OnEvent(const Event& event) noexcept override {
       return show_() && ComponentBase::OnEvent(event);
     }
 
     std::function<bool()> show_;
   };
 
-  auto maybe = Make<Impl>(std::move(show));
+  auto maybe = Make<Impl>(show);
   maybe->Add(std::move(child));
   return maybe;
 }
@@ -46,9 +46,9 @@ Component Maybe(Component child, std::function<bool()> show) {
 /// auto component = Renderer([]{ return "Hello World!"; });
 /// auto maybe_component = component | Maybe([&]{ return counter == 42; });
 /// ```
-ComponentDecorator Maybe(std::function<bool()> show) {
-  return [show = std::move(show)](Component child) mutable {
-    return Maybe(child, std::move(show));
+ComponentDecorator Maybe(std::function<bool()> show) noexcept {
+  return [show = std::move(show)](auto&& child) mutable {
+    return Maybe(child, show);
   };
 }
 
@@ -63,8 +63,8 @@ ComponentDecorator Maybe(std::function<bool()> show) {
 /// auto component = Renderer([]{ return "Hello World!"; });
 /// auto maybe_component = Maybe(component, &show);
 /// ```
-Component Maybe(Component child, const bool* show) {
-  return Maybe(child, [show] { return *show; });
+Component Maybe(Component child, const bool* show) noexcept {
+  return Maybe(std::move(child), [show] { return *show; });
 }
 
 /// @brief Decorate a component. It is shown only when |show| is true.
@@ -77,8 +77,8 @@ Component Maybe(Component child, const bool* show) {
 /// auto component = Renderer([]{ return "Hello World!"; });
 /// auto maybe_component = component | Maybe(&show);
 /// ```
-ComponentDecorator Maybe(const bool* show) {
-  return [show](Component child) { return Maybe(child, show); };
+ComponentDecorator Maybe(const bool* show) noexcept {
+  return [show](auto&& child) { return Maybe(child, show); };
 }
 
 }  // namespace ftxui

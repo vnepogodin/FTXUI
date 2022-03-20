@@ -15,7 +15,7 @@ class ClearUnder : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, y) = Pixel();
@@ -29,7 +29,7 @@ class ClearUnder : public NodeDecorator {
 //         combinaison with dbox.
 /// @see ftxui::dbox
 /// @ingroup dom
-Element clear_under(Element child) {
+Element clear_under(Element child) noexcept {
   return std::make_shared<ClearUnder>(std::move(child));
 }
 

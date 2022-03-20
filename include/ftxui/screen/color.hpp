@@ -1,7 +1,7 @@
 #ifndef FTXUI_SCREEN_COLOR
 #define FTXUI_SCREEN_COLOR
 
-#include <stdint.h>  // for uint8_t
+#include <cstdint>  // for uint8_t
 #include <string>    // for wstring
 
 #ifdef RGB
@@ -318,7 +318,7 @@ class Color {
 
   constexpr bool operator!=(const Color& rhs) const { return !operator==(rhs); }
 
-  std::string Print(bool is_background_color) const;
+  [[nodiscard]] std::string Print(bool is_background_color) const;
 
  private:
   enum class ColorType : uint8_t {
@@ -330,7 +330,7 @@ class Color {
 
   ColorType type_{ColorType::Palette1};
   union {
-    uint8_t index_ = 0;
+    uint8_t index_{};
     uint8_t red_;
   };
   uint8_t green_ = 0;

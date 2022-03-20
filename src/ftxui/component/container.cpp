@@ -1,9 +1,10 @@
-#include <stddef.h>   // for size_t
+#include <cstddef>   // for size_t
 #include <algorithm>  // for max, min
 #include <memory>  // for make_shared, __shared_ptr_access, allocator, shared_ptr, allocator_traits<>::value_type
 #include <string_view>  // for std::string_view
 #include <utility>      // for move
 #include <vector>       // for vector, __alloc_traits<>::value_type
+#include <ranges>
 
 #include "ftxui/component/component.hpp"  // for Horizontal, Vertical, Tab
 #include "ftxui/component/component_base.hpp"  // for Components, Component, ComponentBase
@@ -11,6 +12,8 @@
 #include "ftxui/component/mouse.hpp"  // for Mouse, Mouse::WheelDown, Mouse::WheelUp
 #include "ftxui/dom/elements.hpp"  // for text, Elements, operator|, reflect, Element, hbox, vbox
 #include "ftxui/screen/box.hpp"  // for Box
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
@@ -23,7 +26,7 @@ class ContainerBase : public ComponentBase {
   }
 
   // Component override.
-  bool OnEvent(Event event) override {
+  bool OnEvent(const Event& event) noexcept override {
     if (event.is_mouse())
       return OnMouseEvent(event);
 
@@ -36,14 +39,14 @@ class ContainerBase : public ComponentBase {
     return EventHandler(event);
   }
 
-  Component ActiveChild() override {
-    if (children_.size() == 0)
+  Component ActiveChild() noexcept override {
+    if (children_.empty())
       return nullptr;
 
     return children_[*selector_ % children_.size()];
   }
 
-  void SetActiveChild(ComponentBase* child) override {
+  void SetActiveChild(const ComponentBase* child) noexcept override {
     for (size_t i = 0; i < children_.size(); ++i) {
       if (children_[i].get() == child) {
         *selector_ = i;
@@ -54,9 +57,9 @@ class ContainerBase : public ComponentBase {
 
  protected:
   // Handlers
-  virtual bool EventHandler(Event) { return false; }
+  virtual bool EventHandler(const Event&) noexcept { return false; }
 
-  virtual bool OnMouseEvent(Event event) {
+  virtual bool OnMouseEvent(const Event& event) noexcept {
     return ComponentBase::OnEvent(event);
   }
 
@@ -72,7 +75,7 @@ class ContainerBase : public ComponentBase {
       }
     }
   }
-  void MoveSelectorWrap(int dir) {
+  void MoveSelectorWrap(int dir) noexcept {
     for (size_t offset = 1; offset < children_.size(); ++offset) {
       const auto i =
           (*selector_ + offset * dir + children_.size()) % children_.size();
@@ -88,17 +91,17 @@ class VerticalContainer : public ContainerBase {
  public:
   using ContainerBase::ContainerBase;
 
-  Element Render() override {
+  Element Render() noexcept override {
     Elements elements;
-    for (auto& it : children_)
+    for (auto&& it : children_)
       elements.push_back(it->Render());
-    if (elements.size() == 0)
+    if (elements.empty())
       return text("Empty container") | reflect(box_);
     return vbox(std::move(elements)) | reflect(box_);
   }
 
-  bool EventHandler(Event event) override {
-    int old_selected = *selector_;
+  bool EventHandler(const Event& event) noexcept override {
+    const int old_selected = *selector_;
     if (event == Event::ArrowUp || event == Event::Character('k'))
       MoveSelector(-1);
     if (event == Event::ArrowDown || event == Event::Character('j'))
@@ -119,32 +122,32 @@ class VerticalContainer : public ContainerBase {
       for (size_t i = 0; i < children_.size(); ++i)
         MoveSelector(1);
     }
-    if (event == Event::Tab && children_.size())
+    if (event == Event::Tab && !children_.empty())
       MoveSelectorWrap(+1);
-    if (event == Event::TabReverse && children_.size())
+    if (event == Event::TabReverse && !children_.empty())
       MoveSelectorWrap(-1);
 
-    *selector_ = std::max(0, std::min(int(children_.size()) - 1, *selector_));
+    *selector_ = ranges::max(0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
     return old_selected != *selector_;
   }
 
-  bool OnMouseEvent(Event event) override {
+  bool OnMouseEvent(const Event& event) noexcept override {
     if (ContainerBase::OnMouseEvent(event))
       return true;
 
-    if (event.mouse().button != Mouse::WheelUp &&
-        event.mouse().button != Mouse::WheelDown) {
+    if (event.mouse().button != Mouse::Button::WheelUp &&
+        event.mouse().button != Mouse::Button::WheelDown) {
       return false;
     }
 
     if (!box_.Contain(event.mouse().x, event.mouse().y))
       return false;
 
-    if (event.mouse().button == Mouse::WheelUp)
+    if (event.mouse().button == Mouse::Button::WheelUp)
       MoveSelector(-1);
-    if (event.mouse().button == Mouse::WheelDown)
+    if (event.mouse().button == Mouse::Button::WheelDown)
       MoveSelector(+1);
-    *selector_ = std::max(0, std::min(int(children_.size()) - 1, *selector_));
+    *selector_ = ranges::max(0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
 
     return true;
   }
@@ -156,27 +159,27 @@ class HorizontalContainer : public ContainerBase {
  public:
   using ContainerBase::ContainerBase;
 
-  Element Render() override {
+  Element Render() noexcept override {
     Elements elements;
     for (auto& it : children_)
       elements.push_back(it->Render());
-    if (elements.size() == 0)
+    if (elements.empty())
       return text("Empty container");
     return hbox(std::move(elements));
   }
 
-  bool EventHandler(Event event) override {
+  bool EventHandler(const Event& event) noexcept override {
     int old_selected = *selector_;
     if (event == Event::ArrowLeft || event == Event::Character('h'))
       MoveSelector(-1);
     if (event == Event::ArrowRight || event == Event::Character('l'))
       MoveSelector(+1);
-    if (event == Event::Tab && children_.size())
+    if (event == Event::Tab && !children_.empty())
       MoveSelectorWrap(+1);
-    if (event == Event::TabReverse && children_.size())
+    if (event == Event::TabReverse && !children_.empty())
       MoveSelectorWrap(-1);
 
-    *selector_ = std::max(0, std::min(int(children_.size()) - 1, *selector_));
+    *selector_ = ranges::max(0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
     return old_selected != *selector_;
   }
 };
@@ -185,20 +188,20 @@ class TabContainer : public ContainerBase {
  public:
   using ContainerBase::ContainerBase;
 
-  Element Render() override {
+  Element Render() noexcept override {
     Component active_child = ActiveChild();
     if (active_child)
       return active_child->Render();
     return text("Empty container");
   }
 
-  bool Focusable() const override {
-    if (children_.size() == 0)
+  [[nodiscard]] bool Focusable() const noexcept override {
+    if (children_.empty())
       return false;
     return children_[*selector_ % children_.size()]->Focusable();
   }
 
-  bool OnMouseEvent(Event event) override {
+  bool OnMouseEvent(const Event& event) noexcept override {
     return ActiveChild()->OnEvent(event);
   }
 };
@@ -221,7 +224,7 @@ namespace Container {
 ///   children_4,
 /// });
 /// ```
-Component Vertical(Components children) {
+Component Vertical(Components children) noexcept {
   return Vertical(std::move(children), nullptr);
 }
 
@@ -243,7 +246,7 @@ Component Vertical(Components children) {
 ///   children_4,
 /// });
 /// ```
-Component Vertical(Components children, int* selector) {
+Component Vertical(Components children, int* selector) noexcept {
   return std::make_shared<VerticalContainer>(std::move(children), selector);
 }
 
@@ -264,7 +267,7 @@ Component Vertical(Components children, int* selector) {
 ///   children_4,
 /// }, &selected_children);
 /// ```
-Component Horizontal(Components children) {
+Component Horizontal(Components children) noexcept {
   return Horizontal(std::move(children), nullptr);
 }
 
@@ -286,7 +289,7 @@ Component Horizontal(Components children) {
 ///   children_4,
 /// }, selected_children);
 /// ```
-Component Horizontal(Components children, int* selector) {
+Component Horizontal(Components children, int* selector) noexcept {
   return std::make_shared<HorizontalContainer>(std::move(children), selector);
 }
 
@@ -309,7 +312,7 @@ Component Horizontal(Components children, int* selector) {
 ///   children_4,
 /// }, &tab_drawn);
 /// ```
-Component Tab(Components children, int* selector) {
+Component Tab(Components children, int* selector) noexcept {
   return std::make_shared<TabContainer>(std::move(children), selector);
 }
 
