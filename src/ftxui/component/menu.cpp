@@ -514,9 +514,9 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) noexcept 
 
       EntryState state = {
           *label_,
+          false,
           hovered_,
           focused,
-          false,
       };
 
       const Element element =
