@@ -4,13 +4,16 @@ Changelog
 current (development) 
 ---------------------
 
+3.0.0
+-----
+
 ### Build
 - **breaking**: The library prefix is now back to "lib" (the default). This
     means non-cmake users should not link against "libftxui-dom" for instance.
 
 ### Component
-- Animations module! Components can implement the `OnAnimation` method and the
-  animation::Animator to define some animated properties.
+- **Animations** module! Components can implement the `OnAnimation` method and
+  the animation::Animator to define some animated properties.
   - `Menu` now support animations.
   - `Button` now supports animations.
 - Support SIGTSTP. (ctrl+z).
