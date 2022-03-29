@@ -1,10 +1,10 @@
-#include <algorithm>    // for min
-#include <memory>       // for make_shared
+#include <algorithm>  // for min
+#include <memory>     // for make_shared
+#include <ranges>
 #include <string>       // for string, wstring
 #include <string_view>  // for string_view
 #include <utility>
-#include <vector>       // for vector
-#include <ranges>
+#include <vector>  // for vector
 
 #include <ftxui/dom/deprecated.hpp>   // for text, vtext
 #include <ftxui/dom/elements.hpp>     // for Element, text, vtext

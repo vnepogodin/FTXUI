@@ -5,8 +5,8 @@ namespace ftxui {
 // static
 Event Event::CursorReporting(const std::string& input, int x, int y) noexcept {
   Event event;
-  event.type_   = Type::CursorReporting;
-  event.input_  = input;
+  event.type_ = Type::CursorReporting;
+  event.input_ = input;
   event.device_ = Cursor{.x = x, .y = y};
   return event;
 }

@@ -2,7 +2,7 @@
 #include <memory>      // for allocator, make_shared
 #include <string>      // for string
 #include <utility>
-#include <vector>      // for vector
+#include <vector>  // for vector
 
 #include "ftxui/dom/elements.hpp"     // for GraphFunction, Element, graph
 #include "ftxui/dom/node.hpp"         // for Node
@@ -23,7 +23,8 @@ static std::string charset[] =
 
 class Graph : public Node {
  public:
-  explicit Graph(GraphFunction graph_function) : graph_function_(std::move(graph_function)) {}
+  explicit Graph(GraphFunction graph_function)
+      : graph_function_(std::move(graph_function)) {}
 
   void ComputeRequirement() noexcept override {
     requirement_.flex_grow_x = 1;

@@ -62,7 +62,9 @@ Component Button(const ConstStringRef& label,
     Impl(ConstStringRef label,
          std::function<void()> on_click,
          Ref<ButtonOption> option)
-        : label_(std::move(label)),  option_(std::move(option)), on_click_(std::move(on_click)) {}
+        : label_(std::move(label)),
+          option_(std::move(option)),
+          on_click_(std::move(on_click)) {}
 
     // Component implementation:
     Element Render() noexcept override {
@@ -70,11 +72,11 @@ Component Button(const ConstStringRef& label,
       if (target != animator_background_.to())
         SetAnimationTarget(target);
 
-      EntryState state = {
-          *label_,
+      const EntryState state = {
           false,
           Active(),
           Focused(),
+          *label_,
       };
 
       const auto element =

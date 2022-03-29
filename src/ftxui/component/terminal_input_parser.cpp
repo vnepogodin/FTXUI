@@ -34,7 +34,7 @@ unsigned char TerminalInputParser::Current() {
 
 bool TerminalInputParser::Eat() {
   position_++;
-  return position_ < (int)pending_.size();
+  return position_ < static_cast<int>(pending_.size());
 }
 
 void TerminalInputParser::Send(TerminalInputParser::Output output) {
@@ -69,8 +69,8 @@ void TerminalInputParser::Send(TerminalInputParser::Output output) {
       return;
 
     case CURSOR_REPORTING:
-      out_->Send(Event::CursorReporting(pending_, output.cursor.x,
-                                        output.cursor.y));
+      out_->Send(
+          Event::CursorReporting(pending_, output.cursor.x, output.cursor.y));
       pending_.clear();
       return;
   }

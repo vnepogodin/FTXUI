@@ -4,10 +4,10 @@
 #else
 #include <ranges>
 #endif
-#include <string>   // for string, allocator
-#include <utility>  // for move
 #include <algorithm>
+#include <string>  // for string, allocator
 #include <string_view>
+#include <utility>  // for move
 
 #include <ftxui/dom/elements.hpp>  // for flexbox, Element, text, Elements, operator|, xflex, paragraph, paragraphAlignCenter, paragraphAlignJustify, paragraphAlignLeft, paragraphAlignRight
 #include <ftxui/dom/flexbox_config.hpp>  // for FlexboxConfig, FlexboxConfig::JustifyContent, FlexboxConfig::JustifyContent::Center, FlexboxConfig::JustifyContent::FlexEnd, FlexboxConfig::JustifyContent::SpaceBetween
@@ -30,16 +30,17 @@ namespace ranges = std::ranges;
 Elements Split(const std::string_view&& the_text) noexcept {
   static constexpr std::string_view delim{" "};
   static constexpr auto functor = [](auto&& rng) {
-    return std::string_view(&*rng.begin(), static_cast<size_t>(ranges::distance(rng)));
+    return std::string_view(&*rng.begin(),
+                            static_cast<size_t>(ranges::distance(rng)));
   };
   static constexpr auto second = [](auto&& rng) { return rng != ""; };
 
-  const auto& view_res = the_text
-                         | ranges::views::split(delim)
-                         | ranges::views::transform(functor);
+  const auto& view_res = the_text | ranges::views::split(delim) |
+                         ranges::views::transform(functor);
 
   Elements output{};
-  ranges::for_each(view_res | ranges::views::filter(second), [&](auto&& rng) { output.emplace_back(text(rng)); });
+  ranges::for_each(view_res | ranges::views::filter(second),
+                   [&](auto&& rng) { output.emplace_back(text(rng)); });
   return output;
 }
 #endif

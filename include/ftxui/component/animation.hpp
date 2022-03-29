@@ -4,11 +4,9 @@
 #include <chrono>      // for milliseconds, duration, steady_clock, time_point
 #include <functional>  // for function
 
-#include "ftxui/component/event.hpp"
+#include <ftxui/component/event.hpp>
 
-namespace ftxui {
-
-namespace animation {
+namespace ftxui::animation {
 // Components who haven't completed their animation can call this function to
 // request a new frame to be drawn later.
 //
@@ -94,11 +92,33 @@ class Animator {
            float to = 0.f,
            Duration duration = std::chrono::milliseconds(250),
            easing::Function easing_function = easing::Linear,
-           Duration delay = std::chrono::milliseconds(0));
+           Duration delay = std::chrono::milliseconds(0))
+      : value_(from),
+        from_(*from),
+        to_(to),
+        duration_(duration),
+        easing_function_(std::move(easing_function)),
+        current_(-delay)
+    { RequestAnimationFrame(); }
 
-  void OnAnimation(Params&);
+  void OnAnimation(const Params& params) {
+    current_ += params.duration();
 
-  [[nodiscard]] float to() const noexcept { return to_; }
+    if (current_ >= duration_) {
+      *value_ = to_;
+      return;
+    }
+
+    if (current_ <= Duration()) {
+      *value_ = from_;
+    } else {
+      *value_ = from_ + (to_ - from_) * easing_function_(current_ / duration_);
+    }
+
+    RequestAnimationFrame();
+  }
+
+  [[nodiscard]] constexpr inline float to() const noexcept { return to_; }
 
  private:
   float* value_;
@@ -109,7 +129,6 @@ class Animator {
   Duration current_;
 };
 
-}  // namespace animation
 }  // namespace ftxui
 
 #endif /* end of include guard: FTXUI_ANIMATION_HPP */

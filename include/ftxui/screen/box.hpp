@@ -17,7 +17,7 @@ struct Box {
   /// @return the biggest Box contained in both |a| and |b|.
   /// @ingroup screen
   // static
-  static constexpr Box Intersection(Box a, Box b) noexcept {
+  static constexpr inline Box Intersection(Box a, Box b) noexcept {
     return Box{
         ranges::max(a.x_min, b.x_min),
         ranges::min(a.x_max, b.x_max),
@@ -28,7 +28,7 @@ struct Box {
 
   /// @return whether (x,y) is contained inside the box.
   /// @ingroup screen
-  [[nodiscard]] constexpr bool Contain(int x, int y) const noexcept {
+  [[nodiscard]] constexpr inline bool Contain(int x, int y) const noexcept {
     return x_min <= x &&  //
            x_max >= x &&  //
            y_min <= y &&  //
@@ -37,14 +37,14 @@ struct Box {
 
   /// @return whether |other| is the same as |this|
   /// @ingroup screen
-  constexpr bool operator==(const Box& other) const noexcept {
+  constexpr inline bool operator==(const Box& other) const noexcept {
     return (x_min == other.x_min) && (x_max == other.x_max) &&
            (y_min == other.y_min) && (y_max == other.y_max);
   }
 
   /// @return whether |other| and |this| are different.
   /// @ingroup screen
-  constexpr bool operator!=(const Box& other) const noexcept {
+  constexpr inline bool operator!=(const Box& other) const noexcept {
     return !operator==(other);
   }
 };

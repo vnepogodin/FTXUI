@@ -99,32 +99,26 @@ struct Event {
   //static Event Custom = Event::Special({0});
 
   //--- Method section ---------------------------------------------------------
-  [[nodiscard]] constexpr bool is_character() const noexcept {
-    return type_ == Type::Character;
-  }
+  [[nodiscard]] constexpr inline bool is_character() const noexcept
+  { return type_ == Type::Character; }
   [[nodiscard]] inline std::string character() const noexcept { return input_; }
 
-  [[nodiscard]] constexpr bool is_mouse() const noexcept { return type_ == Type::Mouse; }
-  struct Mouse& mouse() noexcept {
-    return std::get<struct Mouse>(device_);
-  }
+  [[nodiscard]] constexpr inline bool is_mouse() const noexcept { return type_ == Type::Mouse; }
+  struct Mouse& mouse() noexcept
+  { return std::get<struct Mouse>(device_); }
 
-  [[nodiscard]] constexpr const struct Mouse& mouse() const noexcept {
-    return std::get<struct Mouse>(device_);
-  }
-  struct Cursor& cursor() noexcept {
-    return std::get<struct Cursor>(device_);
-  }
+  [[nodiscard]] constexpr const struct Mouse& mouse() const noexcept
+  { return std::get<struct Mouse>(device_); }
+  struct Cursor& cursor() noexcept
+  { return std::get<struct Cursor>(device_); }
 
-  [[nodiscard]] constexpr struct Cursor& cursor() const noexcept {
-    return const_cast<Cursor&>(std::get<struct Cursor>(device_));
-  }
+  [[nodiscard]] constexpr struct Cursor& cursor() const noexcept
+  { return const_cast<Cursor&>(std::get<struct Cursor>(device_)); }
 
-  [[nodiscard]] constexpr bool is_cursor_reporting() const noexcept {
-    return type_ == Type::CursorReporting;
-  }
-  [[nodiscard]] constexpr int cursor_x() const noexcept { return cursor().x; }
-  [[nodiscard]] constexpr int cursor_y() const noexcept { return cursor().y; }
+  [[nodiscard]] constexpr bool is_cursor_reporting() const noexcept
+  { return type_ == Type::CursorReporting; }
+  [[nodiscard]] constexpr inline int cursor_x() const noexcept { return cursor().x; }
+  [[nodiscard]] constexpr inline int cursor_y() const noexcept { return cursor().y; }
 
   [[nodiscard]] const std::string& input() const noexcept { return input_; }
 

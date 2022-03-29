@@ -1,9 +1,9 @@
-#include <cstddef>   // for size_t
 #include <algorithm>  // for min, max
+#include <cstddef>    // for size_t
 #include <memory>  // for __shared_ptr_access, shared_ptr, allocator_traits<>::value_type, make_shared
+#include <ranges>
 #include <utility>  // for move, swap
 #include <vector>   // for vector
-#include <ranges>
 
 #include <ftxui/dom/elements.hpp>  // for Element, Elements, flexbox, hflow, vflow
 #include <ftxui/dom/flexbox_config.hpp>  // for FlexboxConfig, FlexboxConfig::Direction, FlexboxConfig::Direction::Column, FlexboxConfig::AlignContent, FlexboxConfig::Direction::ColumnInversed, FlexboxConfig::Direction::Row, FlexboxConfig::JustifyContent, FlexboxConfig::Wrap, FlexboxConfig::AlignContent::FlexStart, FlexboxConfig::Direction::RowInversed, FlexboxConfig::JustifyContent::FlexStart, FlexboxConfig::Wrap::Wrap
@@ -34,7 +34,8 @@ constexpr void Normalize(FlexboxConfig::AlignContent& align_content) noexcept {
   align_content = FlexboxConfig::AlignContent::FlexStart;
 }
 
-constexpr void Normalize(FlexboxConfig::JustifyContent& justify_content) noexcept {
+constexpr void Normalize(
+    FlexboxConfig::JustifyContent& justify_content) noexcept {
   justify_content = FlexboxConfig::JustifyContent::FlexStart;
 }
 
@@ -126,8 +127,9 @@ class Flexbox : public Node {
   void SetBox(Box box) noexcept override {
     Node::SetBox(box);
 
-    asked_ = ranges::min(asked_, IsColumnOriented() ? box.y_max - box.y_min + 1
-                                                 : box.x_max - box.x_min + 1);
+    asked_ =
+        ranges::min(asked_, IsColumnOriented() ? box.y_max - box.y_min + 1
+                                               : box.x_max - box.x_min + 1);
     flexbox_helper::Global global;
     global.config = config_;
     global.size_x = box.x_max - box.x_min + 1;

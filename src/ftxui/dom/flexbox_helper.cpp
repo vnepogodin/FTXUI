@@ -1,10 +1,10 @@
 #include "ftxui/dom/flexbox_helper.hpp"
 
-#include <cstddef>   // for size_t
 #include <algorithm>  // for min, max
+#include <cstddef>    // for size_t
 #include <memory>     // for allocator_traits<>::value_type
-#include <utility>    // for swap, move
 #include <ranges>
+#include <utility>  // for swap, move
 
 #include <ftxui/dom/box_helper.hpp>  // for Element, Compute
 
@@ -122,7 +122,8 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
     element.flex_grow = line.blocks.front()->flex_grow_y;
     for (auto* block : line.blocks) {
       element.min_size = ranges::max(element.min_size, block->min_size_y);
-      element.flex_shrink = ranges::min(element.flex_shrink, block->flex_shrink_y);
+      element.flex_shrink =
+          ranges::min(element.flex_shrink, block->flex_shrink_y);
       element.flex_grow = ranges::min(element.flex_grow, block->flex_grow_y);
     }
     elements.push_back(element);
@@ -150,7 +151,7 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
     } break;
 
     case FlexboxConfig::AlignContent::Center: {
-      for (auto &elem : ys)
+      for (auto& elem : ys)
         elem += remaining_space / 2;
     } break;
 
@@ -319,7 +320,7 @@ void Compute(Global& global) noexcept {
   SetY(global, lines);
 }
 
-}  // namespace ftxui
+}  // namespace ftxui::flexbox_helper
 
 // Copyright 2021 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

@@ -1,9 +1,9 @@
 #include <stddef.h>   // for size_t
 #include <algorithm>  // for max
 #include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
+#include <ranges>
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
-#include <ranges>
 
 #include <ftxui/dom/box_helper.hpp>   // for Element, Compute
 #include <ftxui/dom/elements.hpp>     // for Element, Elements, vbox

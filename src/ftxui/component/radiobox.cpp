@@ -1,10 +1,10 @@
 #include <algorithm>   // for max
 #include <functional>  // for function
 #include <memory>      // for shared_ptr, allocator_traits<>::value_type
-#include <string>      // for string
-#include <utility>     // for move
-#include <vector>      // for vector
 #include <ranges>
+#include <string>   // for string
+#include <utility>  // for move
+#include <vector>   // for vector
 
 #include <ftxui/component/captured_mouse.hpp>     // for CapturedMouse
 #include <ftxui/component/component.hpp>          // for Make, Radiobox
@@ -48,15 +48,14 @@ class RadioboxBase : public ComponentBase {
                                     : is_menu_focused ? focus
                                                       : select;
       const auto state = EntryState{
-          entries_[i],
           *selected_ == i,
           is_selected,
           is_focused,
+          entries_[i],
       };
       const auto element =
-          (option_->transform
-               ? option_->transform
-               : RadioboxOption::Simple().transform)(state);
+          (option_->transform ? option_->transform
+                              : RadioboxOption::Simple().transform)(state);
 
       elements.push_back(element | focus_management | reflect(boxes_[i]));
     }
@@ -159,10 +158,11 @@ class RadioboxBase : public ComponentBase {
     hovered_ = util::clamp(hovered_, 0, size() - 1);
   }
 
-  [[nodiscard]] bool Focusable() const noexcept final { return entries_.size(); }
+  [[nodiscard]] bool Focusable() const noexcept final {
+    return entries_.size();
+  }
   int& focused_entry() { return option_->focused_entry(); }
   [[nodiscard]] int size() const { return static_cast<int>(entries_.size()); }
-
 
   int* selected_;
   int hovered_{};

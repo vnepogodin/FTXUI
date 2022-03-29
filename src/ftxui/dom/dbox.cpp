@@ -1,8 +1,8 @@
 #include <algorithm>  // for max
 #include <memory>     // for __shared_ptr_access, shared_ptr, make_shared
-#include <utility>    // for move
-#include <vector>     // for vector
 #include <ranges>
+#include <utility>  // for move
+#include <vector>   // for vector
 
 #include <ftxui/dom/elements.hpp>     // for Element, Elements, dbox
 #include <ftxui/dom/node.hpp>         // for Node

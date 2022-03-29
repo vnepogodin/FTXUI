@@ -311,12 +311,12 @@ class Color {
   // clang-format on
 
   // --- Operators ------
-  constexpr bool operator==(const Color& rhs) const {
+  constexpr inline bool operator==(const Color& rhs) const {
     return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ &&
            type_ == rhs.type_;
   }
 
-  constexpr bool operator!=(const Color& rhs) const { return !operator==(rhs); }
+  constexpr inline bool operator!=(const Color& rhs) const { return !operator==(rhs); }
 
   [[nodiscard]] std::string Print(bool is_background_color) const;
 

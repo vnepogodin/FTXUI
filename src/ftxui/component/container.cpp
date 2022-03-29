@@ -1,10 +1,10 @@
-#include <cstddef>   // for size_t
 #include <algorithm>  // for max, min
+#include <cstddef>    // for size_t
 #include <memory>  // for make_shared, __shared_ptr_access, allocator, shared_ptr, allocator_traits<>::value_type
+#include <ranges>
 #include <string_view>  // for std::string_view
 #include <utility>      // for move
 #include <vector>       // for vector, __alloc_traits<>::value_type
-#include <ranges>
 
 #include "ftxui/component/component.hpp"  // for Horizontal, Vertical, Tab
 #include "ftxui/component/component_base.hpp"  // for Components, Component, ComponentBase
@@ -67,8 +67,8 @@ class ContainerBase : public ComponentBase {
   int* selector_ = nullptr;
 
   void MoveSelector(int dir) noexcept {
-    for (int i = *selector_ + dir; i >= 0 && i < (int)children_.size();
-         i += dir) {
+    for (int i = *selector_ + dir;
+         i >= 0 && i < static_cast<int>(children_.size()); i += dir) {
       if (children_[i]->Focusable()) {
         *selector_ = i;
         return;
@@ -127,7 +127,8 @@ class VerticalContainer : public ContainerBase {
     if (event == Event::TabReverse && !children_.empty())
       MoveSelectorWrap(-1);
 
-    *selector_ = ranges::max(0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
+    *selector_ = ranges::max(
+        0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
     return old_selected != *selector_;
   }
 
@@ -147,7 +148,8 @@ class VerticalContainer : public ContainerBase {
       MoveSelector(-1);
     if (event.mouse().button == Mouse::Button::WheelDown)
       MoveSelector(+1);
-    *selector_ = ranges::max(0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
+    *selector_ = ranges::max(
+        0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
 
     return true;
   }
@@ -179,7 +181,8 @@ class HorizontalContainer : public ContainerBase {
     if (event == Event::TabReverse && !children_.empty())
       MoveSelectorWrap(-1);
 
-    *selector_ = ranges::max(0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
+    *selector_ = ranges::max(
+        0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
     return old_selected != *selector_;
   }
 };

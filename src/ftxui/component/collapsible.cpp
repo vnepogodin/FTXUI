@@ -24,7 +24,9 @@ namespace ftxui {
 /// ▼ Show details
 /// <details component>
 /// ```
-Component Collapsible(const ConstStringRef& label, const Component& child, Ref<bool> show) noexcept {
+Component Collapsible(const ConstStringRef& label,
+                      const Component& child,
+                      Ref<bool> show) noexcept {
   class Impl : public ComponentBase {
    public:
     Impl(const ConstStringRef& label, Component child, Ref<bool> show)

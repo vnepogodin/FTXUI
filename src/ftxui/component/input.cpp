@@ -1,11 +1,11 @@
-#include <cstddef>    // for size_t
 #include <algorithm>   // for max, min
+#include <cstddef>     // for size_t
 #include <functional>  // for function
 #include <memory>      // for shared_ptr, allocator
-#include <string>      // for string, wstring
-#include <utility>     // for move
-#include <vector>      // for vector
 #include <ranges>
+#include <string>   // for string, wstring
+#include <utility>  // for move
+#include <vector>   // for vector
 
 #include <ftxui/component/captured_mouse.hpp>     // for CapturedMouse
 #include <ftxui/component/component.hpp>          // for Make, Input
@@ -41,7 +41,9 @@ class InputBase : public ComponentBase {
   InputBase(StringRef content,
             ConstStringRef placeholder,
             Ref<InputOption> option)
-      : content_(std::move(content)), placeholder_(std::move(placeholder)), option_(std::move(option)) {}
+      : content_(std::move(content)),
+        placeholder_(std::move(placeholder)),
+        option_(std::move(option)) {}
 
   int cursor_position_internal_ = 0;
   int& cursor_position() noexcept {
@@ -87,8 +89,7 @@ class InputBase : public ComponentBase {
     const int index_before_cursor = GlyphPosition(content, cursor_position());
     const int index_after_cursor =
         GlyphPosition(content, 1, index_before_cursor);
-    const auto part_before_cursor =
-        content.substr(0, index_before_cursor);
+    const auto part_before_cursor = content.substr(0, index_before_cursor);
     std::string part_at_cursor = " ";
     if (cursor_position() < size) {
       part_at_cursor = content.substr(index_before_cursor,
@@ -105,8 +106,8 @@ class InputBase : public ComponentBase {
   }
 
   bool OnEvent(const Event& event) noexcept override {
-    cursor_position() =
-        ranges::max(0, ranges::min(static_cast<int>(content_->size()), cursor_position()));
+    cursor_position() = ranges::max(
+        0, ranges::min(static_cast<int>(content_->size()), cursor_position()));
 
     if (event.is_mouse())
       return OnMouseEvent(event);
@@ -117,8 +118,8 @@ class InputBase : public ComponentBase {
     if (event == Event::Backspace) {
       if (cursor_position() == 0)
         return false;
-      size_t start = GlyphPosition(*content_, cursor_position() - 1);
-      size_t end = GlyphPosition(*content_, cursor_position());
+      const size_t start = GlyphPosition(*content_, cursor_position() - 1);
+      const size_t end = GlyphPosition(*content_, cursor_position());
       content_->erase(start, end - start);
       cursor_position()--;
       option_->on_change();
@@ -129,8 +130,8 @@ class InputBase : public ComponentBase {
     if (event == Event::Delete) {
       if (cursor_position() == int(content_->size()))
         return false;
-      size_t start = GlyphPosition(*content_, cursor_position());
-      size_t end = GlyphPosition(*content_, cursor_position() + 1);
+      const size_t start = GlyphPosition(*content_, cursor_position());
+      const size_t end = GlyphPosition(*content_, cursor_position() + 1);
       content_->erase(start, end - start);
       option_->on_change();
       return true;
@@ -152,7 +153,7 @@ class InputBase : public ComponentBase {
     }
 
     if (event == Event::ArrowRight &&
-        cursor_position() < (int)content_->size()) {
+        cursor_position() < static_cast<int>(content_->size())) {
       cursor_position()++;
       return true;
     }
@@ -169,7 +170,7 @@ class InputBase : public ComponentBase {
 
     // Content
     if (event.is_character()) {
-      size_t start = GlyphPosition(*content_, cursor_position());
+      const size_t start = GlyphPosition(*content_, cursor_position());
       content_->insert(start, event.character());
       cursor_position()++;
       option_->on_change();
@@ -207,8 +208,9 @@ class InputBase : public ComponentBase {
     if (mapping[original_cell] != original_glyph)
       original_cell = static_cast<int>(mapping.size());
     const int target_cell = original_cell + event.mouse().x - cursor_box_.x_min;
-    int target_glyph = target_cell < (int)mapping.size() ? mapping[target_cell]
-                                                         : (int)mapping.size();
+    int target_glyph = target_cell < static_cast<int>(mapping.size())
+                           ? mapping[target_cell]
+                           : static_cast<int>(mapping.size());
     target_glyph = util::clamp(target_glyph, 0, GlyphCount(*content_));
     if (cursor_position() != target_glyph) {
       cursor_position() = target_glyph;

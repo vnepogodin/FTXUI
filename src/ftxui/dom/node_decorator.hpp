@@ -3,8 +3,8 @@
 
 #include <utility>  // for move
 
-#include "ftxui/dom/elements.hpp"  // for Element, unpack
-#include "ftxui/dom/node.hpp"      // for Node
+#include <ftxui/dom/elements.hpp>  // for Element, unpack
+#include <ftxui/dom/node.hpp>      // for Node
 
 namespace ftxui {
 struct Box;

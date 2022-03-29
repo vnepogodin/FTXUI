@@ -1,9 +1,9 @@
-#include <algorithm>    // for max, min
-#include <memory>       // for __shared_ptr_access
+#include <algorithm>  // for max, min
+#include <memory>     // for __shared_ptr_access
+#include <ranges>
 #include <string>       // for string
 #include <string_view>  // for string_view
 #include <utility>      // for move
-#include <ranges>
 
 #include "ftxui/component/component.hpp"  // for Maybe, Checkbox, Make, Radiobox, Vertical, Dropdown
 #include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
@@ -40,7 +40,8 @@ Component Dropdown(ConstStringListRef entries, int* selected) noexcept {
     }
 
     Element Render() noexcept override {
-      *selected_ = ranges::min((int)entries_.size() - 1, ranges::max(0, *selected_));
+      *selected_ = ranges::min(static_cast<int>(entries_.size()) - 1,
+                               ranges::max(0, *selected_));
       title_ = entries_[*selected_];
       if (show_) {
         return vbox({

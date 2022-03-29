@@ -72,7 +72,8 @@ class SeparatorAuto : public Node {
 
 class SeparatorWithPixel : public SeparatorAuto {
  public:
-  explicit SeparatorWithPixel(Pixel pixel) : SeparatorAuto(LIGHT), pixel_(std::move(pixel)) {
+  explicit SeparatorWithPixel(Pixel pixel)
+      : SeparatorAuto(LIGHT), pixel_(std::move(pixel)) {
     pixel_.automerge = true;
   }
   void Render(Screen& screen) noexcept override {

@@ -47,8 +47,9 @@ class CatchEventBase : public ComponentBase {
 /// });
 /// screen.Loop(component);
 /// ```
-Component CatchEvent(const Component& child,
-                     const std::function<bool(const Event& event)>& on_event) noexcept {
+Component CatchEvent(
+    const Component& child,
+    const std::function<bool(const Event& event)>& on_event) noexcept {
   auto&& out = Make<CatchEventBase>(on_event);
   out->Add(child);
   return out;
@@ -73,11 +74,11 @@ Component CatchEvent(const Component& child,
 /// });
 /// screen.Loop(renderer);
 /// ```
-ComponentDecorator CatchEvent(const std::function<bool(const Event&)>& on_event) noexcept {
+ComponentDecorator CatchEvent(
+    const std::function<bool(const Event&)>& on_event) noexcept {
   return [on_event](auto&& child) {
-    return CatchEvent(child, [on_event](auto&& event) {
-      return on_event(event);
-    });
+    return CatchEvent(child,
+                      [on_event](auto&& event) { return on_event(event); });
   };
 }
 

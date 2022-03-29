@@ -1,10 +1,11 @@
-#include <cstddef>    // for size_t
+#include <cassert>  // for assert
+#include <cstddef>  // for size_t
+
 #include <algorithm>  // for find_if, any_of
-#include <cassert>    // for assert
 #include <iterator>   // for begin, end
+#include <ranges>     // for ranges
 #include <utility>    // for move
 #include <vector>     // for vector, __alloc_traits<>::value_type
-#include <ranges>
 
 #include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse, CapturedMouseInterface
 #include <ftxui/component/component.hpp>
@@ -101,7 +102,8 @@ Element ComponentBase::Render() noexcept {
 /// true. If none returns true, return false.
 /// @ingroup component
 bool ComponentBase::OnEvent(const Event& event) noexcept {
-  return ranges::any_of(children_, [&](auto&& child) { return child->OnEvent(event); });
+  return ranges::any_of(children_,
+                        [&](auto&& child) { return child->OnEvent(event); });
 }
 
 /// @brief Called in response to an animation event.
@@ -129,7 +131,8 @@ Component ComponentBase::ActiveChild() noexcept {
 /// keyboard.
 /// @ingroup component
 bool ComponentBase::Focusable() const noexcept {
-  return ranges::any_of(children_, [=](auto&& child) { return child->Focusable(); });
+  return ranges::any_of(children_,
+                        [=](auto&& child) { return child->Focusable(); });
 }
 
 /// @brief Returns if the element if the currently active child of its parent.

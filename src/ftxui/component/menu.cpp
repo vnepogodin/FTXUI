@@ -1,13 +1,12 @@
 #include <algorithm>   // for max, reverse
 #include <chrono>      // for milliseconds
 #include <functional>  // for function
-#include <memory>  // for allocator, shared_ptr, allocator_traits<>::value_type, swap
+#include <ranges>
 #include <string>   // for char_traits, operator+, string, basic_string
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
 
 #include <ftxui/component/animation.hpp>  // for Animator, Linear, Params (ptr only)
-#include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse
 #include <ftxui/component/component.hpp>  // for Make, Menu, MenuEntry, Toggle
 #include <ftxui/component/component_base.hpp>     // for ComponentBase
 #include <ftxui/component/component_options.hpp>  // for MenuOption, MenuEntryOption, MenuOption::Direction, UnderlineOption, AnimatedColorOption, AnimatedColorsOption, MenuOption::Down, MenuOption::Left, MenuOption::Right, MenuOption::Up
@@ -19,6 +18,8 @@
 #include <ftxui/screen/color.hpp>  // for Color
 #include <ftxui/screen/util.hpp>   // for clamp
 #include <ftxui/util/ref.hpp>  // for Ref, ConstStringListRef, ConstStringRef
+
+namespace ranges = std::ranges;
 
 namespace ftxui {
 
@@ -34,7 +35,7 @@ Element DefaultOptionTransform(EntryState state) noexcept {
   return e;
 }
 
-bool IsInverted(MenuOption::Direction direction) noexcept {
+bool IsInverted(const MenuOption::Direction& direction) noexcept {
   switch (direction) {
     case MenuOption::Direction::Up:
     case MenuOption::Direction::Left:
@@ -43,10 +44,10 @@ bool IsInverted(MenuOption::Direction direction) noexcept {
     case MenuOption::Direction::Right:
       return false;
   }
-  return false; // NOT_REACHED()
+  return false;  // NOT_REACHED()
 }
 
-bool IsHorizontal(MenuOption::Direction direction) noexcept {
+bool IsHorizontal(const MenuOption::Direction& direction) noexcept {
   switch (direction) {
     case MenuOption::Direction::Left:
     case MenuOption::Direction::Right:
@@ -55,7 +56,7 @@ bool IsHorizontal(MenuOption::Direction direction) noexcept {
     case MenuOption::Direction::Up:
       return false;
   }
-  return false; // NOT_REACHED()
+  return false;  // NOT_REACHED()
 }
 
 }  // namespace
@@ -67,7 +68,9 @@ class MenuBase : public ComponentBase {
   MenuBase(ConstStringListRef entries, int* selected, Ref<MenuOption> option)
       : entries_(entries), selected_(selected), option_(std::move(option)) {}
 
-  [[nodiscard]] bool IsHorizontal() noexcept { return ftxui::IsHorizontal(option_->direction); }
+  [[nodiscard]] bool IsHorizontal() noexcept {
+    return ftxui::IsHorizontal(option_->direction);
+  }
   void OnChange() noexcept {
     if (option_->on_change)
       option_->on_change();
@@ -110,13 +113,13 @@ class MenuBase : public ComponentBase {
       const bool is_selected = (*selected_ == i);
 
       const auto focus_management = !is_selected      ? nothing
-                              : is_menu_focused ? focus
-                                                : nothing;
+                                    : is_menu_focused ? focus
+                                                      : nothing;
       EntryState state = {
-          entries_[i],
           false,
           is_selected,
           is_focused,
+          entries_[i],
       };
 
       const auto element =
@@ -130,7 +133,7 @@ class MenuBase : public ComponentBase {
       elements.push_back(option_->elements_postfix());
 
     if (IsInverted(option_->direction))
-      std::reverse(elements.begin(), elements.end());
+      ranges::reverse(elements);
 
     const auto bar =
         IsHorizontal() ? hbox(std::move(elements)) : vbox(std::move(elements));
@@ -314,7 +317,7 @@ class MenuBase : public ComponentBase {
   }
 
   void UpdateColorTarget() noexcept {
-    if (size() != (int)animation_background_.size()) {
+    if (size() != static_cast<int>(animation_background_.size())) {
       animation_background_.resize(size());
       animation_foreground_.resize(size());
       animator_background_.clear();
@@ -398,7 +401,9 @@ class MenuBase : public ComponentBase {
     }
   }
 
-  [[nodiscard]] bool Focusable() const noexcept final { return entries_.size(); }
+  [[nodiscard]] bool Focusable() const noexcept final {
+    return entries_.size();
+  }
   int& focused_entry() { return option_->focused_entry(); }
   [[nodiscard]] int size() const { return static_cast<int>(entries_.size()); }
   int FirstTarget() noexcept {
@@ -501,7 +506,8 @@ Component Toggle(ConstStringListRef entries, int* selected) noexcept {
 ///   entry 2
 ///   entry 3
 /// ```
-Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) noexcept {
+Component MenuEntry(ConstStringRef label,
+                    Ref<MenuEntryOption> option) noexcept {
   class Impl : public ComponentBase {
    public:
     Impl(ConstStringRef label, Ref<MenuEntryOption> option)
@@ -513,10 +519,10 @@ Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> option) noexcept 
       UpdateAnimationTarget();
 
       EntryState state = {
-          *label_,
           false,
           hovered_,
           focused,
+          *label_,
       };
 
       const Element element =

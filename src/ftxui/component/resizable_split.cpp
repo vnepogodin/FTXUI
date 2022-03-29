@@ -14,7 +14,9 @@ namespace {
 
 class ResizableSplitLeftBase : public ComponentBase {
  public:
-  ResizableSplitLeftBase(const Component& main, const Component& child, int* main_size)
+  ResizableSplitLeftBase(const Component& main,
+                         const Component& child,
+                         int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Horizontal({
         main,
@@ -70,7 +72,9 @@ class ResizableSplitLeftBase : public ComponentBase {
 
 class ResizableSplitRightBase : public ComponentBase {
  public:
-  ResizableSplitRightBase(const Component& main, const Component& child, int* main_size)
+  ResizableSplitRightBase(const Component& main,
+                          const Component& child,
+                          int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Horizontal({
         child,
@@ -126,7 +130,9 @@ class ResizableSplitRightBase : public ComponentBase {
 
 class ResizableSplitTopBase : public ComponentBase {
  public:
-  ResizableSplitTopBase(const Component& main, const Component& child, int* main_size)
+  ResizableSplitTopBase(const Component& main,
+                        const Component& child,
+                        int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Vertical({
         main,
@@ -182,7 +188,9 @@ class ResizableSplitTopBase : public ComponentBase {
 
 class ResizableSplitBottomBase : public ComponentBase {
  public:
-  ResizableSplitBottomBase(const Component& main, const Component& child, int* main_size)
+  ResizableSplitBottomBase(const Component& main,
+                           const Component& child,
+                           int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Vertical({
         child,
@@ -263,7 +271,9 @@ class ResizableSplitBottomBase : public ComponentBase {
 ///    left   │   right
 ///           │
 /// ```
-Component ResizableSplitLeft(const Component& main, const Component& back, int* main_size) noexcept {
+Component ResizableSplitLeft(const Component& main,
+                             const Component& back,
+                             int* main_size) noexcept {
   return Make<ResizableSplitLeftBase>(main, back, main_size);
 }
 
@@ -292,7 +302,9 @@ Component ResizableSplitLeft(const Component& main, const Component& back, int* 
 ///    left   │   right
 ///           │
 /// ```
-Component ResizableSplitRight(const Component& main, const Component& back, int* main_size) noexcept {
+Component ResizableSplitRight(const Component& main,
+                              const Component& back,
+                              int* main_size) noexcept {
   return Make<ResizableSplitRightBase>(main, back, main_size);
 }
 
@@ -321,7 +333,9 @@ Component ResizableSplitRight(const Component& main, const Component& back, int*
 /// ────────────
 ///    bottom
 /// ```
-Component ResizableSplitTop(const Component& main, const Component& back, int* main_size) noexcept {
+Component ResizableSplitTop(const Component& main,
+                            const Component& back,
+                            int* main_size) noexcept {
   return Make<ResizableSplitTopBase>(main, back, main_size);
 }
 
@@ -350,7 +364,9 @@ Component ResizableSplitTop(const Component& main, const Component& back, int* m
 /// ────────────
 ///    bottom
 /// ```
-Component ResizableSplitBottom(const Component& main, const Component& back, int* main_size) noexcept {
+Component ResizableSplitBottom(const Component& main,
+                               const Component& back,
+                               int* main_size) noexcept {
   return Make<ResizableSplitBottomBase>(main, back, main_size);
 }
 }  // namespace ftxui

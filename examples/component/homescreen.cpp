@@ -35,11 +35,11 @@ int main(int argc, const char* argv[]) {
     std::vector<int> output(width);
     for (int i = 0; i < width; ++i) {
       float v = 0.5f;
-      v += 0.1f * sin((i + shift) * 0.1f);
-      v += 0.2f * sin((i + shift + 10) * 0.15f);
-      v += 0.1f * sin((i + shift) * 0.03f);
+      v += 0.1f * std::sin((i + shift) * 0.1f);
+      v += 0.2f * std::sin((i + shift + 10) * 0.15f);
+      v += 0.1f * std::sin((i + shift) * 0.03f);
       v *= height;
-      output[i] = (int)v;
+      output[i] = static_cast<int>(v);
     }
     return output;
   };

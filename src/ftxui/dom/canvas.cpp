@@ -1,14 +1,15 @@
 #include <ftxui/dom/canvas.hpp>
 
-#include <cstdlib>   // for abs
+#include <cstdint>  // for uint8_t
+#include <cstdlib>  // for abs
+
 #include <algorithm>  // for max, min
-#include <cstdint>    // for uint8_t
-#include <map>        // for allocator, map
-#include <memory>     // for make_shared
-#include <utility>    // for move, pair
-#include <vector>     // for vector
 #include <array>
+#include <memory>  // for make_shared
 #include <ranges>
+#include <unordered_map>  // for allocator, unordered_map
+#include <utility>        // for move, pair
+#include <vector>         // for vector
 
 #include <ftxui/dom/elements.hpp>     // for Element, canvas
 #include <ftxui/dom/node.hpp>         // for Node
@@ -66,7 +67,7 @@ const std::array<std::string, 16> g_map_block = {
     "▗", "▚", "▄", "▙", "▐", "▜", "▟", "█",
 };
 
-const std::map<std::string, uint8_t> g_map_block_inversed = {
+const std::unordered_map<std::string, uint8_t> g_map_block_inversed = {
     {" ", 0b0000}, {"▘", 0b0001}, {"▖", 0b0010}, {"▌", 0b0011},
     {"▝", 0b0100}, {"▀", 0b0101}, {"▞", 0b0110}, {"▛", 0b0111},
     {"▗", 0b1000}, {"▚", 0b1001}, {"▄", 0b1010}, {"▙", 0b1011},
@@ -111,7 +112,10 @@ void Canvas::DrawPoint(int x, int y, bool value, const Color& color) noexcept {
 /// @param y the y coordinate of the dot.
 /// @param value whether the dot is filled or not.
 /// @param style the style of the cell.
-void Canvas::DrawPoint(int x, int y, bool value, const Stylizer& style) noexcept {
+void Canvas::DrawPoint(int x,
+                       int y,
+                       bool value,
+                       const Stylizer& style) noexcept {
   Style(x, y, style);
   if (value)
     DrawPointOn(x, y);
@@ -183,7 +187,11 @@ void Canvas::DrawPointLine(int x1, int y1, int x2, int y2) noexcept {
 /// @param x2 the x coordinate of the second dot.
 /// @param y2 the y coordinate of the second dot.
 /// @param color the color of the line.
-void Canvas::DrawPointLine(int x1, int y1, int x2, int y2, const Color& color) noexcept {
+void Canvas::DrawPointLine(int x1,
+                           int y1,
+                           int x2,
+                           int y2,
+                           const Color& color) noexcept {
   DrawPointLine(x1, y1, x2, y2,
                 [color](Pixel& p) { p.foreground_color = color; });
 }
@@ -238,7 +246,10 @@ void Canvas::DrawPointCircle(int x, int y, int radius) noexcept {
 /// @param y the y coordinate of the center of the circle.
 /// @param radius the radius of the circle.
 /// @param color the color of the circle.
-void Canvas::DrawPointCircle(int x, int y, int radius, const Color& color) noexcept {
+void Canvas::DrawPointCircle(int x,
+                             int y,
+                             int radius,
+                             const Color& color) noexcept {
   DrawPointCircle(x, y, radius,
                   [color](Pixel& p) { p.foreground_color = color; });
 }
@@ -248,7 +259,10 @@ void Canvas::DrawPointCircle(int x, int y, int radius, const Color& color) noexc
 /// @param y the y coordinate of the center of the circle.
 /// @param radius the radius of the circle.
 /// @param style the style of the circle.
-void Canvas::DrawPointCircle(int x, int y, int radius, const Stylizer& style) noexcept {
+void Canvas::DrawPointCircle(int x,
+                             int y,
+                             int radius,
+                             const Stylizer& style) noexcept {
   DrawPointEllipse(x, y, radius, radius, style);
 }
 
@@ -436,7 +450,10 @@ void Canvas::DrawBlock(int x, int y, bool value, const Color& color) noexcept {
 /// @param y the y coordinate of the block.
 /// @param value whether the block is filled or not.
 /// @param style the style of the block.
-void Canvas::DrawBlock(int x, int y, bool value, const Stylizer& style) noexcept {
+void Canvas::DrawBlock(int x,
+                       int y,
+                       bool value,
+                       const Stylizer& style) noexcept {
   Style(x, y, style);
   if (value)
     DrawBlockOn(x, y);
@@ -476,7 +493,7 @@ void Canvas::DrawBlockOff(int x, int y) noexcept {
   }
   y /= 2;
 
-  int bit = (y % 2) * 2 + x % 2;
+  const int bit = (y % 2) * 2 + x % 2;
   uint8_t value = g_map_block_inversed.at(cell.content.character);
   value &= ~(1 << bit);
   cell.content.character = g_map_block[value];
@@ -517,7 +534,11 @@ void Canvas::DrawBlockLine(int x1, int y1, int x2, int y2) noexcept {
 /// @param x2 the x coordinate of the second point of the line.
 /// @param y2 the y coordinate of the second point of the line.
 /// @param color the color of the line.
-void Canvas::DrawBlockLine(int x1, int y1, int x2, int y2, const Color& color) noexcept {
+void Canvas::DrawBlockLine(int x1,
+                           int y1,
+                           int x2,
+                           int y2,
+                           const Color& color) noexcept {
   DrawBlockLine(x1, y1, x2, y2,
                 [color](Pixel& p) { p.foreground_color = color; });
 }
@@ -575,7 +596,10 @@ void Canvas::DrawBlockCircle(int x, int y, int radius) noexcept {
 /// @param y the y coordinate of the center of the circle.
 /// @param radius the radius of the circle.
 /// @param color the color of the circle.
-void Canvas::DrawBlockCircle(int x, int y, int radius, const Color& color) noexcept {
+void Canvas::DrawBlockCircle(int x,
+                             int y,
+                             int radius,
+                             const Color& color) noexcept {
   DrawBlockCircle(x, y, radius,
                   [color](Pixel& p) { p.foreground_color = color; });
 }
@@ -585,7 +609,10 @@ void Canvas::DrawBlockCircle(int x, int y, int radius, const Color& color) noexc
 /// @param y the y coordinate of the center of the circle.
 /// @param radius the radius of the circle.
 /// @param style the style of the circle.
-void Canvas::DrawBlockCircle(int x, int y, int radius, const Stylizer& style) noexcept {
+void Canvas::DrawBlockCircle(int x,
+                             int y,
+                             int radius,
+                             const Stylizer& style) noexcept {
   DrawBlockEllipse(x, y, radius, radius, style);
 }
 
@@ -842,7 +869,9 @@ Element canvas(ConstRef<Canvas> canvas) noexcept {
 /// @param width the width of the canvas.
 /// @param height the height of the canvas.
 /// @param fn a function drawing the canvas.
-Element canvas(int width, int height, std::function<void(Canvas&)> fn) noexcept {
+Element canvas(int width,
+               int height,
+               std::function<void(Canvas&)> fn) noexcept {
   class Impl : public CanvasNodeBase {
    public:
     Impl(int width, int height, std::function<void(Canvas&)> fn)

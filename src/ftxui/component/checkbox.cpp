@@ -25,16 +25,18 @@ class CheckboxBase : public ComponentBase {
   Element Render() noexcept override {
     const bool is_focused = Focused();
     const bool is_active = Active();
-    const auto focus_management = is_focused ? focus : is_active ? select : nothing;
+    const auto focus_management = is_focused  ? focus
+                                  : is_active ? select
+                                              : nothing;
     const auto state = EntryState{
-        *label_,
         *state_,
         is_active,
         is_focused || hovered_,
+        *label_,
     };
-    const auto element = (option_->transform
-                        ? option_->transform
-                        : CheckboxOption::Simple().transform)(state);
+    const auto element =
+        (option_->transform ? option_->transform
+                            : CheckboxOption::Simple().transform)(state);
     return element | focus_management | reflect(box_);
   }
 

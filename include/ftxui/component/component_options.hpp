@@ -17,10 +17,10 @@ namespace ftxui {
 /// |Radiobox::transform|, |MenuEntryOption::transform|,
 /// |MenuOption::transform|.
 struct EntryState {
-  std::string label{}; /// < The label to display.
   bool state{};        /// < The state of the button/checkbox/radiobox
   bool active{};       /// < Whether the entry is the active one.
   bool focused{};      /// < Whether the entry is one focused by the user.
+  std::string label{}; /// < The label to display.
 };
 
 struct UnderlineOption {

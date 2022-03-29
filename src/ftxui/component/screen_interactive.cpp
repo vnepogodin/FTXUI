@@ -1,15 +1,16 @@
-#include <cstdio>    // for fileno, stdin
-#include <chrono>  // for operator-, duration, operator>=, milliseconds, time_point, common_type<>::type
 #include <csignal>  // for signal, raise, SIGTSTP, SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGWINCH
-#include <functional>        // for function
+#include <cstdio>   // for fileno, stdin
+
+#include <chrono>  // for operator-, duration, operator>=, milliseconds, time_point, common_type<>::type
+#include <functional>  // for function
 #include <iostream>  // for cout, ostream, basic_ostream, operator<<, endl, flush
-#include <stack>     // for stack
-#include <thread>    // for thread, sleep_for
+#include <ranges>
+#include <stack>        // for stack
+#include <thread>       // for thread, sleep_for
 #include <type_traits>  // for decay_t
 #include <utility>      // for swap, move
 #include <variant>      // for visit
 #include <vector>       // for vector
-#include <ranges>
 
 #include <ftxui/component/animation.hpp>  // for TimePoint, Clock, Duration, Params, RequestAnimationFrame
 #include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse, CapturedMouseInterface
@@ -232,13 +233,14 @@ void OnResize(int /* signal */) {
   on_resize();
 }
 
-//void OnSigStop(int /*signal*/) {
-//  ScreenInteractive::Private::SigStop(*g_active_screen);
-//}
+// void OnSigStop(int /*signal*/) {
+//   ScreenInteractive::Private::SigStop(*g_active_screen);
+// }
 
 class CapturedMouseImpl : public CapturedMouseInterface {
  public:
-  explicit CapturedMouseImpl(std::function<void(void)> callback) : callback_(std::move(callback)) {}
+  explicit CapturedMouseImpl(std::function<void(void)> callback)
+      : callback_(std::move(callback)) {}
   ~CapturedMouseImpl() noexcept override { callback_(); }
 
  private:
@@ -265,7 +267,9 @@ ScreenInteractive::ScreenInteractive(int dimx,
 }
 
 // static
-[[maybe_unused]] ScreenInteractive ScreenInteractive::FixedSize(int dimx, int dimy) noexcept {
+[[maybe_unused]] ScreenInteractive ScreenInteractive::FixedSize(
+    int dimx,
+    int dimy) noexcept {
   return {dimx, dimy, Dimension::Fixed, false};
 }
 
@@ -417,7 +421,7 @@ void ScreenInteractive::Install() noexcept {
   SetConsoleMode(stdin_handle, in_mode);
   SetConsoleMode(stdout_handle, out_mode);
 #else
-  struct termios terminal{};
+  struct termios terminal {};
   tcgetattr(STDIN_FILENO, &terminal);
   on_exit_functions.push([=] { tcsetattr(STDIN_FILENO, TCSANOW, &terminal); });
 
@@ -436,7 +440,7 @@ void ScreenInteractive::Install() noexcept {
   install_signal_handler(SIGWINCH, OnResize);
 
   // Handle SIGTSTP/SIGCONT.
-  //install_signal_handler(SIGTSTP, OnSigStop);
+  // install_signal_handler(SIGTSTP, OnSigStop);
 #endif
 
   auto enable = [&](const std::vector<DECMode>& parameters) {

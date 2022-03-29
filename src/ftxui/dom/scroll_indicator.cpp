@@ -1,9 +1,9 @@
 #include <algorithm>  // for max
 #include <memory>     // for make_shared, __shared_ptr_access
-#include <string>     // for string
-#include <utility>    // for move
-#include <vector>     // for __alloc_traits<>::value_type
 #include <ranges>
+#include <string>   // for string
+#include <utility>  // for move
+#include <vector>   // for __alloc_traits<>::value_type
 
 #include <ftxui/dom/elements.hpp>        // for Element, vscroll_indicator
 #include <ftxui/dom/node.hpp>            // for Node, Elements
@@ -46,10 +46,12 @@ Element vscroll_indicator(Element child) noexcept {
       if (size_outter >= size_inner)
         return;
 
-      const int size = ranges::max(2 * size_outter * size_outter / size_inner, 1);
+      const int size =
+          ranges::max(2 * size_outter * size_outter / size_inner, 1);
 
-      const int start_y = 2 * stencil.y_min +  //
-                    2 * (stencil.y_min - box_.y_min) * size_outter / size_inner;
+      const int start_y =
+          2 * stencil.y_min +  //
+          2 * (stencil.y_min - box_.y_min) * size_outter / size_inner;
 
       const int x = stencil.x_max;
       for (int y = stencil.y_min; y <= stencil.y_max; ++y) {

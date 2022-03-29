@@ -6,7 +6,8 @@
 
 namespace ftxui {
 
-Component operator|(Component component, const ComponentDecorator& decorator) noexcept {
+Component operator|(Component component,
+                    const ComponentDecorator& decorator) noexcept {
   return decorator(std::move(component));
 }
 
@@ -14,12 +15,14 @@ Component operator|(Component component, ElementDecorator decorator) noexcept {
   return std::move(component) | Renderer(std::move(decorator));
 }
 
-Component& operator|=(Component& component, const ComponentDecorator& decorator) noexcept {
+Component& operator|=(Component& component,
+                      const ComponentDecorator& decorator) noexcept {
   component = component | decorator;
   return component;
 }
 
-Component& operator|=(Component& component, ElementDecorator decorator) noexcept {
+Component& operator|=(Component& component,
+                      ElementDecorator decorator) noexcept {
   component = component | std::move(decorator);
   return component;
 }

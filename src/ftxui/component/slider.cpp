@@ -1,5 +1,5 @@
-#include <utility>  // for move
 #include <ranges>
+#include <utility>  // for move
 
 #include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse
 #include <ftxui/component/component.hpp>       // for Make, Slider
@@ -122,7 +122,11 @@ class SliderBase : public ComponentBase {
 /// Value:[██████████████████████████                          ]
 /// ```
 template <class T>
-Component Slider(ConstStringRef label, T* value, T min, T max, T increment) noexcept {
+Component Slider(ConstStringRef label,
+                 T* value,
+                 T min,
+                 T max,
+                 T increment) noexcept {
   return Make<SliderBase<T>>(std::move(label), value, min, max, increment);
 }
 

@@ -30,7 +30,8 @@ void ComputeShrinkEasy(std::vector<Element>* elements,
                        int extra_space,
                        int flex_shrink_sum) noexcept {
   for (Element& element : *elements) {
-    const int added_space = extra_space * element.min_size * element.flex_shrink /
+    const int added_space = extra_space * element.min_size *
+                            element.flex_shrink /
                             ranges::max(flex_shrink_sum, 1);
     extra_space -= added_space;
     flex_shrink_sum -= element.flex_shrink * element.min_size;
@@ -51,7 +52,8 @@ void ComputeShrinkHard(std::vector<Element>* elements,
       continue;
     }
 
-    const int added_space = extra_space * element.min_size / ranges::max(1, size);
+    const int added_space =
+        extra_space * element.min_size / ranges::max(1, size);
     extra_space -= added_space;
     size -= element.min_size;
 
@@ -75,7 +77,7 @@ void Compute(std::vector<Element>* elements, int target_size) noexcept {
     size += element.min_size;
   }
 
-  int extra_space = target_size - size;
+  const int extra_space = target_size - size;
   if (extra_space >= 0)
     ComputeGrow(elements, extra_space, flex_grow_sum);
   else if (flex_shrink_size + extra_space >= 0)
@@ -85,7 +87,7 @@ void Compute(std::vector<Element>* elements, int target_size) noexcept {
                       size - flex_shrink_size);
 }
 
-}  // namespace ftxui
+}  // namespace ftxui::box_helper
 
 // Copyright 2021 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

@@ -28,7 +28,8 @@ namespace ftxui {
 Component Renderer(std::function<Element()> render) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(std::function<Element()> render) : render_(std::move(render)) {}
+    explicit Impl(std::function<Element()> render)
+        : render_(std::move(render)) {}
     Element Render() noexcept override { return render_(); }
     std::function<Element()> render_;
   };
@@ -82,10 +83,13 @@ Component Renderer(Component child, std::function<Element()> render) noexcept {
 Component Renderer(const std::function<Element(bool)>& render) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(std::function<Element(bool)> render) : render_(std::move(render)) {}
+    explicit Impl(std::function<Element(bool)> render)
+        : render_(std::move(render)) {}
 
    private:
-    Element Render() noexcept override { return render_(Focused()) | reflect(box_); }
+    Element Render() noexcept override {
+      return render_(Focused()) | reflect(box_);
+    }
     [[nodiscard]] bool Focusable() const noexcept override { return true; }
     bool OnEvent(const Event& event) noexcept override {
       if (event.is_mouse() && box_.Contain(event.mouse().x, event.mouse().y)) {

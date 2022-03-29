@@ -4,9 +4,9 @@
 #include <sstream>  // IWYU pragma: keep
 #include <utility>  // for pair
 
-#include "ftxui/screen/screen.hpp"
-#include "ftxui/screen/string.hpp"    // for string_width
-#include "ftxui/screen/terminal.hpp"  // for Dimensions, Size
+#include <ftxui/screen/screen.hpp>
+#include <ftxui/screen/string.hpp>    // for string_width
+#include <ftxui/screen/terminal.hpp>  // for Dimensions, Size
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -98,7 +98,7 @@ struct TileEncoding {
   unsigned int round : 1;
 
   // clang-format off
-  constexpr bool operator<(const TileEncoding& other) const {
+  constexpr bool operator<(const TileEncoding& other) const noexcept {
     if (left < other.left) return true;
     if (left > other.left) return false;
     if (top < other.top) return true;
@@ -109,7 +109,7 @@ struct TileEncoding {
     if (down > other.down) return false;
     if (round < other.round) return true;
     if (round > other.round) return false;
-      return false;
+    return false;
   }
   // clang-format on
 };

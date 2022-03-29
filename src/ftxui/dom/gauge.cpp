@@ -1,7 +1,7 @@
-#include <iostream>
 #include <algorithm>  // for max, min
-#include <memory>     // for allocator, make_shared
-#include <string>     // for string
+#include <iostream>
+#include <memory>  // for allocator, make_shared
+#include <string>  // for string
 
 #include "ftxui/dom/elements.hpp"     // for Element, gauge
 #include "ftxui/dom/node.hpp"         // for Node

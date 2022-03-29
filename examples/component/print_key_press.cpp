@@ -21,7 +21,7 @@ using namespace ftxui;
 std::string Stringify(Event event) {
   std::string out;
   for (auto& it : event.input())
-    out += " " + std::to_string((unsigned int)it);
+    out += " " + std::to_string(static_cast<unsigned int>(it));
 
   out = "(" + out + " ) -> ";
   if (event.is_character()) {
@@ -79,7 +79,7 @@ int main(int argc, const char* argv[]) {
 
   auto component = Renderer([&] {
     Elements children;
-    for (size_t i = std::max(0, (int)keys.size() - 20); i < keys.size(); ++i)
+    for (size_t i = std::max(0, static_cast<int>(keys.size()) - 20); i < keys.size(); ++i)
       children.push_back(text(Stringify(keys[i])));
     return window(text("keys"), vbox(std::move(children)));
   });

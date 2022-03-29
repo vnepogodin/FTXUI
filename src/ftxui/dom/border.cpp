@@ -1,10 +1,10 @@
 #include <algorithm>  // for max
 #include <iterator>   // for begin, end
 #include <memory>     // for allocator, make_shared, __shared_ptr_access
-#include <string>     // for string, basic_string
-#include <utility>    // for move
-#include <vector>     // for vector, __alloc_traits<>::value_type
 #include <ranges>
+#include <string>   // for string, basic_string
+#include <utility>  // for move
+#include <vector>   // for vector, __alloc_traits<>::value_type
 
 #include <ftxui/dom/elements.hpp>  // for unpack, Element, Decorator, BorderStyle, ROUNDED, Elements, DOUBLE, EMPTY, HEAVY, LIGHT, border, borderDouble, borderEmpty, borderHeavy, borderLight, borderRounded, borderStyled, borderWith, window
 #include <ftxui/dom/node.hpp>      // for Node, Elements
@@ -47,8 +47,8 @@ class Border : public Node {
     requirement_.min_x += 2;
     requirement_.min_y += 2;
     if (children_.size() == 2) {
-      requirement_.min_x =
-          ranges::max(requirement_.min_x, children_[1]->requirement().min_x + 2);
+      requirement_.min_x = ranges::max(requirement_.min_x,
+                                       children_[1]->requirement().min_x + 2);
     }
     requirement_.selected_box.x_min++;
     requirement_.selected_box.x_max++;

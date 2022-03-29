@@ -1,9 +1,9 @@
 #include <stddef.h>   // for size_t
 #include <algorithm>  // for max, min
 #include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
+#include <ranges>
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
-#include <ranges>
 
 #include <ftxui/dom/box_helper.hpp>   // for Element, Compute
 #include <ftxui/dom/elements.hpp>     // for Elements, filler, Element, gridbox
@@ -18,12 +18,13 @@ class Screen;
 
 class GridBox : public Node {
  public:
-  explicit GridBox(std::vector<Elements> lines) : Node(), lines_(std::move(lines)) {
+  explicit GridBox(std::vector<Elements> lines)
+      : Node(), lines_(std::move(lines)) {
     y_size = lines_.size();
     for (const auto& line : lines_)
-      x_size = ranges::max(x_size, (int)line.size());
+      x_size = ranges::max(x_size, static_cast<int>(line.size()));
     for (auto& line : lines_) {
-      while (line.size() < (size_t)x_size) {
+      while (line.size() < static_cast<size_t>(x_size)) {
         line.push_back(filler());
       }
     }
@@ -88,8 +89,10 @@ class GridBox : public Node {
         e_y.min_size = ranges::max(e_y.min_size, requirement.min_y);
         e_x.flex_grow = ranges::min(e_x.flex_grow, requirement.flex_grow_x);
         e_y.flex_grow = ranges::min(e_y.flex_grow, requirement.flex_grow_y);
-        e_x.flex_shrink = ranges::min(e_x.flex_shrink, requirement.flex_shrink_x);
-        e_y.flex_shrink = ranges::min(e_y.flex_shrink, requirement.flex_shrink_y);
+        e_x.flex_shrink =
+            ranges::min(e_x.flex_shrink, requirement.flex_shrink_x);
+        e_y.flex_shrink =
+            ranges::min(e_y.flex_shrink, requirement.flex_shrink_y);
       }
     }
 

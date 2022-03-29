@@ -128,7 +128,7 @@ int main(int argc, const char* argv[]) {
     for (int x = 0; x < 100; x++) {
       float dx = float(x - mouse_x);
       float dy = 50.f;
-      ys[x] = int(dy + 20 * cos(dx * 0.14) + 10 * sin(dx * 0.42));
+      ys[x] = int(dy + 20 * std::cos(dx * 0.14) + 10 * std::sin(dx * 0.42));
     }
     for (int x = 1; x < 99; x++)
       c.DrawPointLine(x, ys[x], x + 1, ys[x + 1]);
@@ -142,9 +142,9 @@ int main(int argc, const char* argv[]) {
     std::vector<int> ys(100);
     for (int x = 0; x < 100; x++) {
       ys[x] = int(30 +                                  //
-                  10 * cos(x * 0.2 - mouse_x * 0.05) +  //
-                  5 * sin(x * 0.4) +                    //
-                  5 * sin(x * 0.3 - mouse_y * 0.05));   //
+                  10 * std::cos(x * 0.2 - mouse_x * 0.05) +  //
+                  5 * std::sin(x * 0.4) +                    //
+                  5 * std::sin(x * 0.3 - mouse_y * 0.05));   //
     }
     for (int x = 0; x < 100; x++) {
       c.DrawPointLine(x, 50 + ys[x], x, 50 - ys[x], Color::Red);
