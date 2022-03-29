@@ -112,7 +112,7 @@ class Animator {
     if (current_ <= Duration()) {
       *value_ = from_;
     } else {
-      *value_ = from_ + (to_ - from_) * easing_function_(current_ / duration_);
+      *value_ = from_ + (to_ - from_) * easing_function_(static_cast<float>(current_ / duration_));
     }
 
     RequestAnimationFrame();

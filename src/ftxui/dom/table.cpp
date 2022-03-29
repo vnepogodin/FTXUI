@@ -101,27 +101,27 @@ void Table::Initialize(std::vector<std::vector<Element>> input) noexcept {
   }
 }
 
-TableSelection Table::SelectRow(int index) noexcept {
+[[gnu::pure]] TableSelection Table::SelectRow(int index) noexcept {
   return SelectRectangle(0, -1, index, index);
 }
 
-TableSelection Table::SelectRows(int row_min, int row_max) noexcept {
+[[gnu::pure]] TableSelection Table::SelectRows(int row_min, int row_max) noexcept {
   return SelectRectangle(0, -1, row_min, row_max);
 }
 
-TableSelection Table::SelectColumn(int index) noexcept {
+[[gnu::pure]] TableSelection Table::SelectColumn(int index) noexcept {
   return SelectRectangle(index, index, 0, -1);
 }
 
-TableSelection Table::SelectColumns(int column_min, int column_max) noexcept {
+[[gnu::pure]] TableSelection Table::SelectColumns(int column_min, int column_max) noexcept {
   return SelectRectangle(column_min, column_max, 0, -1);
 }
 
-TableSelection Table::SelectCell(int column, int row) noexcept {
+[[gnu::pure]] TableSelection Table::SelectCell(int column, int row) noexcept {
   return SelectRectangle(column, column, row, row);
 }
 
-TableSelection Table::SelectRectangle(int column_min,
+[[gnu::pure]] TableSelection Table::SelectRectangle(int column_min,
                                       int column_max,
                                       int row_min,
                                       int row_max) noexcept {
@@ -141,7 +141,7 @@ TableSelection Table::SelectRectangle(int column_min,
   return output;
 }
 
-TableSelection Table::SelectAll() noexcept {
+[[gnu::pure]] TableSelection Table::SelectAll() noexcept {
   TableSelection output{};
   output.table_ = this;
   output.x_min_ = 0;

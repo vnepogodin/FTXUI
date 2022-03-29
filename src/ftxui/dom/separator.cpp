@@ -405,8 +405,8 @@ Element separatorHSelector(float left,
         return;
 
       // This are the two location with an empty demi-cell.
-      const int demi_cell_left = left_ * 2 - 1;
-      const int demi_cell_right = right_ * 2 + 2;
+      const int demi_cell_left = static_cast<int>(left_ * 2 - 1);
+      const int demi_cell_right = static_cast<int>(right_ * 2 + 2);
 
       const int y = box_.y_min;
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -473,8 +473,8 @@ Element separatorVSelector(float up,
         return;
 
       // This are the two location with an empty demi-cell.
-      const int demi_cell_up = up_ * 2 - 1;
-      const int demi_cell_down = down_ * 2 + 2;
+      const int demi_cell_up = static_cast<int32_t>(up_ * 2 - 1);
+      const int demi_cell_down = static_cast<int32_t>(down_ * 2 + 2);
 
       const int x = box_.x_min;
       for (int y = box_.y_min; y <= box_.y_max; ++y) {

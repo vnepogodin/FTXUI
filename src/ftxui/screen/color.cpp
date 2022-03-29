@@ -73,7 +73,7 @@ Color::Color(uint8_t red, uint8_t green, uint8_t blue)
 
   if (Terminal::ColorSupport() == Terminal::Color::Palette256) {
     type_ = ColorType::Palette256;
-    index_ = best;
+    index_ = static_cast<uint8_t>(best);
   } else {
     type_ = ColorType::Palette16;
     index_ = GetColorInfo(Color::Palette256(best)).index_16;
@@ -105,10 +105,10 @@ Color Color::HSV(uint8_t h, uint8_t s, uint8_t v) {
     return Color(v, v, v);
 
   const uint8_t region = h / 43;
-  const uint8_t remainder = (h - (region * 43)) * 6;
-  const uint8_t p = (v * (255 - s)) >> 8;
-  const uint8_t q = (v * (255 - ((s * remainder) >> 8))) >> 8;
-  const uint8_t t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
+  const uint8_t remainder = static_cast<uint8_t>((h - (region * 43)) * 6);
+  const uint8_t p = static_cast<uint8_t>((v * (255 - s)) >> 8);
+  const uint8_t q = static_cast<uint8_t>((v * (255 - ((s * remainder) >> 8u))) >> 8);
+  const uint8_t t = static_cast<uint8_t>((v * (255 - ((s * (255 - remainder)) >> 8u))) >> 8);
 
   // clang-format off
   switch (region) {
@@ -131,7 +131,7 @@ Color Color::Interpolate(float t, const Color& a, const Color& b) {
   float blue = 0.f;
   switch (a.type_) {
     case ColorType::Palette1: {
-      if (t < 0.5)
+      if (t < 0.5f)
         return a;
       else
         return b;
@@ -163,7 +163,7 @@ Color Color::Interpolate(float t, const Color& a, const Color& b) {
 
   switch (b.type_) {
     case ColorType::Palette1: {
-      if (t > 0.5)
+      if (t > 0.5f)
         return a;
       else
         return b;
@@ -192,7 +192,7 @@ Color Color::Interpolate(float t, const Color& a, const Color& b) {
       break;
     }
   }
-  return Color::RGB(red, green, blue);
+  return Color::RGB(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
 }
 
 inline namespace literals {

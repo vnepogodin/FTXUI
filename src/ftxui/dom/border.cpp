@@ -93,17 +93,17 @@ class Border : public Node {
     screen.at(box_.x_min, box_.y_max) = charset[2];
     screen.at(box_.x_max, box_.y_max) = charset[3];
 
-    for (float x = box_.x_min + 1; x < box_.x_max; ++x) {
-      Pixel& p1 = screen.PixelAt(x, box_.y_min);
-      Pixel& p2 = screen.PixelAt(x, box_.y_max);
+    for (float x = static_cast<float>(box_.x_min + 1); x < static_cast<float>(box_.x_max); ++x) {
+      Pixel& p1 = screen.PixelAt(static_cast<int32_t>(x), box_.y_min);
+      Pixel& p2 = screen.PixelAt(static_cast<int32_t>(x), box_.y_max);
       p1.character = charset[4];
       p2.character = charset[4];
       p1.automerge = true;
       p2.automerge = true;
     }
-    for (float y = box_.y_min + 1; y < box_.y_max; ++y) {
-      Pixel& p3 = screen.PixelAt(box_.x_min, y);
-      Pixel& p4 = screen.PixelAt(box_.x_max, y);
+    for (float y = static_cast<float>(box_.y_min + 1); y < static_cast<float>(box_.y_max); ++y) {
+      Pixel& p3 = screen.PixelAt(box_.x_min, static_cast<int32_t>(y));
+      Pixel& p4 = screen.PixelAt(box_.x_max, static_cast<int32_t>(y));
       p3.character = charset[5];
       p4.character = charset[5];
       p3.automerge = true;
@@ -120,17 +120,17 @@ class Border : public Node {
     screen.PixelAt(box_.x_max, box_.y_min) = charset_pixel[1];
     screen.PixelAt(box_.x_min, box_.y_max) = charset_pixel[2];
     screen.PixelAt(box_.x_max, box_.y_max) = charset_pixel[3];
-    for (float x = box_.x_min + 1; x < box_.x_max; ++x) {
-      Pixel& p1 = screen.PixelAt(x, box_.y_min);
-      Pixel& p2 = screen.PixelAt(x, box_.y_max);
+    for (float x = static_cast<float>(box_.x_min + 1); x < static_cast<float>(box_.x_max); ++x) {
+      Pixel& p1 = screen.PixelAt(static_cast<int32_t>(x), box_.y_min);
+      Pixel& p2 = screen.PixelAt(static_cast<int32_t>(x), box_.y_max);
       p1 = charset_pixel[5];
       p2 = charset_pixel[5];
       p1.automerge = true;
       p2.automerge = true;
     }
-    for (float y = box_.y_min + 1; y < box_.y_max; ++y) {
-      Pixel& p3 = screen.PixelAt(box_.x_min, y);
-      Pixel& p4 = screen.PixelAt(box_.x_max, y);
+    for (float y = static_cast<float>(box_.y_min + 1); y < static_cast<float>(box_.y_max); ++y) {
+      Pixel& p3 = screen.PixelAt(box_.x_min, static_cast<int32_t>(y));
+      Pixel& p4 = screen.PixelAt(box_.x_max, static_cast<int32_t>(y));
       p3 = charset_pixel[5];
       p4 = charset_pixel[5];
       p3.automerge = true;

@@ -41,12 +41,12 @@ class Graph : public Node {
     const auto data = graph_function_(width, height);
     int i = 0;
     for (int x = box_.x_min; x <= box_.x_max; ++x) {
-      int height_1 = 2 * box_.y_max - data[i++];
-      int height_2 = 2 * box_.y_max - data[i++];
+      const int height_1 = 2 * box_.y_max - data[static_cast<size_t>(i++)];
+      const int height_2 = 2 * box_.y_max - data[static_cast<size_t>(i++)];
       for (int y = box_.y_min; y <= box_.y_max; ++y) {
-        int yy = 2 * y;
-        int i_1 = yy < height_1 ? 0 : yy == height_1 ? 3 : 6;
-        int i_2 = yy < height_2 ? 0 : yy == height_2 ? 1 : 2;
+        const int yy = 2 * y;
+        const int i_1 = yy < height_1 ? 0 : yy == height_1 ? 3 : 6;
+        const int i_2 = yy < height_2 ? 0 : yy == height_2 ? 1 : 2;
         screen.at(x, y) = charset[i_1 + i_2];
       }
     }

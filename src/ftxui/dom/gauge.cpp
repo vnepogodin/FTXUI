@@ -88,16 +88,16 @@ class Gauge : public Node {
   }
 
   void RenderHorizontal(Screen& screen, bool invert) noexcept {
-    int y = box_.y_min;
+    const int32_t y = box_.y_min;
     if (y > box_.y_max)
       return;
 
     // Draw the progress bar horizontally.
     {
-      float progress = invert ? 1.f - progress_ : progress_;
-      float limit = box_.x_min + progress * (box_.x_max - box_.x_min + 1);
-      int limit_int = limit;
-      int x = box_.x_min;
+      const float progress = invert ? 1.f - progress_ : progress_;
+      const float limit = static_cast<float>(box_.x_min) + progress * static_cast<float>(box_.x_max - box_.x_min + 1);
+      const int32_t limit_int = static_cast<int32_t>(limit);
+      int32_t x = box_.x_min;
       while (x < limit_int)
         screen.at(x++, y) = charset_horizontal[9];
       screen.at(x++, y) = charset_horizontal[int(9 * (limit - limit_int))];
@@ -118,13 +118,13 @@ class Gauge : public Node {
 
     // Draw the progress bar vertically:
     {
-      float progress = invert ? progress_ : 1.f - progress_;
-      float limit = box_.y_min + progress * (box_.y_max - box_.y_min + 1);
-      int limit_int = limit;
+      const float progress = invert ? progress_ : 1.f - progress_;
+      const float limit = static_cast<float>(box_.y_min) + progress * static_cast<float>(box_.y_max - box_.y_min + 1);
+      const int limit_int = static_cast<int32_t>(limit);
       int y = box_.y_min;
       while (y < limit_int)
         screen.at(x, y++) = charset_vertical[8];
-      screen.at(x, y++) = charset_vertical[int(8 * (limit - limit_int))];
+      screen.at(x, y++) = charset_vertical[int(8 * (limit - static_cast<float>(limit_int)))];
       while (y <= box_.y_max)
         screen.at(x, y++) = charset_vertical[0];
     }

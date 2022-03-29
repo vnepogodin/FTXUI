@@ -267,7 +267,7 @@ ScreenInteractive::ScreenInteractive(int dimx,
 }
 
 // static
-[[maybe_unused]] ScreenInteractive ScreenInteractive::FixedSize(
+ScreenInteractive ScreenInteractive::FixedSize(
     int dimx,
     int dimy) noexcept {
   return {dimx, dimy, Dimension::Fixed, false};
@@ -293,7 +293,7 @@ void ScreenInteractive::Post(const Task& task) noexcept {
     task_sender_->Send(task);
 }
 void ScreenInteractive::PostEvent(const Event& event) noexcept {
-  Post((const Task&)event);
+  Post(static_cast<const Task&>(event));
 }
 
 void ScreenInteractive::RequestAnimationFrame() noexcept {
@@ -373,7 +373,7 @@ void ScreenInteractive::Suspend() noexcept {
 }
 
 // static
-ScreenInteractive* ScreenInteractive::Active() noexcept {
+[[gnu::pure]] ScreenInteractive* ScreenInteractive::Active() noexcept {
   return g_active_screen;
 }
 

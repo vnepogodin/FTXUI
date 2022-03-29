@@ -149,7 +149,7 @@ bool EatCodePoint(const std::string& input,
     *end = start + 1;
     return false;
   }
-  uint8_t byte_1 = input[start];
+  const uint8_t byte_1 = static_cast<uint8_t>(input[start]);
 
   // 1 byte string.
   if ((byte_1 & 0b1000'0000) == 0b0000'0000) {
@@ -160,7 +160,7 @@ bool EatCodePoint(const std::string& input,
 
   // 2 byte string.
   if ((byte_1 & 0b1110'0000) == 0b1100'0000 && start + 1 < input.size()) {
-    uint8_t byte_2 = input[start + 1];
+    const uint8_t byte_2 = static_cast<uint8_t>(input[start + 1]);
     *ucs = 0;
     *ucs += byte_1 & 0b0001'1111;
     *ucs <<= 6;
@@ -171,8 +171,8 @@ bool EatCodePoint(const std::string& input,
 
   // 3 byte string.
   if ((byte_1 & 0b1111'0000) == 0b1110'0000 && start + 2 < input.size()) {
-    uint8_t byte_2 = input[start + 1];
-    uint8_t byte_3 = input[start + 2];
+    const uint8_t byte_2 = static_cast<uint8_t>(input[start + 1]);
+    const uint8_t byte_3 = static_cast<uint8_t>(input[start + 2]);
     *ucs = 0;
     *ucs += byte_1 & 0b0000'1111;
     *ucs <<= 6;
@@ -185,9 +185,9 @@ bool EatCodePoint(const std::string& input,
 
   // 4 byte string.
   if ((byte_1 & 0b1111'1000) == 0b1111'0000 && start + 3 < input.size()) {
-    uint8_t byte_2 = input[start + 1];
-    uint8_t byte_3 = input[start + 2];
-    uint8_t byte_4 = input[start + 3];
+    const uint8_t byte_2 = static_cast<uint8_t>(input[start + 1]);
+    const uint8_t byte_3 = static_cast<uint8_t>(input[start + 2]);
+    const uint8_t byte_4 = static_cast<uint8_t>(input[start + 3]);
     *ucs = 0;
     *ucs += byte_1 & 0b0000'0111;
     *ucs <<= 6;
@@ -207,15 +207,15 @@ bool EatCodePoint(const std::string& input,
 }  // namespace
 
 namespace ftxui {
-int wchar_width(wchar_t ucs) {
+[[gnu::pure]] int wchar_width(wchar_t ucs) {
   return codepoint_width(uint32_t(ucs));
 }
 
-int wstring_width(const std::wstring& text) {
+[[gnu::pure]] int wstring_width(const std::wstring& text) {
   int width = 0;
 
   for (const wchar_t& it : text) {
-    int w = wchar_width(it);
+    const int w = wchar_width(it);
     if (w < 0)
       return -1;
     width += w;
@@ -296,7 +296,7 @@ int GlyphPosition(const std::string& input,
   size_t end = 0;
   while (start < input.size()) {
     uint32_t codepoint;
-    bool eaten = EatCodePoint(input, start, &end, &codepoint);
+    const bool eaten = EatCodePoint(input, start, &end, &codepoint);
 
     // Ignore invalid, control characters and combining characters.
     if (!eaten || IsControl(codepoint) || IsCombining(codepoint)) {
@@ -307,13 +307,13 @@ int GlyphPosition(const std::string& input,
     // We eat the beginning of the next glyph. If we are eating the one
     // requested, return its start position immediately.
     if (glyph_to_skip == 0)
-      return start;
+      return static_cast<int32_t>(start);
 
     // Otherwise, skip this glyph and iterate:
     glyph_to_skip--;
     start = end;
   }
-  return input.size();
+  return static_cast<int32_t>(input.size());
 }
 
 std::vector<int> CellToGlyphIndex(const std::string& input) {
@@ -324,7 +324,7 @@ std::vector<int> CellToGlyphIndex(const std::string& input) {
   size_t end = 0;
   while (start < input.size()) {
     uint32_t codepoint;
-    bool eaten = EatCodePoint(input, start, &end, &codepoint);
+    const bool eaten = EatCodePoint(input, start, &end, &codepoint);
     start = end;
 
     // Ignore invalid / control characters.
@@ -362,7 +362,7 @@ int GlyphCount(const std::string& input) {
   size_t end = 0;
   while (start < input.size()) {
     uint32_t codepoint;
-    bool eaten = EatCodePoint(input, start, &end, &codepoint);
+    const bool eaten = EatCodePoint(input, start, &end, &codepoint);
     start = end;
 
     // Ignore invalid characters:

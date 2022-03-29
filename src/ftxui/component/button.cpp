@@ -68,7 +68,7 @@ Component Button(const ConstStringRef& label,
 
     // Component implementation:
     Element Render() noexcept override {
-      const float target = Focused() ? 1.0 : 0.f;
+      const float target = Focused() ? 1.f : 0.f;
       if (target != animator_background_.to())
         SetAnimationTarget(target);
 

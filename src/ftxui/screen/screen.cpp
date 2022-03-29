@@ -346,7 +346,7 @@ Screen::Screen(int dimx, int dimy)
     : stencil{0, dimx - 1, 0, dimy - 1},
       dimx_(dimx),
       dimy_(dimy),
-      pixels_(dimy, std::vector<Pixel>(dimx)) {
+      pixels_(static_cast<std::size_t>(dimy), std::vector<Pixel>(static_cast<std::size_t>(dimx))) {
 #if defined(_WIN32)
   // The placement of this call is a bit weird, however we can assume that
   // anybody who instantiates a Screen object eventually wants to output
@@ -394,14 +394,14 @@ void Screen::Print() {
 /// @brief Access a character a given position.
 /// @param x The character position along the x-axis.
 /// @param y The character position along the y-axis.
-std::string& Screen::at(int x, int y) {
+[[gnu::pure]] std::string& Screen::at(int x, int y) {
   return PixelAt(x, y).character;
 }
 
 /// @brief Access a Pixel at a given position.
 /// @param x The pixel position along the x-axis.
 /// @param y The pixel position along the y-axis.
-Pixel& Screen::PixelAt(int x, int y) {
+[[gnu::pure]] Pixel& Screen::PixelAt(int x, int y) {
   return stencil.Contain(x, y) ? pixels_[y][x] : dev_null_pixel;
 }
 
@@ -442,8 +442,8 @@ std::string Screen::ResetPosition(bool clear) {
 
 /// @brief Clear all the pixel from the screen.
 void Screen::Clear() {
-  pixels_ = std::vector<std::vector<Pixel>>(dimy_,
-                                            std::vector<Pixel>(dimx_, Pixel()));
+  pixels_ = std::vector<std::vector<Pixel>>(static_cast<std::size_t>(dimy_),
+                                            std::vector<Pixel>(static_cast<std::size_t>(dimx_), Pixel()));
   cursor_.x = dimx_ - 1;
   cursor_.y = dimy_ - 1;
 }

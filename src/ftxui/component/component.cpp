@@ -34,20 +34,20 @@ ComponentBase::~ComponentBase() noexcept {
 /// @see Detach
 /// @see Parent
 /// @ingroup component
-ComponentBase* ComponentBase::Parent() const noexcept {
+[[gnu::pure]] ComponentBase* ComponentBase::Parent() const noexcept {
   return parent_;
 }
 
 /// @brief Access the child at index `i`.
 /// @ingroup component
-Component& ComponentBase::ChildAt(size_t i) noexcept {
+[[gnu::pure]] Component& ComponentBase::ChildAt(size_t i) noexcept {
   assert(i < ChildCount());
   return children_[i];
 }
 
 /// @brief Returns the number of children.
 /// @ingroup component
-size_t ComponentBase::ChildCount() const noexcept {
+[[gnu::pure]] size_t ComponentBase::ChildCount() const noexcept {
   return children_.size();
 }
 

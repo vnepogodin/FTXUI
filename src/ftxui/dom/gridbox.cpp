@@ -20,7 +20,7 @@ class GridBox : public Node {
  public:
   explicit GridBox(std::vector<Elements> lines)
       : Node(), lines_(std::move(lines)) {
-    y_size = lines_.size();
+    y_size = static_cast<int>(lines_.size());
     for (const auto& line : lines_)
       x_size = ranges::max(x_size, static_cast<int>(line.size()));
     for (auto& line : lines_) {

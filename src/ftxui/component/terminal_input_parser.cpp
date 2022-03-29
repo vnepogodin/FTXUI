@@ -28,7 +28,7 @@ void TerminalInputParser::Add(char c) {
   Send(Parse());
 }
 
-unsigned char TerminalInputParser::Current() {
+[[gnu::pure]] unsigned char TerminalInputParser::Current() {
   return pending_[position_];
 }
 
@@ -118,7 +118,7 @@ TerminalInputParser::Output TerminalInputParser::Parse() {
 // Then some sequences are illegal if it exist a shorter representation of the
 // same codepoint.
 TerminalInputParser::Output TerminalInputParser::ParseUTF8() {
-  auto head = static_cast<unsigned char>(Current());
+  auto head = Current();
   unsigned char selector = 0b1000'0000;
 
   // The non code-point part of the first byte.
@@ -149,7 +149,7 @@ TerminalInputParser::Output TerminalInputParser::ParseUTF8() {
       return UNCOMPLETED;
 
     // Invalid continuation byte.
-    head = static_cast<unsigned char>(Current());
+    head = Current();
     if ((head & 0b1100'0000) != 0b1000'0000)
       return DROP;
     value <<= 6;
@@ -227,7 +227,7 @@ TerminalInputParser::Output TerminalInputParser::ParseCSI() {
 
     if (Current() >= '0' && Current() <= '9') {
       argument *= 10;
-      argument += int(Current() - '0');
+      argument += Current() - '0';
       continue;
     }
 
@@ -273,7 +273,7 @@ TerminalInputParser::Output TerminalInputParser::ParseOSC() {
   }
 }
 
-TerminalInputParser::Output TerminalInputParser::ParseMouse(
+[[gnu::pure]] TerminalInputParser::Output TerminalInputParser::ParseMouse(
     bool altered,
     bool pressed,
     std::vector<int> arguments) {
@@ -293,7 +293,7 @@ TerminalInputParser::Output TerminalInputParser::ParseMouse(
   return output;
 }
 
-TerminalInputParser::Output TerminalInputParser::ParseCursorReporting(
+[[gnu::pure]] TerminalInputParser::Output TerminalInputParser::ParseCursorReporting(
     std::vector<int> arguments) {
   if (arguments.size() != 2)
     return SPECIAL;

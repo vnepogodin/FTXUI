@@ -18,7 +18,7 @@ class Size : public Node {
  public:
   Size(Element child, Direction direction, Constraint constraint, size_t value)
       : Node(unpack(std::move(child))),
-        value_(value),
+        value_(static_cast<int>(value)),
         direction_(direction),
         constraint_(constraint) {}
 

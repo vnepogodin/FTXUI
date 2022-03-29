@@ -257,7 +257,7 @@ Element spinner(int charset_index, size_t image_index) noexcept {
     image_index %= 40;
     if (image_index > 20)
       image_index = 40 - image_index;
-    return gauge(image_index * 0.05);
+    return gauge(image_index * 0.05f);
   }
   charset_index %= elements.size();
   image_index %= elements[charset_index].size();

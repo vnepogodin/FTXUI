@@ -80,14 +80,14 @@ const std::unordered_map<std::string, uint8_t> g_map_block_inversed = {
 /// @param width the width of the canvas. A cell is a 2x8 braille dot.
 /// @param height the height of the canvas. A cell is a 2x8 braille dot.
 Canvas::Canvas(int width, int height) noexcept
-    : width_(width), height_(height), storage_(width_ * height_ / 8) {}
+: width_(width), height_(height), storage_(static_cast<size_t>(width_ * height_ / 8)) {}
 
 /// @brief Get the content of a cell.
 /// @param x the x coordinate of the cell.
 /// @param y the y coordinate of the cell.
 Pixel Canvas::GetPixel(int x, int y) const noexcept {
-  const auto it = storage_.find(XY{x, y});
-  return (it == storage_.end()) ? Pixel{} : it->second.content;
+const auto it = storage_.find(XY{x, y});
+return (it == storage_.end()) ? Pixel{} : it->second.content;
 }
 
 /// @brief Draw a braille dot.
@@ -95,7 +95,7 @@ Pixel Canvas::GetPixel(int x, int y) const noexcept {
 /// @param y the y coordinate of the dot.
 /// @param value whether the dot is filled or not.
 void Canvas::DrawPoint(int x, int y, bool value) noexcept {
-  DrawPoint(x, y, value, [](Pixel&) {});
+DrawPoint(x, y, value, [](Pixel&) {});
 }
 
 /// @brief Draw a braille dot.
@@ -104,7 +104,7 @@ void Canvas::DrawPoint(int x, int y, bool value) noexcept {
 /// @param value whether the dot is filled or not.
 /// @param color the color of the dot.
 void Canvas::DrawPoint(int x, int y, bool value, const Color& color) noexcept {
-  DrawPoint(x, y, value, [color](Pixel& p) { p.foreground_color = color; });
+DrawPoint(x, y, value, [color](Pixel& p) { p.foreground_color = color; });
 }
 
 /// @brief Draw a braille dot.
@@ -113,40 +113,40 @@ void Canvas::DrawPoint(int x, int y, bool value, const Color& color) noexcept {
 /// @param value whether the dot is filled or not.
 /// @param style the style of the cell.
 void Canvas::DrawPoint(int x,
-                       int y,
-                       bool value,
-                       const Stylizer& style) noexcept {
-  Style(x, y, style);
-  if (value)
-    DrawPointOn(x, y);
-  else
-    DrawPointOff(x, y);
+                   int y,
+                   bool value,
+                   const Stylizer& style) noexcept {
+Style(x, y, style);
+if (value)
+DrawPointOn(x, y);
+else
+DrawPointOff(x, y);
 }
 
 /// @brief Draw a braille dot.
 /// @param x the x coordinate of the dot.
 /// @param y the y coordinate of the dot.
 void Canvas::DrawPointOn(int x, int y) noexcept {
-  if (!IsIn(x, y))
-    return;
-  Cell& cell = storage_[XY{x / 2, y / 4}];
-  if (cell.type != CellType::kBraille) {
-    cell.content.character = "⠀";  // 3 bytes.
-    cell.type = CellType::kBraille;
-  }
+if (!IsIn(x, y))
+return;
+Cell& cell = storage_[XY{x / 2, y / 4}];
+if (cell.type != CellType::kBraille) {
+cell.content.character = "⠀";  // 3 bytes.
+cell.type = CellType::kBraille;
+}
 
-  cell.content.character[1] |= g_map_braille[x % 2][y % 4][0];
-  cell.content.character[2] |= g_map_braille[x % 2][y % 4][1];
+cell.content.character[1] |= g_map_braille[x % 2][y % 4][0];
+cell.content.character[2] |= g_map_braille[x % 2][y % 4][1];
 }
 
 /// @brief Erase a braille dot.
 /// @param x the x coordinate of the dot.
 /// @param y the y coordinate of the dot.
 void Canvas::DrawPointOff(int x, int y) noexcept {
-  if (!IsIn(x, y))
-    return;
-  Cell& cell = storage_[XY{x / 2, y / 4}];
-  if (cell.type != CellType::kBraille) {
+if (!IsIn(x, y))
+return;
+Cell& cell = storage_[XY{x / 2, y / 4}];
+if (cell.type != CellType::kBraille) {
     cell.content.character = "⠀";  // 3 byt
     cell.type = CellType::kBraille;
   }
@@ -401,23 +401,23 @@ void Canvas::DrawPointEllipseFilled(int x1,
   int x = -r1;
   int y = 0;
   int e2 = r2;
-  int dx = (1 + 2 * x) * e2 * e2;
+  int dx = (1 + (2 * x)) * e2 * e2;
   int dy = x * x;
   int err = dx + dy;
 
   do {
-    for (int xx = x1 + x; xx <= x1 - x; ++xx) {
+    for (int xx = x1 + x; xx <= (x1 - x); ++xx) {
       DrawPoint(xx, y1 + y, true, s);
       DrawPoint(xx, y1 - y, true, s);
     }
     e2 = 2 * err;
     if (e2 >= dx) {
       x++;
-      err += dx += 2 * (long)r2 * r2;
+      err += dx += static_cast<int>(2L * static_cast<long>(r2) * r2);
     }
     if (e2 <= dy) {
       y++;
-      err += dy += 2 * (long)r1 * r1;
+      err += dy += static_cast<int>(2L * static_cast<long>(r1) * r1);
     }
   } while (x <= 0);
 
@@ -474,9 +474,9 @@ void Canvas::DrawBlockOn(int x, int y) noexcept {
     cell.type = CellType::kBlock;
   }
 
-  const int bit = (x % 2) * 2 + y % 2;
+  const uint32_t bit = (x % 2) * 2 + y % 2;
   uint8_t value = g_map_block_inversed.at(cell.content.character);
-  value |= 1 << bit;
+  value |= static_cast<uint8_t>(1 << bit);
   cell.content.character = g_map_block[value];
 }
 
@@ -493,9 +493,9 @@ void Canvas::DrawBlockOff(int x, int y) noexcept {
   }
   y /= 2;
 
-  const int bit = (y % 2) * 2 + x % 2;
+  const int32_t bit = (y % 2) * 2 + x % 2;
   uint8_t value = g_map_block_inversed.at(cell.content.character);
-  value &= ~(1 << bit);
+  value &= static_cast<uint8_t>(~(1 << bit));
   cell.content.character = g_map_block[value];
 }
 
@@ -513,9 +513,9 @@ void Canvas::DrawBlockToggle(int x, int y) noexcept {
   }
   y /= 2;
 
-  int bit = (y % 2) * 2 + x % 2;
+  const int32_t bit = (y % 2) * 2 + x % 2;
   uint8_t value = g_map_block_inversed.at(cell.content.character);
-  value ^= 1 << bit;
+  value ^= static_cast<uint8_t>(1 << bit);
   cell.content.character = g_map_block[value];
 }
 
