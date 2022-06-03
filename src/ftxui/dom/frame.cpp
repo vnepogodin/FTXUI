@@ -16,7 +16,7 @@ namespace ftxui {
 
 class Select : public Node {
  public:
-  Select(Elements children) : Node(std::move(children)) {}
+  explicit Select(Elements children) : Node(std::move(children)) {}
 
   void ComputeRequirement() override {
     Node::ComputeRequirement();
@@ -24,8 +24,8 @@ class Select : public Node {
     auto& selected_box = requirement_.selected_box;
     selected_box.x_min = 0;
     selected_box.y_min = 0;
-    selected_box.x_max = requirement_.min_x;
-    selected_box.y_max = requirement_.min_y;
+    selected_box.x_max = requirement_.min_x - 1;
+    selected_box.y_max = requirement_.min_y - 1;
     requirement_.selection = Requirement::SELECTED;
   };
 

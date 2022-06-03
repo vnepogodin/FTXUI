@@ -8,7 +8,7 @@
 #include <vector>      // for vector
 
 #include "ftxui/component/component_base.hpp"     // for Component, Components
-#include "ftxui/component/component_options.hpp"  // for ButtonOption, CheckboxOption (ptr only), InputOption (ptr only), MenuEntryOption (ptr only), MenuOption, RadioboxOption (ptr only)
+#include "ftxui/component/component_options.hpp"  // for ButtonOption, CheckboxOption, InputOption (ptr only), MenuEntryOption (ptr only), MenuOption, RadioboxOption (ptr only)
 #include "ftxui/dom/elements.hpp"                 // for Element
 #include "ftxui/util/ref.hpp"  // for Ref, ConstStringRef, ConstStringListRef, StringRef
 
@@ -92,9 +92,6 @@ Component Collapsible(ConstStringRef label,
                       Component child,
                       Ref<bool> show = false);
 }  // namespace ftxui
-
-// Include component using the old deprecated wstring.
-#include "ftxui/component/deprecated.hpp"
 
 #endif /* end of include guard: FTXUI_COMPONENT_HPP */
 

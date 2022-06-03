@@ -4,6 +4,17 @@ Changelog
 current (development) 
 ---------------------
 
+### DOM
+- Bugfix: Fix `focus`/`select` when the `vbox`/`hbox`/`dbox` contains a
+  `flexbox`
+- Bugfix: Fix the selected/focused area. It used to be 1 cell larger/longer than
+  requested
+- Bugfix: Forward the selected/focused area from the child in gridbox.
+- Bugfix: Fix incorrect Canvas computed dimensions.
+
+### Screen
+- Feature: add `Box::Union(a,b) -> Box`
+
 3.0.0
 -----
 
@@ -21,6 +32,7 @@ current (development)
 - `Menu` can now be used in the 4 directions, using `MenuOption.direction`.
 - `Menu` can display an animated underline, using
   `MenuOption.underline.enabled`.
+- `Button` is now taking the focus in frame.
 - **breaking** All the options are now using a transform function.
 - **breaking** The `Toggle` component is now implemented using `Menu`.
 - **bugfix** Container::Tab implements `Focusable()`.
@@ -37,6 +49,8 @@ current (development)
   - Add the `Maybe` decorator.
   - Add the `CatchEvent` decorator.
   - Add the `Renderer` decorator.
+- **breaking** remove the "deprectated.hpp" header and Input support for wide
+    string.
 
 ### DOM:
 - **breaking**: The `inverted` decorator now toggle in the inverted attribute.

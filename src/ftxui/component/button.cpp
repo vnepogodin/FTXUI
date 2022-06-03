@@ -1,17 +1,16 @@
 #include <functional>  // for function
 #include <memory>      // for shared_ptr
-#include <string>      // for string
 #include <utility>     // for move
 
 #include "ftxui/component/animation.hpp"  // for Animator, Params (ptr only)
 #include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse
 #include "ftxui/component/component.hpp"       // for Make, Button
 #include "ftxui/component/component_base.hpp"  // for ComponentBase
-#include "ftxui/component/component_options.hpp"  // for ButtonOption, AnimatedColorOption, AnimatedColorsOption
+#include "ftxui/component/component_options.hpp"  // for ButtonOption, AnimatedColorOption, AnimatedColorsOption, EntryState
 #include "ftxui/component/event.hpp"  // for Event, Event::Return
 #include "ftxui/component/mouse.hpp"  // for Mouse, Mouse::Left, Mouse::Pressed
 #include "ftxui/component/screen_interactive.hpp"  // for Component
-#include "ftxui/dom/elements.hpp"  // for operator|, Decorator, Element, bgcolor, color, operator|=, reflect, text, border, inverted, nothing
+#include "ftxui/dom/elements.hpp"  // for operator|, Decorator, Element, operator|=, bgcolor, color, reflect, text, bold, border, inverted, nothing
 #include "ftxui/screen/box.hpp"    // for Box
 #include "ftxui/screen/color.hpp"  // for Color
 #include "ftxui/util/ref.hpp"      // for Ref, ConstStringRef
@@ -20,12 +19,14 @@ namespace ftxui {
 
 namespace {
 
-Element DefaultTransform(EntryState params) {
+Element DefaultTransform(EntryState params) {  // NOLINT
   auto element = text(params.label) | border;
-  if (params.active)
+  if (params.active) {
     element |= bold;
-  if (params.focused)
+  }
+  if (params.focused) {
     element |= inverted;
+  }
   return element;
 }
 
@@ -54,6 +55,7 @@ Element DefaultTransform(EntryState params) {
 /// │Click to quit│
 /// └─────────────┘
 /// ```
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 Component Button(ConstStringRef label,
                  std::function<void()> on_click,
                  Ref<ButtonOption> option) {
@@ -62,25 +64,33 @@ Component Button(ConstStringRef label,
     Impl(ConstStringRef label,
          std::function<void()> on_click,
          Ref<ButtonOption> option)
-        : label_(label), on_click_(on_click), option_(std::move(option)) {}
+        : label_(std::move(label)),
+          on_click_(std::move(on_click)),
+          option_(std::move(option)) {}
 
     // Component implementation:
     Element Render() override {
-      float target = Focused() ? 1.0 : 0.f;
-      if (target != animator_background_.to())
-        SetAnimationTarget(target);
+      const bool active = Active();
+      const bool focused = Focused();
+      const bool focused_or_hover = focused || mouse_hover_;
 
+      float target = focused_or_hover ? 1.F : 0.F;  // NOLINT
+      if (target != animator_background_.to()) {
+        SetAnimationTarget(target);
+      }
+
+      auto focus_management = focused ? focus : active ? select : nothing;
       EntryState state = {
           *label_,
           false,
-          Active(),
-          Focused(),
+          active,
+          focused_or_hover,
       };
 
       auto element =
           (option_->transform ? option_->transform : DefaultTransform)  //
           (state);
-      return element | AnimatedColorStyle() | reflect(box_);
+      return element | AnimatedColorStyle() | focus_management | reflect(box_);
     }
 
     Decorator AnimatedColorStyle() {
@@ -122,14 +132,15 @@ Component Button(ConstStringRef label,
 
     void OnClick() {
       on_click_();
-      animation_background_ = 0.5f;
-      animation_foreground_ = 0.5f;
-      SetAnimationTarget(1.f);
+      animation_background_ = 0.5F;  // NOLINT
+      animation_foreground_ = 0.5F;  // NOLINT
+      SetAnimationTarget(1.F);       // NOLINT
     }
 
     bool OnEvent(Event event) override {
-      if (event.is_mouse())
+      if (event.is_mouse()) {
         return OnMouseEvent(event);
+      }
 
       if (event == Event::Return) {
         OnClick();
@@ -142,13 +153,13 @@ Component Button(ConstStringRef label,
       mouse_hover_ =
           box_.Contain(event.mouse().x, event.mouse().y) && CaptureMouse(event);
 
-      if (!mouse_hover_)
+      if (!mouse_hover_) {
         return false;
-
-      TakeFocus();
+      }
 
       if (event.mouse().button == Mouse::Left &&
           event.mouse().motion == Mouse::Pressed) {
+        TakeFocus();
         OnClick();
         return true;
       }
@@ -172,7 +183,7 @@ Component Button(ConstStringRef label,
         animation::Animator(&animation_foreground_);
   };
 
-  return Make<Impl>(label, std::move(on_click), std::move(option));
+  return Make<Impl>(std::move(label), std::move(on_click), std::move(option));
 }
 
 }  // namespace ftxui

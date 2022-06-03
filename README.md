@@ -8,6 +8,10 @@
   <a href="#"><img src="https://img.shields.io/github/repo-size/ArthurSonzogni/FTXUI"></img></a>
   <a href="https://github.com/ArthurSonzogni/FTXUI/issues"><img src="https://img.shields.io/github/issues/ArthurSonzogni/FTXUI"></img></a>
   <a href="https://github.com/ArthurSonzogni/FTXUI/graphs/contributors"><img src="https://img.shields.io/github/contributors/arthursonzogni/FTXUI?color=blue"></img></a>
+  <a href="https://codecov.io/gh/ArthurSonzogni/FTXUI">
+    <img src="https://codecov.io/gh/ArthurSonzogni/FTXUI/branch/master/graph/badge.svg?token=C41FdRpNVA"/>
+  </a>
+
   
   <br/>
   <a href="https://arthursonzogni.github.io/FTXUI/">Documentation</a> ·
@@ -321,9 +325,20 @@ Feel free to add your projects here:
 - [tiles](https://github.com/tusharpm/tiles)
 - [cachyos-cli-installer](https://github.com/cachyos/new-cli-installer)
 
-## Hosted on
- * [github](https://github.com/ArthurSonzogni/ftxui)
- * [gitlab](https://gitlab.com/ArthurSonzogni/ftxui)
+## [cpp-best-practices/game_jam](https://github.com/cpp-best-practices/game_jam)
+
+Several games using the FTXUI have been made during the Game Jam:
+- [TermBreaker](https://github.com/ArthurSonzogni/termBreaker) [**[Play web version]**](https://arthursonzogni.com/TermBreaker/)
+- [Minesweeper Marathon](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/minesweeper_marathon.md) [**[Play web version]**](https://barlasgarden.com/minesweeper/index.html)
+- [Grand Rounds](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/grandrounds.md)
+- [LightsRound](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/LightsRound.v.0.1.0.md)
+- [DanteO](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/danteo.md)
+- [Sumo](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/sumo.md)
+- [Drag Me aROUND](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/drag_me_around.md)
+- [DisarmSelfDestruct](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/LightsRound.v.0.1.0.md)
+- [TheWorld](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/TheWorld.md)
+- [smoothlife](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/smoothlife.md)
+- [Consu](https://github.com/cpp-best-practices/game_jam/blob/main/Jam1_April_2022/consu.md)
 
 ## External package
 
