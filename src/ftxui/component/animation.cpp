@@ -1,11 +1,18 @@
-#include <cmath>  // for sin, pow, sqrt, M_PI_2, M_PI, cos
+#include <cmath>
+#include <ratio>    // for ratio
+#include <utility>  // for move
 
-#include <ftxui/component/animation.hpp>
+#include "ftxui/component/animation.hpp"
 
-namespace ftxui {
-namespace animation {
+namespace ftxui::animation {
 
 namespace easing {
+
+namespace {
+constexpr float kPi = 3.14159265358979323846F;
+constexpr float kPi2 = kPi / 2.F;
+}  // namespace
+
 // Easing function have been taken out of:
 // https://github.com/warrenm/AHEasing/blob/master/AHEasing/easing.c
 //
@@ -111,17 +118,17 @@ namespace easing {
 
 // Modeled after quarter-cycle of sine wave
 [[gnu::const]] float SineIn(float p) {
-  return std::sin((p - 1.f) * static_cast<float>(M_PI_2)) + 1.f;
+  return std::sin((p - 1.f) * kPi2) + 1.f;
 }
 
 // Modeled after quarter-cycle of sine wave (different phase)
 [[gnu::const]] float SineOut(float p) {
-  return std::sin(p * static_cast<float>(M_PI_2));
+  return std::sin(p * kPi2);
 }
 
 // Modeled after half sine wave
 [[gnu::const]] float SineInOut(float p) {
-  return 0.5f * (1.f - std::cos(p * static_cast<float>(M_PI)));
+  return 0.5f * (1.f - std::cos(p * kPi));
 }
 
 // Modeled after shifted quadrant IV of unit circle
@@ -158,8 +165,9 @@ float ExponentialOut(float p) {
 // y = (1/2)2^(10(2x - 1))         ; [0,0.5)
 // y = -(1/2)*2^(-10(2x - 1))) + 1 ; [0.5,1]
 float ExponentialInOut(float p) {
-  if (p == 0.f || p == 1.f)
+  if (p == 0.0 || p == 1.F) {
     return p;
+  }
 
   if (p < 0.5f) {
     return 0.5f * std::pow(2.f, (20.f * p) - 10.f);
@@ -169,13 +177,13 @@ float ExponentialInOut(float p) {
 
 // Modeled after the damped sine wave y = sin(13pi/2*x)*pow(2, 10 * (x - 1))
 float ElasticIn(float p) {
-  return std::sin(13.f * static_cast<float>(M_PI_2) * p) * std::pow(2.f, 10.f * (p - 1.f));
+  return std::sin(13.f * kPi2) * p) * std::pow(2.f, 10.f * (p - 1.f));
 }
 
 // Modeled after the damped sine wave y = sin(-13pi/2*(x + 1))*pow(2, -10x) +
 // 1
 float ElasticOut(float p) {
-  return std::sin(-13.f * static_cast<float>(M_PI_2) * (p + 1.f)) * std::pow(2.f, -10.f * p) + 1.f;
+  return std::sin(-13.f * kPi2) * (p + 1.f)) * std::pow(2.f, -10.f * p) + 1.f;
 }
 
 // Modeled after the piecewise exponentially-damped sine wave:
@@ -183,23 +191,23 @@ float ElasticOut(float p) {
 // y = (1/2)*(sin(-13pi/2*((2x-1)+1))*pow(2,-10(2*x-1)) + 2) ; [0.5, 1]
 float ElasticInOut(float p) {
   if (p < 0.5f) {
-    return 0.5f * std::sin(13.f * static_cast<float>(M_PI_2) * (2.f * p)) *
+    return 0.5f * std::sin(13.f * kPi2 * (2.f * p)) *
            std::pow(2.f, 10.f * ((2.f * p) - 1.f));
   }
-  return 0.5f * (std::sin(-13.f * static_cast<float>(M_PI_2) * (((2.f * p) - 1.f) + 1.f)) *
+  return 0.5f * (std::sin(-13.f * kPi2 * (((2.f * p) - 1.f) + 1.f)) *
                     std::pow(2.f, -10.f * ((2.f * p) - 1.f)) +
                 2.f);
 }
 
 // Modeled after the overshooting cubic y = x^3-x*sin(x*pi)
 [[gnu::const]] float BackIn(float p) {
-  return (p * p * p) - (p * std::sin(p * static_cast<float>(M_PI)));
+  return (p * p * p) - (p * std::sin(p * kPi));
 }
 
 // Modeled after overshooting cubic y = 1-((1-x)^3-(1-x)*sin((1-x)*pi))
 [[gnu::const]] float BackOut(float p) {
   const float f = (1.f - p);
-  return 1.f - ((f * f * f) - (f * std::sin(f * static_cast<float>(M_PI))));
+  return 1.f - ((f * f * f) - (f * std::sin(f * kPi)));
 }
 
 // Modeled after the piecewise overshooting cubic function:
@@ -208,10 +216,10 @@ float ElasticInOut(float p) {
 [[gnu::const]] float BackInOut(float p) {
   if (p < 0.5f) {
     const float f = 2.f * p;
-    return 0.5f * (f * f * f - f * std::sin(f * static_cast<float>(M_PI)));
+    return 0.5f * (f * f * f - f * std::sin(f * kPi));
   }
   const float f = (1 - (2 * p - 1));
-  return 0.5f * (1 - (f * f * f - f * std::sin(f * static_cast<float>(M_PI)))) + 0.5f;
+  return 0.5f * (1 - (f * f * f - f * std::sin(f * kPi))) + 0.5f;
 }
 
 [[gnu::const]] float BounceOut(float p) {
@@ -237,5 +245,36 @@ float ElasticInOut(float p) {
 }
 }  // namespace easing
 
-}  // namespace animation
-}  // namespace ftxui
+Animator::Animator(float* from,
+                   float to,
+                   Duration duration,
+                   easing::Function easing_function,
+                   Duration delay)
+    : value_(from),
+      from_(*from),
+      to_(to),
+      duration_(duration),
+      easing_function_(std::move(easing_function)),
+      current_(-delay) {
+  RequestAnimationFrame();
+}
+
+void Animator::OnAnimation(Params& params) noexcept {
+  current_ += params.duration();
+
+  if (current_ >= duration_) {
+    *value_ = to_;
+    return;
+  }
+
+  if (current_ <= Duration()) {
+    *value_ = from_;
+  } else {
+    *value_ = from_ +
+              (to_ - from_) * easing_function_(current_ / duration_);  // NOLINT
+  }
+
+  RequestAnimationFrame();
+}
+
+}  // namespace ftxui::animation

@@ -1,16 +1,16 @@
 #include <gtest/gtest-message.h>  // for Message
 #include <gtest/gtest-test-part.h>  // for SuiteApiResolver, TestFactoryImpl, TestPartResult
+#include <stddef.h>                 // for size_t
 #include <algorithm>                // for remove
-#include <string>                   // for allocator, basic_string, string
+#include <string>                   // for string, allocator, basic_string
 #include <vector>                   // for vector
 
-#include "ftxui/dom/elements.hpp"  // for text, operator|, Element, flex, Elements, flex_grow, flex_shrink, vtext, gridbox, vbox, border
+#include "ftxui/dom/elements.hpp"  // for text, operator|, Elements, gridbox, Element, flex, flex_grow, flex_shrink, vtext, vbox, border
 #include "ftxui/dom/node.hpp"      // for Render
-#include "ftxui/screen/color.hpp"  // for ftxui
 #include "ftxui/screen/screen.hpp"  // for Screen
 #include "gtest/gtest_pred_impl.h"  // for Test, TEST, EXPECT_EQ
 
-using namespace ftxui;
+namespace ftxui {
 
 namespace {
 std::string rotate(std::string str) {
@@ -175,7 +175,7 @@ TEST(GridboxTest, Horizontal_NoFlex_NoFlex_NoFlex) {
       "012abcABC ",   //
       "012abcABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -203,7 +203,7 @@ TEST(GridboxTest, Vertical_NoFlex_NoFlex_NoFlex) {
       "012abcABC ",   //
       "012abcABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(1, i);
     Render(screen, root);
     EXPECT_EQ(expectations[i], rotate(screen.ToString()));
@@ -233,7 +233,7 @@ TEST(GridboxTest, Horizontal_FlexGrow_NoFlex_NoFlex) {
       "012 abcABC",   //
       "012  abcABC",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -261,7 +261,7 @@ TEST(GridboxTest, Vertical_FlexGrow_NoFlex_NoFlex) {
       "012 abcABC",   //
       "012  abcABC",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(1, i);
     Render(screen, root);
     EXPECT_EQ(expectations[i], rotate(screen.ToString()));
@@ -291,7 +291,7 @@ TEST(GridboxTest, Horizontal_NoFlex_FlexGrow_NoFlex) {
       "012abc ABC",   //
       "012abc  ABC",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -321,7 +321,7 @@ TEST(GridboxTest, Horizontal_NoFlex_NoFlex_FlexGrow) {
       "012abcABC ",   //
       "012abcABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -353,7 +353,7 @@ TEST(GridboxTest, Horizontal_FlexGrow_NoFlex_FlexGrow) {
       "012 abcABC  ",   //
       "012  abcABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -387,7 +387,7 @@ TEST(GridboxTest, Horizontal_FlexGrow_FlexGrow_FlexGrow) {
       "012 abc  ABC  ",   //
       "012  abc  ABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -419,7 +419,7 @@ TEST(GridboxTest, Horizontal_FlexShrink_NoFlex_NoFlex) {
       "012abcABC ",   //
       "012abcABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -449,7 +449,7 @@ TEST(GridboxTest, Horizontal_NoFlex_FlexShrink_NoFlex) {
       "012abcABC ",   //
       "012abcABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -479,7 +479,7 @@ TEST(GridboxTest, Horizontal_NoFlex_NoFlex_FlexShrink) {
       "012abcABC ",   //
       "012abcABC  ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -508,7 +508,7 @@ TEST(GridboxTest, Horizontal_FlexShrink_NoFlex_FlexShrink) {
       "012abcABC",   //
       "012abcABC ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -539,7 +539,7 @@ TEST(GridboxTest, Horizontal_FlexShrink_FlexShrink_FlexShrink) {
       "012abcABC  ",   //
       "012abcABC   ",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -570,7 +570,7 @@ TEST(GridboxTest, Horizontal_FlexGrow_NoFlex_FlewShrink) {
       "012  abcABC",   //
       "012   abcABC",  //
   };
-  for (int i = 0; i < expectations.size(); ++i) {
+  for (size_t i = 0; i < expectations.size(); ++i) {
     Screen screen(i, 1);
     Render(screen, root);
     EXPECT_EQ(expectations[i], screen.ToString());
@@ -595,6 +595,27 @@ TEST(GridboxTest, MissingCells) {
             "╰─╯╰─╯              \r\n"
             "                    ");
 }
+
+TEST(GridboxTest, Focus) {
+  auto root = gridbox({
+      {cell("1"), cell("2"), cell("3"), cell("4")},
+      {cell("5"), cell("6"), cell("7"), cell("8")},
+      {cell("9"), cell("10"), cell("11"), cell("12")},
+      {cell("13"), cell("14") | focus, cell("15"), cell("16")},
+      {cell("17"), cell("18"), cell("19"), cell("20")},
+  });
+
+  root |= frame;
+
+  Screen screen(4, 3);
+  Render(screen, root);
+  EXPECT_EQ(screen.ToString(),
+            "╭──╮\r\n"
+            "│14│\r\n"
+            "╰──╯");
+}
+
+}  // namespace ftxui
 
 // Copyright 2020 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

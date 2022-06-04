@@ -25,6 +25,14 @@ struct Box {
         ranges::min(a.y_max, b.y_max),
     };
   }
+  static constexpr inline Box Union(Box a, Box b) noexcept {
+    return Box{
+        ranges::min(a.x_min, b.x_min),
+        ranges::max(a.x_max, b.x_max),
+        ranges::min(a.y_min, b.y_min),
+        ranges::max(a.y_max, b.y_max),
+    };
+  }
 
   /// @return whether (x,y) is contained inside the box.
   /// @ingroup screen
@@ -51,7 +59,7 @@ struct Box {
 
 }  // namespace ftxui
 
-#endif /* end of include guard: FTXUI_SCREEN_BOX_HPP */
+#endif  // FTXUI_SCREEN_BOX_HPP
 
 // Copyright 2020 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

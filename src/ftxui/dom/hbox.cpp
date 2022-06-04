@@ -1,6 +1,5 @@
-#include <cstddef>  // for size_t
-
 #include <algorithm>  // for max
+#include <cstddef>    // for size_t
 #include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
 #include <ranges>
 #include <utility>  // for move
@@ -27,6 +26,7 @@ class HBox : public Node {
     requirement_.flex_grow_y = 0;
     requirement_.flex_shrink_x = 0;
     requirement_.flex_shrink_y = 0;
+    requirement_.selection = Requirement::NORMAL;
     for (auto& child : children_) {
       child->ComputeRequirement();
       if (requirement_.selection < child->requirement().selection) {

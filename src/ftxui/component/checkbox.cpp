@@ -41,11 +41,13 @@ class CheckboxBase : public ComponentBase {
   }
 
   [[nodiscard]] bool OnEvent(const Event& event) noexcept override {
-    if (!CaptureMouse(event))
+    if (!CaptureMouse(event)) {
       return false;
+    }
 
-    if (event.is_mouse())
+    if (event.is_mouse()) {
       return OnMouseEvent(event);
+    }
 
     hovered_ = false;
     if (event == Event::Character(' ') || event == Event::Return) {
@@ -60,11 +62,13 @@ class CheckboxBase : public ComponentBase {
   bool OnMouseEvent(const Event& event) noexcept {
     hovered_ = box_.Contain(event.mouse().x, event.mouse().y);
 
-    if (!CaptureMouse(event))
+    if (!CaptureMouse(event)) {
       return false;
+    }
 
-    if (!hovered_)
+    if (!hovered_) {
       return false;
+    }
 
     if (event.mouse().button == Mouse::Button::Left &&
         event.mouse().motion == Mouse::Motion::Pressed) {

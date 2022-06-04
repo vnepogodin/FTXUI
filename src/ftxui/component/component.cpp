@@ -1,7 +1,6 @@
-#include <cassert>  // for assert
-#include <cstddef>  // for size_t
-
 #include <algorithm>  // for find_if, any_of
+#include <cassert>    // for assert
+#include <cstddef>    // for size_t
 #include <iterator>   // for begin, end
 #include <ranges>     // for ranges
 #include <utility>    // for move
@@ -41,7 +40,7 @@ ComponentBase::~ComponentBase() noexcept {
 /// @brief Access the child at index `i`.
 /// @ingroup component
 [[gnu::pure]] Component& ComponentBase::ChildAt(size_t i) noexcept {
-  assert(i < ChildCount());
+  assert(i < ChildCount());  // NOLINT
   return children_[i];
 }
 
@@ -65,8 +64,9 @@ void ComponentBase::Add(Component child) noexcept {
 /// @see Parent
 /// @ingroup component
 void ComponentBase::Detach() noexcept {
-  if (!parent_)
+  if (parent_ == nullptr) {
     return;
+  }
 
   auto it = ranges::find_if(parent_->children_,         //
                             [this](const auto& that) {  //
@@ -80,8 +80,9 @@ void ComponentBase::Detach() noexcept {
 /// @brief Remove all children.
 /// @ingroup component
 void ComponentBase::DetachAllChildren() noexcept {
-  while (!children_.empty())
+  while (!children_.empty()) {
     children_[0]->Detach();
+  }
 }
 
 /// @brief Draw the component.
@@ -89,8 +90,9 @@ void ComponentBase::DetachAllChildren() noexcept {
 /// ftxui::ComponentBase.
 /// @ingroup component
 Element ComponentBase::Render() noexcept {
-  if (children_.size() == 1)
+  if (children_.size() == 1) {
     return children_.front()->Render();
+  }
 
   return text("Not implemented component");
 }
@@ -111,8 +113,9 @@ bool ComponentBase::OnEvent(const Event& event) noexcept {
 /// The default implementation dispatch the event to every child.
 /// @ingroup component
 void ComponentBase::OnAnimation(animation::Params& params) noexcept {
-  for (Component& child : children_)
+  for (Component& child : children_) {
     child->OnAnimation(params);
+  }
 }
 
 /// @brief Return the currently Active child.
@@ -120,8 +123,9 @@ void ComponentBase::OnAnimation(animation::Params& params) noexcept {
 /// @ingroup component
 Component ComponentBase::ActiveChild() noexcept {
   for (auto& child : children_) {
-    if (child->Focusable())
+    if (child->Focusable()) {
       return child;
+    }
   }
   return nullptr;
 }
@@ -138,7 +142,7 @@ bool ComponentBase::Focusable() const noexcept {
 /// @brief Returns if the element if the currently active child of its parent.
 /// @ingroup component
 bool ComponentBase::Active() const noexcept {
-  return !parent_ || parent_->ActiveChild().get() == this;
+  return (parent_ == nullptr) || parent_->ActiveChild().get() == this;
 }
 
 /// @brief Returns if the elements if focused by the user.
@@ -147,7 +151,7 @@ bool ComponentBase::Active() const noexcept {
 /// Focusable().
 /// @ingroup component
 bool ComponentBase::Focused() const noexcept {
-  auto current = this;
+  const auto* current = this;
   while (current && current->Active()) {
     current = current->parent_;
   }
@@ -157,7 +161,7 @@ bool ComponentBase::Focused() const noexcept {
 /// @brief Make the |child| to be the "active" one.
 /// @param child the child to become active.
 /// @ingroup component
-void ComponentBase::SetActiveChild(const ComponentBase*) noexcept {}
+void ComponentBase::SetActiveChild(const ComponentBase* /*child*/) noexcept {}
 
 /// @brief Make the |child| to be the "active" one.
 /// @param child the child to become active.
@@ -181,8 +185,9 @@ void ComponentBase::TakeFocus() noexcept {
 /// @param event
 /// @ingroup component
 CapturedMouse ComponentBase::CaptureMouse(const Event& event) noexcept {
-  if (event.screen_)
+  if (event.screen_) {
     return event.screen_->CaptureMouse();
+  }
   return std::make_unique<CaptureMouseImpl>();
 }
 

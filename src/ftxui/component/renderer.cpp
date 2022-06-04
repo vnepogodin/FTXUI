@@ -93,8 +93,9 @@ Component Renderer(const std::function<Element(bool)>& render) noexcept {
     [[nodiscard]] bool Focusable() const noexcept override { return true; }
     bool OnEvent(const Event& event) noexcept override {
       if (event.is_mouse() && box_.Contain(event.mouse().x, event.mouse().y)) {
-        if (!CaptureMouse(event))
+        if (!CaptureMouse(event)) {
           return false;
+        }
 
         TakeFocus();
       }

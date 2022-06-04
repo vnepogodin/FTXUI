@@ -5,11 +5,10 @@
 #include "ftxui/dom/elements.hpp"  // for LIGHT, flex, center, EMPTY, DOUBLE
 #include "ftxui/dom/node.hpp"      // for Render
 #include "ftxui/dom/table.hpp"
-#include "ftxui/screen/color.hpp"   // for ftxui
 #include "ftxui/screen/screen.hpp"  // for Screen
 #include "gtest/gtest_pred_impl.h"  // for Test, EXPECT_EQ, TEST
 
-using namespace ftxui;
+namespace ftxui {
 
 TEST(TableTest, Empty) {
   auto table = Table();
@@ -710,6 +709,8 @@ TEST(TableTest, RowFlexTwo) {
       "└─┴─┴─┴─┘ ",
       screen.ToString());
 }
+
+}  // namespace ftxui
 
 // Copyright 2021 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

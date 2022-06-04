@@ -21,27 +21,32 @@ class ContainerBase : public ComponentBase {
  public:
   ContainerBase(Components children, int* selector)
       : selector_(selector ? selector : &selected_) {
-    for (Component& child : children)
+    for (Component& child : children) {
       Add(std::move(child));
+    }
   }
 
   // Component override.
   bool OnEvent(const Event& event) noexcept override {
-    if (event.is_mouse())
+    if (event.is_mouse()) {
       return OnMouseEvent(event);
+    }
 
-    if (!Focused())
+    if (!Focused()) {
       return false;
+    }
 
-    if (ActiveChild() && ActiveChild()->OnEvent(event))
+    if (ActiveChild() && ActiveChild()->OnEvent(event)) {
       return true;
+    }
 
     return EventHandler(event);
   }
 
   Component ActiveChild() noexcept override {
-    if (children_.empty())
+    if (children_.empty()) {
       return nullptr;
+    }
 
     return children_[*selector_ % children_.size()];
   }
@@ -49,7 +54,7 @@ class ContainerBase : public ComponentBase {
   void SetActiveChild(const ComponentBase* child) noexcept override {
     for (size_t i = 0; i < children_.size(); ++i) {
       if (children_[i].get() == child) {
-        *selector_ = i;
+        *selector_ = (int)i;
         return;
       }
     }
@@ -57,7 +62,7 @@ class ContainerBase : public ComponentBase {
 
  protected:
   // Handlers
-  virtual bool EventHandler(const Event&) noexcept { return false; }
+  virtual bool EventHandler(const Event& /*unused*/) noexcept { return false; }
 
   virtual bool OnMouseEvent(const Event& event) noexcept {
     return ComponentBase::OnEvent(event);
@@ -76,11 +81,14 @@ class ContainerBase : public ComponentBase {
     }
   }
   void MoveSelectorWrap(int dir) noexcept {
+    if (children_.empty()) {
+      return;
+    }
     for (size_t offset = 1; offset < children_.size(); ++offset) {
       const auto i =
           (*selector_ + offset * dir + children_.size()) % children_.size();
       if (children_[i]->Focusable()) {
-        *selector_ = i;
+        *selector_ = (int)i;
         return;
       }
     }
@@ -95,37 +103,46 @@ class VerticalContainer : public ContainerBase {
     Elements elements;
     for (auto&& it : children_)
       elements.push_back(it->Render());
-    if (elements.empty())
+    if (elements.empty()) {
       return text("Empty container") | reflect(box_);
+    }
     return vbox(std::move(elements)) | reflect(box_);
   }
 
   bool EventHandler(const Event& event) noexcept override {
     const int old_selected = *selector_;
-    if (event == Event::ArrowUp || event == Event::Character('k'))
+    if (event == Event::ArrowUp || event == Event::Character('k')) {
       MoveSelector(-1);
-    if (event == Event::ArrowDown || event == Event::Character('j'))
+    }
+    if (event == Event::ArrowDown || event == Event::Character('j')) {
       MoveSelector(+1);
+    }
     if (event == Event::PageUp) {
-      for (int i = 0; i < box_.y_max - box_.y_min; ++i)
+      for (int i = 0; i < box_.y_max - box_.y_min; ++i) {
         MoveSelector(-1);
+      }
     }
     if (event == Event::PageDown) {
-      for (int i = 0; i < box_.y_max - box_.y_min; ++i)
+      for (int i = 0; i < box_.y_max - box_.y_min; ++i) {
         MoveSelector(1);
+      }
     }
     if (event == Event::Home) {
-      for (size_t i = 0; i < children_.size(); ++i)
+      for (size_t i = 0; i < children_.size(); ++i) {
         MoveSelector(-1);
+      }
     }
     if (event == Event::End) {
-      for (size_t i = 0; i < children_.size(); ++i)
+      for (size_t i = 0; i < children_.size(); ++i) {
         MoveSelector(1);
+      }
     }
-    if (event == Event::Tab && !children_.empty())
+    if (event == Event::Tab) {
       MoveSelectorWrap(+1);
-    if (event == Event::TabReverse && !children_.empty())
+    }
+    if (event == Event::TabReverse) {
       MoveSelectorWrap(-1);
+    }
 
     *selector_ = ranges::max(
         0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
@@ -133,21 +150,25 @@ class VerticalContainer : public ContainerBase {
   }
 
   bool OnMouseEvent(const Event& event) noexcept override {
-    if (ContainerBase::OnMouseEvent(event))
+    if (ContainerBase::OnMouseEvent(event)) {
       return true;
+    }
 
     if (event.mouse().button != Mouse::Button::WheelUp &&
         event.mouse().button != Mouse::Button::WheelDown) {
       return false;
     }
 
-    if (!box_.Contain(event.mouse().x, event.mouse().y))
+    if (!box_.Contain(event.mouse().x, event.mouse().y)) {
       return false;
+    }
 
-    if (event.mouse().button == Mouse::Button::WheelUp)
+    if (event.mouse().button == Mouse::WheelUp) {
       MoveSelector(-1);
-    if (event.mouse().button == Mouse::Button::WheelDown)
+    }
+    if (event.mouse().button == Mouse::WheelDown) {
       MoveSelector(+1);
+    }
     *selector_ = ranges::max(
         0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
 
@@ -163,23 +184,29 @@ class HorizontalContainer : public ContainerBase {
 
   Element Render() noexcept override {
     Elements elements;
-    for (auto& it : children_)
+    for (auto& it : children_) {
       elements.push_back(it->Render());
-    if (elements.empty())
+    }
+    if (elements.empty()) {
       return text("Empty container");
+    }
     return hbox(std::move(elements));
   }
 
   bool EventHandler(const Event& event) noexcept override {
     int old_selected = *selector_;
-    if (event == Event::ArrowLeft || event == Event::Character('h'))
+    if (event == Event::ArrowLeft || event == Event::Character('h')) {
       MoveSelector(-1);
-    if (event == Event::ArrowRight || event == Event::Character('l'))
+    }
+    if (event == Event::ArrowRight || event == Event::Character('l')) {
       MoveSelector(+1);
-    if (event == Event::Tab && !children_.empty())
+    }
+    if (event == Event::Tab) {
       MoveSelectorWrap(+1);
-    if (event == Event::TabReverse && !children_.empty())
+    }
+    if (event == Event::TabReverse) {
       MoveSelectorWrap(-1);
+    }
 
     *selector_ = ranges::max(
         0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
@@ -193,14 +220,16 @@ class TabContainer : public ContainerBase {
 
   Element Render() noexcept override {
     Component active_child = ActiveChild();
-    if (active_child)
+    if (active_child) {
       return active_child->Render();
+    }
     return text("Empty container");
   }
 
   [[nodiscard]] bool Focusable() const noexcept override {
-    if (children_.empty())
+    if (children_.empty()) {
       return false;
+    }
     return children_[*selector_ % children_.size()]->Focusable();
   }
 

@@ -16,7 +16,7 @@ namespace ftxui {
 
 class Size : public Node {
  public:
-  Size(Element child, Direction direction, Constraint constraint, size_t value)
+  Size(Element child, Direction direction, Constraint constraint, int value)
       : Node(unpack(std::move(child))),
         value_(static_cast<int>(value)),
         direction_(direction),

@@ -95,8 +95,7 @@ struct Event {
   static const Event PageDown;
 
   // --- Custom ---
-  static Event Custom;
-  //static Event Custom = Event::Special({0});
+  static const Event Custom;
 
   //--- Method section ---------------------------------------------------------
   [[nodiscard]] constexpr inline bool is_character() const noexcept

@@ -1,8 +1,8 @@
 #include <functional>  // for function
 #include <memory>      // for allocator, make_shared
 #include <string>      // for string
-#include <utility>
-#include <vector>  // for vector
+#include <utility>     // for move
+#include <vector>      // for vector
 
 #include "ftxui/dom/elements.hpp"     // for GraphFunction, Element, graph
 #include "ftxui/dom/node.hpp"         // for Node
@@ -12,6 +12,7 @@
 
 namespace ftxui {
 
+// NOLINTNEXTLINE
 static std::string charset[] =
 #if defined(FTXUI_MICROSOFT_TERMINAL_FALLBACK)
     // Microsoft's terminals often use fonts not handling the 8 unicode

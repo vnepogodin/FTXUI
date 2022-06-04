@@ -80,8 +80,9 @@ class Flex : public Node {
   }
 
   void SetBox(Box box) noexcept override {
-    if (children_.empty())
+    if (children_.empty()) {
       return;
+    }
     children_[0]->SetBox(box);
   }
 

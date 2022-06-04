@@ -5,7 +5,7 @@
 #include <utility>  // for move
 #include <vector>   // for vector
 
-#include <ftxui/dom/elements.hpp>  // for Element, Decorator, Elements, operator|, Fit, emptyElement, nothing
+#include <ftxui/dom/elements.hpp>     // for Element, Decorator, Elements, operator|, Fit, emptyElement, nothing, operator|=
 #include <ftxui/dom/node.hpp>         // for Node, Node::Status
 #include <ftxui/dom/requirement.hpp>  // for Requirement
 #include <ftxui/screen/box.hpp>       // for Box
@@ -39,16 +39,18 @@ Element nothing(Element element) noexcept {
 /// auto decorator = bold | blink;
 /// ```
 Decorator operator|(Decorator a, Decorator b) noexcept {
-  return compose(std::move(a), std::move(b));
+  return compose(std::move(a),  //
+                 std::move(b));
 }
 
 /// @brief From a set of element, apply a decorator to every elements.
 /// @return the set of decorated element.
 /// @ingroup dom
-Elements operator|(Elements elements, const Decorator& decorator) noexcept {
+Elements operator|(Elements elements, const Decorator& decorator) noexcept {  // NOLINT
   Elements output;
-  for (auto& it : elements)
+  for (auto& it : elements) {
     output.push_back(std::move(it) | decorator);
+  }
   return output;
 }
 
@@ -65,7 +67,7 @@ Elements operator|(Elements elements, const Decorator& decorator) noexcept {
 /// ```cpp
 /// text("Hello") | bold;
 /// ```
-Element operator|(Element element, const Decorator& decorator) noexcept {
+Element operator|(Element element, const Decorator& decorator) noexcept {  // NOLINT
   return decorator(std::move(element));
 }
 
@@ -98,7 +100,8 @@ Dimensions Dimension::Fit(Element& e) noexcept {
 
   Node::Status status;
   e->Check(&status);
-  while (status.need_iteration && status.iteration < 20) {
+  const int max_iteration = 20;
+  while (status.need_iteration && status.iteration < max_iteration) {
     e->ComputeRequirement();
 
     // Don't give the element more space than it needs:
@@ -110,8 +113,9 @@ Dimensions Dimension::Fit(Element& e) noexcept {
     status.iteration++;
     e->Check(&status);
 
-    if (!status.need_iteration)
+    if (!status.need_iteration) {
       break;
+    }
     // Increase the size of the box until it fits, but not more than the with of
     // the terminal emulator:
     box.x_max = ranges::min(e->requirement().min_x, fullsize.dimx);

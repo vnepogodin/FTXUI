@@ -27,11 +27,12 @@ namespace ftxui {
 
 namespace {
 
-std::string PasswordField(int size) noexcept {
+std::string PasswordField(size_t size) noexcept {
   std::string out;
   out.reserve(2 * size);
-  while (size--)
+  while (size--) {
     out += "•";
+  }
   return out;
 }
 
@@ -48,8 +49,9 @@ class InputBase : public ComponentBase {
   int cursor_position_internal_ = 0;
   int& cursor_position() noexcept {
     int& opt = option_->cursor_position();
-    if (opt != -1)
+    if (opt != -1) {
       return opt;
+    }
     return cursor_position_internal_;
   }
 
@@ -57,7 +59,7 @@ class InputBase : public ComponentBase {
   Element Render() noexcept override {
     std::string password_content;
     if (option_->password())
-      password_content = PasswordField(static_cast<int>(content_->size()));
+      password_content = PasswordField(content_->size());
     const std::string& content =
         option_->password() ? password_content : *content_;
 
@@ -71,19 +73,22 @@ class InputBase : public ComponentBase {
     if (size == 0) {
       const bool hovered = hovered_;
       Decorator decorator = dim | main_decorator;
-      if (is_focused)
+      if (is_focused) {
         decorator = decorator | focus;
-      if (hovered || is_focused)
+      }
+      if (hovered || is_focused) {
         decorator = decorator | inverted;
+      }
       return text(*placeholder_) | decorator | reflect(box_);
     }
 
     // Not focused.
     if (!is_focused) {
-      if (hovered_)
+      if (hovered_) {
         return text(content) | main_decorator | inverted | reflect(box_);
-      else
+      } else {
         return text(content) | main_decorator | reflect(box_);
+      }
     }
 
     const int index_before_cursor = GlyphPosition(content, cursor_position());
@@ -109,14 +114,15 @@ class InputBase : public ComponentBase {
     cursor_position() = ranges::max(
         0, ranges::min(static_cast<int>(content_->size()), cursor_position()));
 
-    if (event.is_mouse())
+    if (event.is_mouse()) {
       return OnMouseEvent(event);
+    }
 
     std::string c;
 
     // Backspace.
     if (event == Event::Backspace) {
-      if (cursor_position() == 0)
+      if (cursor_position() == 0) {
         return false;
       const size_t start = GlyphPosition(*content_, cursor_position() - 1);
       const size_t end = GlyphPosition(*content_, cursor_position());
@@ -128,7 +134,7 @@ class InputBase : public ComponentBase {
 
     // Delete
     if (event == Event::Delete) {
-      if (cursor_position() == int(content_->size()))
+      if (cursor_position() == int(content_->size())) {
         return false;
       const size_t start = GlyphPosition(*content_, cursor_position());
       const size_t end = GlyphPosition(*content_, cursor_position() + 1);
@@ -183,8 +189,9 @@ class InputBase : public ComponentBase {
   bool OnMouseEvent(const Event& event) noexcept {
     hovered_ =
         box_.Contain(event.mouse().x, event.mouse().y) && CaptureMouse(event);
-    if (!hovered_)
+    if (!hovered_) {
       return false;
+    }
 
     if (event.mouse().button != Mouse::Button::Left ||
         event.mouse().motion != Mouse::Motion::Pressed) {
@@ -192,22 +199,23 @@ class InputBase : public ComponentBase {
     }
 
     TakeFocus();
-    if (content_->empty())
+    if (content_->empty()) {
       return true;
+    }
 
     const auto mapping = CellToGlyphIndex(*content_);
     int original_glyph = cursor_position();
     original_glyph = util::clamp(original_glyph, 0, int(mapping.size()));
-    int original_cell = 0;
+    size_t original_cell = 0;
     for (size_t i = 0; i < mapping.size(); i++) {
       if (mapping[i] == original_glyph) {
-        original_cell = i;
+        original_cell = (int)i;
         break;
       }
     }
     if (mapping[original_cell] != original_glyph)
-      original_cell = static_cast<int>(mapping.size());
-    const int target_cell = original_cell + event.mouse().x - cursor_box_.x_min;
+      original_cell = mapping.size();
+    const int target_cell = static_cast<int>(original_cell) + event.mouse().x - cursor_box_.x_min;
     int target_glyph = target_cell < static_cast<int>(mapping.size())
                            ? mapping[target_cell]
                            : static_cast<int>(mapping.size());
@@ -228,38 +236,6 @@ class InputBase : public ComponentBase {
   Box box_;
   Box cursor_box_;
   Ref<InputOption> option_;
-};
-
-// An input box. The user can type text into it.
-// For convenience, the std::wstring version of Input simply wrap a
-// InputBase.
-class WideInputBase : public InputBase {
- public:
-  WideInputBase(WideStringRef content,
-                ConstStringRef placeholder,
-                Ref<InputOption> option)
-      : InputBase(StringRef{&wrapped_content_},
-                  std::move(placeholder),
-                  std::move(option)),
-        content_(std::move(content)),
-        wrapped_content_(to_string(*content_)) {}
-
-  Element Render() noexcept override {
-    wrapped_content_ = ftxui::to_string(*content_);
-    return InputBase::Render();
-  }
-
-  bool OnEvent(const Event& event) noexcept override {
-    wrapped_content_ = to_string(*content_);
-    if (InputBase::OnEvent(event)) {
-      *content_ = to_wstring(wrapped_content_);
-      return true;
-    }
-    return false;
-  }
-
-  WideStringRef content_;
-  std::string wrapped_content_{};
 };
 
 }  // namespace
@@ -290,34 +266,6 @@ Component Input(const StringRef& content,
                 const ConstStringRef& placeholder,
                 Ref<InputOption> option) noexcept {
   return Make<InputBase>(content, placeholder, std::move(option));
-}
-
-/// @brief . An input box for editing text.
-/// @param content The editable content.
-/// @param placeholder The text displayed when content is still empty.
-/// @param option Additional optional parameters.
-/// @ingroup component
-/// @see InputBase
-///
-/// ### Example
-///
-/// ```cpp
-/// auto screen = ScreenInteractive::FitComponent();
-/// std::string content= "";
-/// std::string placeholder = "placeholder";
-/// Component input = Input(&content, &placeholder);
-/// screen.Loop(input);
-/// ```
-///
-/// ### Output
-///
-/// ```bash
-/// placeholder
-/// ```
-Component Input(const WideStringRef& content,
-                const ConstStringRef& placeholder,
-                Ref<InputOption> option) noexcept {
-  return Make<WideInputBase>(content, placeholder, std::move(option));
 }
 
 }  // namespace ftxui

@@ -67,7 +67,7 @@ Decorator focusPositionRelative(float x, float y) noexcept {
 Decorator focusPosition(int x, int y) noexcept {
   class Impl : public NodeDecorator {
    public:
-    Impl(Element child, float x, float y)
+    Impl(Element child, int x, int y)
         : NodeDecorator(std::move(child)), x_(static_cast<int32_t>(x)), y_(static_cast<int32_t>(y)) {}
 
     void ComputeRequirement() noexcept override {

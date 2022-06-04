@@ -1,10 +1,9 @@
 #include <gtest/gtest-message.h>  // for Message
 #include <gtest/gtest-test-part.h>  // for TestPartResult, SuiteApiResolver, TestFactoryImpl
 #include <memory>  // for __shared_ptr_access, shared_ptr, allocator
-#include <string>  // for string, basic_string
+#include <string>  // for string
 #include <vector>  // for vector
 
-#include "ftxui/component/captured_mouse.hpp"     // for ftxui
 #include "ftxui/component/component.hpp"          // for Radiobox
 #include "ftxui/component/component_base.hpp"     // for ComponentBase
 #include "ftxui/component/component_options.hpp"  // for RadioboxOption
@@ -12,7 +11,7 @@
 #include "ftxui/util/ref.hpp"         // for Ref
 #include "gtest/gtest_pred_impl.h"    // for EXPECT_EQ, Test, TEST
 
-using namespace ftxui;
+namespace ftxui {
 
 TEST(RadioboxTest, Navigation) {
   int selected = 0;
@@ -144,6 +143,8 @@ TEST(RadioboxTest, RemoveEntries) {
   EXPECT_EQ(selected, 1);
   EXPECT_EQ(focused_entry, 1);
 }
+
+}  // namespace ftxui
 
 // Copyright 2020 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

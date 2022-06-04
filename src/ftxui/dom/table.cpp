@@ -12,6 +12,7 @@ namespace ranges = std::ranges;
 namespace ftxui {
 namespace {
 
+// NOLINTNEXTLINE
 static const std::string charset[6][6] = {
     {"┌", "┐", "└", "┘", "─", "│"},  //
     {"┏", "┓", "┗", "┛", "━", "┃"},  //
@@ -34,6 +35,7 @@ constexpr int Wrap(int input, int modulo) noexcept {
 constexpr void Order(int& a, int& b) noexcept {
   if (a >= b)
     std::swap(a, b);
+  }
 }
 
 }  // namespace
@@ -48,7 +50,7 @@ Table::Table(const std::vector<std::vector<std::string>>& input) noexcept {
     output.emplace_back();
     auto& output_row = output.back();
     for (auto& cell : row) {
-      output_row.push_back(text(cell));
+      output_row.push_back(text(std::move(cell)));
     }
   }
   Initialize(std::move(output));
@@ -69,8 +71,9 @@ void Table::Initialize(std::vector<std::vector<Element>> input) noexcept {
 
   // Reserve space.
   elements_.resize(dim_y_);
-  for (int y = 0; y < dim_y_; ++y)
+  for (int y = 0; y < dim_y_; ++y) {
     elements_[y].resize(dim_x_);
+  }
 
   // Transfert elements_ from |input| toward |elements_|.
   {
@@ -91,8 +94,9 @@ void Table::Initialize(std::vector<std::vector<Element>> input) noexcept {
       auto& element = elements_[y][x];
 
       if (IsCell(x, y)) {
-        if (!element)
+        if (!element) {
           element = emptyElement();
+        }
         continue;
       }
 
@@ -132,7 +136,7 @@ void Table::Initialize(std::vector<std::vector<Element>> input) noexcept {
   row_max = Wrap(row_max, input_dim_y_);
   Order(row_min, row_max);
 
-  TableSelection output{};
+  TableSelection output{};  // NOLINT
   output.table_ = this;
   output.x_min_ = 2 * column_min;
   output.x_max_ = 2 * column_max + 2;
@@ -142,7 +146,7 @@ void Table::Initialize(std::vector<std::vector<Element>> input) noexcept {
 }
 
 [[gnu::pure]] TableSelection Table::SelectAll() noexcept {
-  TableSelection output{};
+  TableSelection output{};  // NOLINT
   output.table_ = this;
   output.x_min_ = 0;
   output.x_max_ = dim_x_ - 1;
@@ -172,9 +176,12 @@ Element Table::Render() noexcept {
       it = std::move(it) | size(WIDTH, EQUAL, 0) | size(HEIGHT, EQUAL, 0);
     }
   }
+  dim_x_ = 0;
+  dim_y_ = 0;
   return gridbox(std::move(elements_));
 }
 
+// NOLINTNEXTLINE
 void TableSelection::Decorate(const Decorator& decorator) noexcept {
   for (int y = y_min_; y <= y_max_; ++y) {
     for (int x = x_min_; x <= x_max_; ++x) {
@@ -184,10 +191,11 @@ void TableSelection::Decorate(const Decorator& decorator) noexcept {
   }
 }
 
+// NOLINTNEXTLINE
 void TableSelection::DecorateCells(const Decorator& decorator) noexcept {
   for (int y = y_min_; y <= y_max_; ++y) {
     for (int x = x_min_; x <= x_max_; ++x) {
-      if (y % 2 && x % 2) {
+      if (y % 2 == 1 && x % 2 == 1) {
         Element& e = table_->elements_[y][x];
         e = std::move(e) | decorator;
       }
@@ -195,12 +203,13 @@ void TableSelection::DecorateCells(const Decorator& decorator) noexcept {
   }
 }
 
+// NOLINTNEXTLINE
 void TableSelection::DecorateAlternateColumn(const Decorator& decorator,
                                              int modulo,
                                              int shift) noexcept {
   for (int y = y_min_; y <= y_max_; ++y) {
     for (int x = x_min_; x <= x_max_; ++x) {
-      if (y % 2 && (x / 2) % modulo == shift) {
+      if (y % 2 == 1 && (x / 2) % modulo == shift) {
         Element& e = table_->elements_[y][x];
         e = std::move(e) | decorator;
       }
@@ -208,12 +217,13 @@ void TableSelection::DecorateAlternateColumn(const Decorator& decorator,
   }
 }
 
+// NOLINTNEXTLINE
 void TableSelection::DecorateAlternateRow(const Decorator& decorator,
                                           int modulo,
                                           int shift) noexcept {
   for (int y = y_min_ + 1; y <= y_max_ - 1; ++y) {
     for (int x = x_min_; x <= x_max_; ++x) {
-      if (y % 2 && (y / 2) % modulo == shift) {
+      if (y % 2 == 1 && (y / 2) % modulo == shift) {
         Element& e = table_->elements_[y][x];
         e = std::move(e) | decorator;
       }
@@ -221,12 +231,13 @@ void TableSelection::DecorateAlternateRow(const Decorator& decorator,
   }
 }
 
+// NOLINTNEXTLINE
 void TableSelection::DecorateCellsAlternateColumn(const Decorator& decorator,
                                                   int modulo,
                                                   int shift) noexcept {
   for (int y = y_min_; y <= y_max_; ++y) {
     for (int x = x_min_; x <= x_max_; ++x) {
-      if (y % 2 && x % 2 && ((x / 2) % modulo == shift)) {
+      if (y % 2 == 1 && x % 2 == 1 && ((x / 2) % modulo == shift)) {
         Element& e = table_->elements_[y][x];
         e = std::move(e) | decorator;
       }
@@ -234,12 +245,13 @@ void TableSelection::DecorateCellsAlternateColumn(const Decorator& decorator,
   }
 }
 
+// NOLINTNEXTLINE
 void TableSelection::DecorateCellsAlternateRow(const Decorator& decorator,
                                                int modulo,
                                                int shift) noexcept {
   for (int y = y_min_; y <= y_max_; ++y) {
     for (int x = x_min_; x <= x_max_; ++x) {
-      if (y % 2 && x % 2 && ((y / 2) % modulo == shift)) {
+      if (y % 2 == 1 && x % 2 == 1 && ((y / 2) % modulo == shift)) {
         Element& e = table_->elements_[y][x];
         e = std::move(e) | decorator;
       }
@@ -247,77 +259,82 @@ void TableSelection::DecorateCellsAlternateRow(const Decorator& decorator,
   }
 }
 
-void TableSelection::Border(BorderStyle style) noexcept {
-  BorderLeft(style);
-  BorderRight(style);
-  BorderTop(style);
-  BorderBottom(style);
+void TableSelection::Border(BorderStyle border) noexcept {
+  BorderLeft(border);
+  BorderRight(border);
+  BorderTop(border);
+  BorderBottom(border);
 
-  table_->elements_[y_min_][x_min_] = text(charset[style][0]) | automerge;
-  table_->elements_[y_min_][x_max_] = text(charset[style][1]) | automerge;
-  table_->elements_[y_max_][x_min_] = text(charset[style][2]) | automerge;
-  table_->elements_[y_max_][x_max_] = text(charset[style][3]) | automerge;
+  // NOLINTNEXTLINE
+  table_->elements_[y_min_][x_min_] = text(charset[border][0]) | automerge;
+  // NOLINTNEXTLINE
+  table_->elements_[y_min_][x_max_] = text(charset[border][1]) | automerge;
+  // NOLINTNEXTLINE
+  table_->elements_[y_max_][x_min_] = text(charset[border][2]) | automerge;
+  // NOLINTNEXTLINE
+  table_->elements_[y_max_][x_max_] = text(charset[border][3]) | automerge;
 }
 
-void TableSelection::Separator(BorderStyle style) noexcept {
+void TableSelection::Separator(BorderStyle border) noexcept {
   for (int y = y_min_ + 1; y <= y_max_ - 1; ++y) {
     for (int x = x_min_ + 1; x <= x_max_ - 1; ++x) {
       if (y % 2 == 0 || x % 2 == 0) {
         Element& e = table_->elements_[y][x];
-        e = (y % 2) ? separatorCharacter(charset[style][5]) | automerge
-                    : separatorCharacter(charset[style][4]) | automerge;
+        e = (y % 2 == 1)
+                ? separatorCharacter(charset[border][5]) | automerge   // NOLINT
+                : separatorCharacter(charset[border][4]) | automerge;  // NOLINT
       }
     }
   }
 }
 
-void TableSelection::SeparatorVertical(BorderStyle style) noexcept {
+void TableSelection::SeparatorVertical(BorderStyle border) noexcept {
   for (int y = y_min_ + 1; y <= y_max_ - 1; ++y) {
     for (int x = x_min_ + 1; x <= x_max_ - 1; ++x) {
       if (x % 2 == 0) {
         table_->elements_[y][x] =
-            separatorCharacter(charset[style][5]) | automerge;
+            separatorCharacter(charset[border][5]) | automerge;  // NOLINT
       }
     }
   }
 }
 
-void TableSelection::SeparatorHorizontal(BorderStyle style) noexcept {
+void TableSelection::SeparatorHorizontal(BorderStyle border) noexcept {
   for (int y = y_min_ + 1; y <= y_max_ - 1; ++y) {
     for (int x = x_min_ + 1; x <= x_max_ - 1; ++x) {
       if (y % 2 == 0) {
         table_->elements_[y][x] =
-            separatorCharacter(charset[style][4]) | automerge;
+            separatorCharacter(charset[border][4]) | automerge;  // NOLINT
       }
     }
   }
 }
 
-void TableSelection::BorderLeft(BorderStyle style) noexcept {
+void TableSelection::BorderLeft(BorderStyle border) noexcept {
   for (int y = y_min_; y <= y_max_; y++) {
     table_->elements_[y][x_min_] =
-        separatorCharacter(charset[style][5]) | automerge;
+        separatorCharacter(charset[border][5]) | automerge;  // NOLINT
   }
 }
 
-void TableSelection::BorderRight(BorderStyle style) noexcept {
+void TableSelection::BorderRight(BorderStyle border) noexcept {
   for (int y = y_min_; y <= y_max_; y++) {
     table_->elements_[y][x_max_] =
-        separatorCharacter(charset[style][5]) | automerge;
+        separatorCharacter(charset[border][5]) | automerge;  // NOLINT
   }
 }
 
-void TableSelection::BorderTop(BorderStyle style) noexcept {
+void TableSelection::BorderTop(BorderStyle border) noexcept {
   for (int x = x_min_; x <= x_max_; x++) {
     table_->elements_[y_min_][x] =
-        separatorCharacter(charset[style][4]) | automerge;
+        separatorCharacter(charset[border][4]) | automerge;  // NOLINT
   }
 }
 
-void TableSelection::BorderBottom(BorderStyle style) noexcept {
+void TableSelection::BorderBottom(BorderStyle border) noexcept {
   for (int x = x_min_; x <= x_max_; x++) {
     table_->elements_[y_max_][x] =
-        separatorCharacter(charset[style][4]) | automerge;
+        separatorCharacter(charset[border][4]) | automerge;  // NOLINT
   }
 }
 

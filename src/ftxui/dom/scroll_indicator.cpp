@@ -31,20 +31,22 @@ Element vscroll_indicator(Element child) noexcept {
 
     void SetBox(Box box) noexcept override {
       ftxui::NodeDecorator::SetBox(box);
-      if (box_.x_min > box_.x_max)
+      if (box_.x_min > box_.x_max) {
         box_.x_max--;
+      }
       children_[0]->SetBox(box);
     }
 
     void Render(Screen& screen) noexcept final {
-      Node::Render(screen);
+      NodeDecorator::Render(screen);
 
       const auto& stencil = screen.stencil;
 
       const int size_inner = box_.y_max - box_.y_min;
       const int size_outter = stencil.y_max - stencil.y_min + 1;
-      if (size_outter >= size_inner)
+      if (size_outter >= size_inner) {
         return;
+      }
 
       const int size =
           ranges::max(2 * size_outter * size_outter / size_inner, 1);
@@ -60,7 +62,7 @@ Element vscroll_indicator(Element child) noexcept {
         const bool up = (start_y <= y_up) && (y_up <= start_y + size);
         const bool down = (start_y <= y_down) && (y_down <= start_y + size);
 
-        const char* c = up ? (down ? "┃" : "╹") : (down ? "╻" : " ");
+        const char* c = up ? (down ? "┃" : "╹") : (down ? "╻" : " ");  // NOLINT
         screen.PixelAt(x, y) = Pixel();
         screen.PixelAt(x, y).character = c;
       }

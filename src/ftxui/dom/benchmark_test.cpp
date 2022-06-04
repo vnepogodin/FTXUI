@@ -1,11 +1,10 @@
 #include <benchmark/benchmark.h>
 
-#include "ftxui/dom/elements.hpp"  // for separator, gauge, operator|, text, Element, blink, inverted, hbox, vbox, border
+#include "ftxui/dom/elements.hpp"  // for gauge, separator, operator|, text, Element, hbox, vbox, blink, border, inverted
 #include "ftxui/dom/node.hpp"      // for Render
-#include "ftxui/screen/color.hpp"  // for ftxui
 #include "ftxui/screen/screen.hpp"  // for Screen
 
-using namespace ftxui;
+namespace ftxui {
 
 static void BencharkBasic(benchmark::State& state) {
   while (state.KeepRunning()) {
@@ -29,6 +28,8 @@ static void BencharkBasic(benchmark::State& state) {
   }
 }
 BENCHMARK(BencharkBasic)->DenseRange(0, 256, 16);
+
+}  // namespace ftxui
 
 // Copyright 2021 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

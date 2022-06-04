@@ -10,8 +10,9 @@ Node::Node(Elements children) : children_(std::move(children)) {}
 /// @brief Compute how much space an elements needs.
 /// @ingroup dom
 void Node::ComputeRequirement() {
-  for (auto& child : children_)
+  for (auto& child : children_) {
     child->ComputeRequirement();
+  }
 }
 
 /// @brief Assign a position and a dimension to an element for drawing.
@@ -23,13 +24,15 @@ void Node::SetBox(Box box) {
 /// @brief Display an element on a ftxui::Screen.
 /// @ingroup dom
 void Node::Render(Screen& screen) {
-  for (auto& child : children_)
+  for (auto& child : children_) {
     child->Render(screen);
+  }
 }
 
 void Node::Check(Status* status) {
-  for (auto& child : children_)
+  for (auto& child : children_) {
     child->Check(status);
+  }
   status->need_iteration |= (status->iteration == 0);
 }
 
@@ -39,7 +42,8 @@ void Render(Screen& screen, Node* node) noexcept {
   const Box box{0, screen.dimx() - 1, 0, screen.dimy() - 1};
   Node::Status status;
   node->Check(&status);
-  while (status.need_iteration && status.iteration < 20) {
+  const int max_iterations = 20;
+  while (status.need_iteration && status.iteration < max_iterations) {
     // Step 1: Find what dimension this elements wants to be.
     node->ComputeRequirement();
 

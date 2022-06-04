@@ -19,8 +19,8 @@ class ResizableSplitLeftBase : public ComponentBase {
                          int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Horizontal({
-        main,
-        child,
+        main_,
+        child_,
     }));
   }
 
@@ -77,8 +77,8 @@ class ResizableSplitRightBase : public ComponentBase {
                           int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Horizontal({
-        child,
-        main,
+        child_,
+        main_,
     }));
   }
 
@@ -135,8 +135,8 @@ class ResizableSplitTopBase : public ComponentBase {
                         int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Vertical({
-        main,
-        child,
+        main_,
+        child_,
     }));
   }
 
@@ -193,8 +193,8 @@ class ResizableSplitBottomBase : public ComponentBase {
                            int* main_size)
       : main_(main), child_(child), main_size_(main_size) {
     Add(Container::Vertical({
-        child,
-        main,
+        child_,
+        main_,
     }));
   }
 

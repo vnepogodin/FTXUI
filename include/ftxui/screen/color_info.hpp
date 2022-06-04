@@ -2,6 +2,7 @@
 #define FTXUI_SCREEN_COLOR_INFO_HPP
 
 #include <cstdint>
+#include <array>
 
 #include "ftxui/screen/color.hpp"  // for Color, Color::Palette16, Color::Palette256
 
@@ -21,7 +22,7 @@ struct ColorInfo {
 
 namespace {
 // clang-format off
-static constexpr ColorInfo palette256[] = {
+static constexpr const std::array<ColorInfo, 256> palette256 = {{
      {"Black"              , 0   , 0  , 0   , 0   , 0   , 0   , 0   , 0   } ,
      {"Red"                , 1   , 1  , 128 , 0   , 0   , 0   , 255 , 128 } ,
      {"Green"              , 2   , 2  , 0   , 128 , 0   , 85  , 255 , 128 } ,
@@ -278,7 +279,7 @@ static constexpr ColorInfo palette256[] = {
      {"Grey85"             , 253 , 7  , 218 , 218 , 218 , 0   , 0   , 218 } ,
      {"Grey89"             , 254 , 15 , 228 , 228 , 228 , 0   , 0   , 228 } ,
      {"Grey93"             , 255 , 15 , 238 , 238 , 238 , 0   , 0   , 238 } ,
-};
+}};
 }
 
 constexpr ColorInfo GetColorInfo(Color::Palette256 index) {
@@ -291,7 +292,7 @@ constexpr ColorInfo GetColorInfo(Color::Palette16 index) {
 
 }  // namespace ftxui
 
-#endif /* end of include guard: FTXUI_SCREEN_COLOR_INFO_HPP */
+#endif  // FTXUI_SCREEN_COLOR_INFO_HPP
 
 // Copyright 2020 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

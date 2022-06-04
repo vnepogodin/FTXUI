@@ -7,8 +7,8 @@
 
 #include "ftxui/component/component.hpp"  // for Maybe, Checkbox, Make, Radiobox, Vertical, Dropdown
 #include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
-#include "ftxui/component/component_options.hpp"  // for CheckboxOption
-#include "ftxui/dom/elements.hpp"  // for operator|, Element, border, filler, separator, size, vbox, frame, vscroll_indicator, HEIGHT, LESS_THAN
+#include "ftxui/component/component_options.hpp"  // for CheckboxOption, EntryState
+#include "ftxui/dom/elements.hpp"  // for operator|, Element, border, filler, operator|=, separator, size, text, vbox, frame, vscroll_indicator, hbox, HEIGHT, LESS_THAN, bold, inverted
 #include "ftxui/util/ref.hpp"      // for ConstStringListRef
 
 namespace ranges = std::ranges;
@@ -24,10 +24,12 @@ Component Dropdown(ConstStringListRef entries, int* selected) noexcept {
       option.transform = [](auto&& s) {
         const auto prefix = text(s.state ? "↓ " : "→ ");
         auto t = text(s.label);
-        if (s.active)
+        if (s.active) {
           t |= bold;
-        if (s.focused)
+        }
+        if (s.focused) {
           t |= inverted;
+        }
         return hbox({prefix, t});
       };
       checkbox_ = Checkbox(&title_, &show_, option),
@@ -44,11 +46,12 @@ Component Dropdown(ConstStringListRef entries, int* selected) noexcept {
                                ranges::max(0, *selected_));
       title_ = entries_[*selected_];
       if (show_) {
+        const int max_height = 12;
         return vbox({
                    checkbox_->Render(),
                    separator(),
                    radiobox_->Render() | vscroll_indicator | frame |
-                       size(HEIGHT, LESS_THAN, 12),
+                       size(HEIGHT, LESS_THAN, max_height),
                }) |
                border;
       }

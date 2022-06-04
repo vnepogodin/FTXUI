@@ -62,32 +62,43 @@ class RadioboxBase : public ComponentBase {
     return vbox(std::move(elements)) | reflect(box_);
   }
 
+  // NOLINTNEXTLINE(readability-function-cognitive-complexity)
   bool OnEvent(const Event& event) noexcept override {
     Clamp();
-    if (!CaptureMouse(event))
+    if (!CaptureMouse(event)) {
       return false;
+    }
 
-    if (event.is_mouse())
+    if (event.is_mouse()) {
       return OnMouseEvent(event);
+    }
 
     if (Focused()) {
       const int old_hovered = hovered_;
-      if (event == Event::ArrowUp || event == Event::Character('k'))
+      if (event == Event::ArrowUp || event == Event::Character('k')) {
         (hovered_)--;
-      if (event == Event::ArrowDown || event == Event::Character('j'))
+      }
+      if (event == Event::ArrowDown || event == Event::Character('j')) {
         (hovered_)++;
-      if (event == Event::PageUp)
+      }
+      if (event == Event::PageUp) {
         (hovered_) -= box_.y_max - box_.y_min;
-      if (event == Event::PageDown)
+      }
+      if (event == Event::PageDown) {
         (hovered_) += box_.y_max - box_.y_min;
-      if (event == Event::Home)
+      }
+      if (event == Event::Home) {
         (hovered_) = 0;
-      if (event == Event::End)
+      }
+      if (event == Event::End) {
         (hovered_) = size() - 1;
-      if (event == Event::Tab && size())
+      }
+      if (event == Event::Tab && size()) {
         hovered_ = (hovered_ + 1) % size();
-      if (event == Event::TabReverse && size())
+      }
+      if (event == Event::TabReverse && size()) {
         hovered_ = (hovered_ + size() - 1) % size();
+      }
 
       hovered_ = util::clamp(hovered_, 0, size() - 1);
 
@@ -114,8 +125,9 @@ class RadioboxBase : public ComponentBase {
     }
 
     for (int i = 0; i < size(); ++i) {
-      if (!boxes_[i].Contain(event.mouse().x, event.mouse().y))
+      if (!boxes_[i].Contain(event.mouse().x, event.mouse().y)) {
         continue;
+      }
 
       TakeFocus();
       focused_entry() = i;
@@ -133,20 +145,24 @@ class RadioboxBase : public ComponentBase {
   }
 
   bool OnMouseWheel(const Event& event) noexcept {
-    if (!box_.Contain(event.mouse().x, event.mouse().y))
+    if (!box_.Contain(event.mouse().x, event.mouse().y)) {
       return false;
+    }
 
     int old_hovered = hovered_;
 
-    if (event.mouse().button == Mouse::Button::WheelUp)
+    if (event.mouse().button == Mouse::WheelUp) {
       (hovered_)--;
-    if (event.mouse().button == Mouse::Button::WheelDown)
+    }
+    if (event.mouse().button == Mouse::WheelDown) {
       (hovered_)++;
+    }
 
     hovered_ = util::clamp(hovered_, 0, size() - 1);
 
-    if (hovered_ != old_hovered)
+    if (hovered_ != old_hovered) {
       option_->on_change();
+    }
 
     return true;
   }

@@ -1,8 +1,8 @@
-#ifndef FTXUI_SCREEN_COLOR
-#define FTXUI_SCREEN_COLOR
+#ifndef FTXUI_SCREEN_COLOR_HPP
+#define FTXUI_SCREEN_COLOR_HPP
 
 #include <cstdint>  // for uint8_t
-#include <string>    // for wstring
+#include <string>   // for wstring
 
 #ifdef RGB
 // Workaround for wingdi.h (via Windows.h) defining macros that break things.
@@ -31,7 +31,7 @@ class Color {
   /// @brief Build a transparent using Palette16 colors.
   /// @ingroup screen
   constexpr Color(Palette16 index)
-      : type_(ColorType::Palette16), index_(index) {}
+      : type_(ColorType::Palette16), red_(index) {}
 
   Color(Palette256 index);
   Color(uint8_t red, uint8_t green, uint8_t blue);
@@ -329,10 +329,7 @@ class Color {
   };
 
   ColorType type_{ColorType::Palette1};
-  union {
-    uint8_t index_{};
-    uint8_t red_;
-  };
+  uint8_t red_ = 0;
   uint8_t green_ = 0;
   uint8_t blue_ = 0;
 };
@@ -347,7 +344,7 @@ ftxui::Color operator""_rgb(unsigned long long int combined);
 
 }  // namespace ftxui
 
-#endif /* end of include guard: FTXUI_COLOR_H_ */
+#endif  // FTXUI_SCREEN_COLOR_HPP
 
 // Copyright 2020 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

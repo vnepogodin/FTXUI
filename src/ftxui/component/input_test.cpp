@@ -3,7 +3,6 @@
 #include <memory>  // for __shared_ptr_access, shared_ptr, allocator
 #include <string>  // for string
 
-#include "ftxui/component/captured_mouse.hpp"  // for ftxui
 #include "ftxui/component/component.hpp"       // for Input
 #include "ftxui/component/component_base.hpp"  // for ComponentBase, Component
 #include "ftxui/component/component_options.hpp"  // for InputOption
@@ -13,9 +12,9 @@
 #include "ftxui/dom/node.hpp"       // for Render
 #include "ftxui/screen/screen.hpp"  // for Fixed, Screen, Pixel
 #include "ftxui/util/ref.hpp"       // for Ref
-#include "gtest/gtest_pred_impl.h"  // for Test, EXPECT_EQ, TEST
+#include "gtest/gtest_pred_impl.h"  // for EXPECT_EQ, Test, TEST
 
-using namespace ftxui;
+namespace ftxui {
 
 TEST(InputTest, Init) {
   std::string content;
@@ -371,6 +370,8 @@ TEST(InputTest, MouseClickComplex) {
   render();
   EXPECT_EQ(option.cursor_position(), 4u);
 }
+
+}  // namespace ftxui
 
 // Copyright 2021 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

@@ -1,48 +1,65 @@
 #include "ftxui/screen/color.hpp"
 
-#include <cassert>
+#include <array>        // for array
+#include <string_view>  // for literals
 
 #include "ftxui/screen/color_info.hpp"  // for GetColorInfo, ColorInfo
-#include "ftxui/screen/terminal.hpp"  // for Terminal, Terminal::Color, Terminal::Palette256, Terminal::TrueColor
+#include "ftxui/screen/terminal.hpp"  // for ColorSupport, Color, Palette256, TrueColor
 
 namespace ftxui {
 
+using namespace std::literals;
+
 namespace {
-static constexpr const char* palette16code[16][2] = {
-    {"30", "40"},  {"31", "41"},  {"32", "42"},  {"33", "43"},
-    {"34", "44"},  {"35", "45"},  {"36", "46"},  {"37", "47"},
-    {"90", "100"}, {"91", "101"}, {"92", "102"}, {"93", "103"},
-    {"94", "104"}, {"95", "105"}, {"96", "106"}, {"97", "107"},
+static constexpr const std::array<const char*, 33> palette16code = {
+    "30", "40",   //
+    "31", "41",   //
+    "32", "42",   //
+    "33", "43",   //
+    "34", "44",   //
+    "35", "45",   //
+    "36", "46",   //
+    "37", "47",   //
+    "90", "100",  //
+    "91", "101",  //
+    "92", "102",  //
+    "93", "103",  //
+    "94", "104",  //
+    "95", "105",  //
+    "96", "106",  //
+    "97", "107",  //
 };
-}
+
+}  // namespace
 
 std::string Color::Print(bool is_background_color) const {
   switch (type_) {
     case ColorType::Palette1:
-      return is_background_color ? "49" : "39";
+      return is_background_color ? "49"s : "39"s;
 
     case ColorType::Palette16:
-      return palette16code[index_][is_background_color];
+      return palette16code[2 * red_ + is_background_color];  // NOLINT;
 
     case ColorType::Palette256:
-      return (is_background_color ? "48;5;" : "38;5;") + std::to_string(index_);
+      return (is_background_color ? "48;5;"s : "38;5;"s) + std::to_string(red_);
 
     case ColorType::TrueColor:
-      return (is_background_color ? "48;2;" : "38;2;")  //
-             + std::to_string(red_) + ";"               //
-             + std::to_string(green_) + ";"             //
-             + std::to_string(blue_);                   //
+    default:
+      return (is_background_color ? "48;2;"s : "38;2;"s)  //
+             + std::to_string(red_) + ";"                 //
+             + std::to_string(green_) + ";"               //
+             + std::to_string(blue_);                     //
   }
-  return "";
 }
 
 /// @brief Build a transparent using Palette256 colors.
 /// @ingroup screen
-Color::Color(Palette256 index) : type_(ColorType::Palette256), index_(index) {
-  if (Terminal::ColorSupport() >= Terminal::Color::Palette256)
+Color::Color(Palette256 index) : type_(ColorType::Palette256), red_(index) {
+  if (Terminal::ColorSupport() >= Terminal::Color::Palette256) {
     return;
+  }
   type_ = ColorType::Palette16;
-  index_ = GetColorInfo(Color::Palette256(index_)).index_16;
+  red_ = GetColorInfo(Color::Palette256(red_)).index_16;
 }
 
 /// @brief Build a Color from its RGB representation.
@@ -54,12 +71,17 @@ Color::Color(Palette256 index) : type_(ColorType::Palette256), index_(index) {
 /// @ingroup screen
 Color::Color(uint8_t red, uint8_t green, uint8_t blue)
     : type_(ColorType::TrueColor), red_(red), green_(green), blue_(blue) {
-  if (Terminal::ColorSupport() == Terminal::Color::TrueColor)
+  if (Terminal::ColorSupport() == Terminal::Color::TrueColor) {
     return;
+  }
 
-  int closest = 256 * 256 * 3;
+  // Find the closest Color from the database:
+  const int max_distance = 256 * 256 * 3;
+  int closest = max_distance;
   int best = 0;
-  for (int i = 16; i < 256; ++i) {
+  static constexpr int database_begin = 16;
+  static constexpr int database_end = 256;
+  for (int i = database_begin; i < database_end; ++i) {
     const auto color_info = GetColorInfo(Color::Palette256(i));
     const int dr = color_info.red - red;
     const int dg = color_info.green - green;
@@ -73,10 +95,10 @@ Color::Color(uint8_t red, uint8_t green, uint8_t blue)
 
   if (Terminal::ColorSupport() == Terminal::Color::Palette256) {
     type_ = ColorType::Palette256;
-    index_ = static_cast<uint8_t>(best);
+    red_ = static_cast<uint8_t>(best);
   } else {
     type_ = ColorType::Palette16;
-    index_ = GetColorInfo(Color::Palette256(best)).index_16;
+    red_ = GetColorInfo(Color::Palette256(best)).index_16;
   }
 }
 
@@ -101,24 +123,25 @@ Color Color::RGB(uint8_t red, uint8_t green, uint8_t blue) {
 /// @ingroup screen
 // static
 Color Color::HSV(uint8_t h, uint8_t s, uint8_t v) {
-  if (s == 0)
+  if (s == 0) {
     return Color(v, v, v);
+  }
 
-  const uint8_t region = h / 43;
-  const uint8_t remainder = static_cast<uint8_t>((h - (region * 43)) * 6);
-  const uint8_t p = static_cast<uint8_t>((v * (255 - s)) >> 8);
-  const uint8_t q = static_cast<uint8_t>((v * (255 - ((s * remainder) >> 8u))) >> 8);
-  const uint8_t t = static_cast<uint8_t>((v * (255 - ((s * (255 - remainder)) >> 8u))) >> 8);
+  const uint8_t region = h / 43;                                                              // NOLINT
+  const uint8_t remainder = static_cast<uint8_t>((h - (region * 43)) * 6);                    // NOLINT
+  const uint8_t p = static_cast<uint8_t>((v * (255 - s)) >> 8);                               // NOLINT
+  const uint8_t q = static_cast<uint8_t>((v * (255 - ((s * remainder) >> 8u))) >> 8);         // NOLINT
+  const uint8_t t = static_cast<uint8_t>((v * (255 - ((s * (255 - remainder)) >> 8u))) >> 8); // NOLINT
 
   // clang-format off
-  switch (region) {
-    case 0: return Color(v,t,p);
-    case 1: return Color(q,v,p);
-    case 2: return Color(p,v,t);
-    case 3: return Color(p,q,v);
-    case 4: return Color(t,p,v);
-    case 5: return Color(v,p,q);
-  }
+  switch (region) {              // NOLINT
+    case 0: return Color(v,t,p); // NOLINT
+    case 1: return Color(q,v,p); // NOLINT
+    case 2: return Color(p,v,t); // NOLINT
+    case 3: return Color(p,q,v); // NOLINT
+    case 4: return Color(t,p,v); // NOLINT
+    case 5: return Color(v,p,q); // NOLINT
+  }                              // NOLINT
   // clang-format on
 
   return Color(0, 0, 0);
@@ -126,81 +149,71 @@ Color Color::HSV(uint8_t h, uint8_t s, uint8_t v) {
 
 // static
 Color Color::Interpolate(float t, const Color& a, const Color& b) {
-  float red = 0.f;
-  float green = 0.f;
-  float blue = 0.f;
-  switch (a.type_) {
-    case ColorType::Palette1: {
-      if (t < 0.5f)
-        return a;
-      else
-        return b;
-    }
-
-    case ColorType::Palette16: {
-      const auto info = GetColorInfo(Color::Palette16(a.index_));
-      red = info.red * (1 - t);
-      green = info.green * (1 - t);
-      blue = info.blue * (1 - t);
-      break;
-    }
-
-    case ColorType::Palette256: {
-      const auto info = GetColorInfo(Color::Palette256(a.index_));
-      red = info.red * (1 - t);
-      green = info.green * (1 - t);
-      blue = info.blue * (1 - t);
-      break;
-    }
-
-    case ColorType::TrueColor: {
-      red = a.red_ * (1 - t);
-      green = a.green_ * (1 - t);
-      blue = a.blue_ * (1 - t);
-      break;
+  if (a.type_ == ColorType::Palette1 ||  //
+      b.type_ == ColorType::Palette1) {
+    if (t < 0.5F) {  // NOLINT
+      return a;
+    } else {
+      return b;
     }
   }
 
-  switch (b.type_) {
-    case ColorType::Palette1: {
-      if (t > 0.5f)
-        return a;
-      else
-        return b;
-    }
+  auto get_color = [](const Color& color,  //
+                      uint8_t* red, uint8_t* green, uint8_t* blue) {
+    switch (color.type_) {
+      case ColorType::Palette1: {
+        return;
+      }
 
-    case ColorType::Palette16: {
-      const auto info = GetColorInfo(Color::Palette16(b.index_));
-      red += info.red * t;
-      green += info.green * t;
-      blue += info.blue * t;
-      break;
-    }
+      case ColorType::Palette16: {
+        const ColorInfo info = GetColorInfo(Color::Palette16(color.red_));
+        *red = info.red;
+        *green = info.green;
+        *blue = info.blue;
+        return;
+      }
 
-    case ColorType::Palette256: {
-      const auto info = GetColorInfo(Color::Palette256(b.index_));
-      red += info.red * t;
-      green += info.green * t;
-      blue += info.blue * t;
-      break;
-    }
+      case ColorType::Palette256: {
+        const ColorInfo info = GetColorInfo(Color::Palette256(color.red_));
+        *red = info.red;
+        *green = info.green;
+        *blue = info.blue;
+        return;
+      }
 
-    case ColorType::TrueColor: {
-      red += b.red_ * t;
-      green += b.green_ * t;
-      blue += b.blue_ * t;
-      break;
+      case ColorType::TrueColor:
+      default: {
+        *red = color.red_;
+        *green = color.green_;
+        *blue = color.blue_;
+        return;
+      }
     }
-  }
-  return Color::RGB(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
+  };
+
+  uint8_t red_a{};
+  uint8_t green_a{};
+  uint8_t blue_a{};
+  uint8_t red_b{};
+  uint8_t green_b{};
+  uint8_t blue_b{};
+  get_color(a, &red_a, &green_a, &blue_a);
+  get_color(b, &red_b, &green_b, &blue_b);
+
+  return Color::RGB(static_cast<uint8_t>(static_cast<float>(red_a) * (1 - t) +
+                                         static_cast<float>(red_b) * t),
+                    static_cast<uint8_t>(static_cast<float>(green_a) * (1 - t) +
+                                         static_cast<float>(green_b) * t),
+                    static_cast<uint8_t>(static_cast<float>(blue_a) * (1 - t) +
+                                         static_cast<float>(blue_b) * t));
 }
 
 inline namespace literals {
 
 Color operator""_rgb(unsigned long long int combined) {
-  assert(combined <= 0xffffffU);
-  auto const red = static_cast<uint8_t>(combined >> 16);
-  auto const green = static_cast<uint8_t>(combined >> 8);
+  // assert(combined <= 0xffffffU);
+  auto const red = static_cast<uint8_t>(combined >> 16U);
+  auto const green = static_cast<uint8_t>(combined >> 8U);
   auto const blue = static_cast<uint8_t>(combined);
   return Color(red, green, blue);
 }

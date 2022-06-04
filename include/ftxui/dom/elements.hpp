@@ -165,7 +165,7 @@ Dimensions Fit(Element&) noexcept;
 
 // Include old definitions using wstring.
 #include <ftxui/dom/deprecated.hpp>
-#endif /* end of include guard: FTXUI_DOM_ELEMENTS_HPP */
+#endif  // FTXUI_DOM_ELEMENTS_HPP
 
 // Copyright 2020 Arthur Sonzogni. All rights reserved.
 // Use of this source code is governed by the MIT license that can be found in

@@ -34,11 +34,13 @@ class Text : public Node {
   void Render(Screen& screen) override {
     int x = box_.x_min;
     const int& y = box_.y_min;
-    if (y > box_.y_max)
+    if (y > box_.y_max) {
       return;
+    }
     for (const auto& cell : Utf8ToGlyphs(text_)) {
-      if (x > box_.x_max)
+      if (x > box_.x_max) {
         return;
+      }
       screen.PixelAt(x, y).character = cell;
       ++x;
     }
@@ -61,11 +63,13 @@ class VText : public Node {
   void Render(Screen& screen) noexcept override {
     const int& x = box_.x_min;
     int y = box_.y_min;
-    if (x + width_ - 1 > box_.x_max)
+    if (x + width_ - 1 > box_.x_max) {
       return;
+    }
     for (const auto& it : Utf8ToGlyphs(text_)) {
-      if (y > box_.y_max)
+      if (y > box_.y_max) {
         return;
+      }
       screen.PixelAt(x, y).character = it;
       y += 1;
     }
@@ -118,7 +122,7 @@ Element text(const char* text) noexcept {
 /// ```bash
 /// Hello world!
 /// ```
-Element text(const std::wstring& text) noexcept {
+Element text(const std::wstring& text) noexcept {  // NOLINT
   return std::make_shared<Text>(ftxui::to_string(text));
 }
 
@@ -178,7 +182,7 @@ Element vtext(const std::string& text) noexcept {
 /// d
 /// !
 /// ```
-Element vtext(const std::wstring& text) noexcept {
+Element vtext(const std::wstring& text) noexcept {  // NOLINT
   return std::make_shared<VText>(ftxui::to_string(text));
 }
 

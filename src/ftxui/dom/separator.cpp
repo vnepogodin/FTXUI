@@ -1,6 +1,7 @@
-#include <memory>  // for make_shared, allocator
-#include <string>  // for string
-#include <utility>
+#include <array>    // for array, array<>::value_type
+#include <memory>   // for make_shared, allocator
+#include <string>   // for basic_string, string
+#include <utility>  // for move
 
 #include "ftxui/dom/elements.hpp"  // for Element, BorderStyle, LIGHT, separator, DOUBLE, EMPTY, HEAVY, separatorCharacter, separatorDouble, separatorEmpty, separatorHSelector, separatorHeavy, separatorLight, separatorStyled, separatorVSelector
 #include "ftxui/dom/node.hpp"      // for Node
@@ -11,15 +12,21 @@
 
 namespace ftxui {
 
+namespace {
 using ftxui::Screen;
 
-const std::string charset[][2] = {
-    {"│", "─"},  //
-    {"┃", "━"},  //
-    {"║", "═"},  //
-    {"│", "─"},  //
-    {" ", " "},  //
+using Charset = std::array<std::string, 2>;  // NOLINT
+using Charsets = std::array<Charset, 5>;     // NOLINT
+// NOLINTNEXTLINE
+const Charsets charsets = {
+    Charset{"│", "─"},  //
+    Charset{"┃", "━"},  //
+    Charset{"║", "═"},  //
+    Charset{"│", "─"},  //
+    Charset{" ", " "},  //
 };
+
+}  // namespace
 
 class Separator : public Node {
  public:
@@ -56,7 +63,7 @@ class SeparatorAuto : public Node {
     bool is_column = (box_.x_max == box_.x_min);
     bool is_line = (box_.y_min == box_.y_max);
 
-    const std::string c = charset[style_][is_line && !is_column];
+    const std::string c = charsets[style_][int(is_line && !is_column)];
 
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -386,27 +393,28 @@ Element separator(const Pixel& pixel) noexcept {
 /// ```
 Element separatorHSelector(float left,
                            float right,
-                           Color selected_color,
-                           Color unselected_color) noexcept {
+                           Color unselected_color,
+                           Color selected_color) noexcept {
   class Impl : public Node {
    public:
     Impl(float left, float right, Color selected_color, Color unselected_color)
         : left_(left),
           right_(right),
-          selected_color_(selected_color),
-          unselected_color_(unselected_color) {}
+          unselected_color_(unselected_color),
+          selected_color_(selected_color) {}
     void ComputeRequirement() noexcept override {
       requirement_.min_x = 1;
       requirement_.min_y = 1;
     }
 
     void Render(Screen& screen) noexcept override {
-      if (box_.y_max < box_.y_min)
+      if (box_.y_max < box_.y_min) {
         return;
+      }
 
       // This are the two location with an empty demi-cell.
-      const int demi_cell_left = static_cast<int>(left_ * 2 - 1);
-      const int demi_cell_right = static_cast<int>(right_ * 2 + 2);
+      const int demi_cell_left = static_cast<int>(left_ * 2 - 1);    // NOLINT
+      const int demi_cell_right = static_cast<int>(right_ * 2 + 2);  // NOLINT
 
       const int y = box_.y_min;
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -421,23 +429,24 @@ Element separatorHSelector(float left,
           pixel.character = "─";
           pixel.automerge = true;
         } else {
-          pixel.character = a_empty ? "╶" : "╴";
+          pixel.character = a_empty ? "╶" : "╴";  // NOLINT
           pixel.automerge = false;
         }
 
-        if (demi_cell_left <= a && b <= demi_cell_right)
+        if (demi_cell_left <= a && b <= demi_cell_right) {
           pixel.foreground_color = selected_color_;
-        else
+        } else {
           pixel.foreground_color = unselected_color_;
+        }
       }
     }
 
     float left_{};
     float right_{};
-    Color selected_color_{};
     Color unselected_color_{};
+    Color selected_color_{};
   };
-  return std::make_shared<Impl>(left, right, selected_color, unselected_color);
+  return std::make_shared<Impl>(left, right, unselected_color, selected_color);
 }
 
 /// @brief Draw an vertical bar, with the area in between up/down colored
@@ -454,23 +463,24 @@ Element separatorHSelector(float left,
 /// ```
 Element separatorVSelector(float up,
                            float down,
-                           Color selected_color,
-                           Color unselected_color) noexcept {
+                           Color unselected_color,
+                           Color selected_color) noexcept {
   class Impl : public Node {
    public:
-    Impl(float up, float down, Color selected_color, Color unselected_color)
+    Impl(float up, float down, Color unselected_color, Color selected_color)
         : up_(up),
           down_(down),
-          selected_color_(selected_color),
-          unselected_color_(unselected_color) {}
+          unselected_color_(unselected_color),
+          selected_color_(selected_color) {}
     void ComputeRequirement() noexcept override {
       requirement_.min_x = 1;
       requirement_.min_y = 1;
     }
 
     void Render(Screen& screen) noexcept override {
-      if (box_.x_max < box_.x_min)
+      if (box_.x_max < box_.x_min) {
         return;
+      }
 
       // This are the two location with an empty demi-cell.
       const int demi_cell_up = static_cast<int32_t>(up_ * 2 - 1);
@@ -489,23 +499,24 @@ Element separatorVSelector(float up,
           pixel.character = "│";
           pixel.automerge = true;
         } else {
-          pixel.character = a_empty ? "╷" : "╵";
+          pixel.character = a_empty ? "╷" : "╵";  // NOLINT
           pixel.automerge = false;
         }
 
-        if (demi_cell_up <= a && b <= demi_cell_down)
+        if (demi_cell_up <= a && b <= demi_cell_down) {
           pixel.foreground_color = selected_color_;
-        else
+        } else {
           pixel.foreground_color = unselected_color_;
+        }
       }
     }
 
     float up_{};
     float down_{};
-    Color selected_color_{};
     Color unselected_color_{};
+    Color selected_color_{};
   };
-  return std::make_shared<Impl>(up, down, selected_color, unselected_color);
+  return std::make_shared<Impl>(up, down, unselected_color, selected_color);
 }
 
 }  // namespace ftxui

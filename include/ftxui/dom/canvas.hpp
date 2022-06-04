@@ -1,13 +1,19 @@
 #ifndef FTXUI_DOM_CANVAS_HPP
 #define FTXUI_DOM_CANVAS_HPP
 
-#include <stddef.h>       // for size_t
+#include <cstddef>        // for size_t
 #include <functional>     // for function
 #include <string>         // for string
 #include <unordered_map>  // for unordered_map
 
 #include "ftxui/screen/color.hpp"   // for Color
 #include "ftxui/screen/screen.hpp"  // for Pixel
+
+#ifdef DrawText
+// Workaround for WinUsr.h (via Windows.h) defining macros that break things.
+// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-drawtext
+#undef DrawText
+#endif
 
 namespace ftxui {
 

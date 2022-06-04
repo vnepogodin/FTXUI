@@ -67,27 +67,6 @@ class StringRef {
 };
 
 /// @brief An adapter. Own or reference a constant string. For convenience, this
-/// class convert multiple mutable string toward a shared representation.
-class WideStringRef {
- public:
-  WideStringRef(std::wstring* ref) : address_(ref) {}
-  WideStringRef(std::wstring ref) : owned_(std::move(ref)) {}
-  WideStringRef(const wchar_t* ref) : WideStringRef(std::wstring(ref)) {}
-  WideStringRef(const char* ref)
-      : WideStringRef(to_wstring(std::string(ref))) {}
-  constexpr std::wstring& operator*() noexcept {
-    return address_ ? *address_ : owned_;
-  }
-  constexpr std::wstring* operator->() noexcept {
-    return address_ ? address_ : &owned_;
-  }
-
- private:
-  std::wstring owned_{};
-  std::wstring* address_{nullptr};
-};
-
-/// @brief An adapter. Own or reference a constant string. For convenience, this
 /// class convert multiple immutable string toward a shared representation.
 class ConstStringRef {
  public:

@@ -42,8 +42,9 @@ class SliderBase : public ComponentBase {
   }
 
   bool OnEvent(const Event& event) noexcept final {
-    if (event.is_mouse())
+    if (event.is_mouse()) {
       return OnMouseEvent(event);
+    }
 
     if (event == Event::ArrowLeft || event == Event::Character('h')) {
       *value_ -= increment_;
