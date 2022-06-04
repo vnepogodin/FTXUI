@@ -347,7 +347,7 @@ void Compute3(Global& global) {
 
 }  // namespace
 
-void Compute(Global& global) {
+void Compute(Global& global) noexcept {
   if (global.config.direction == FlexboxConfig::Direction::Column ||
       global.config.direction == FlexboxConfig::Direction::ColumnInversed) {
     SymmetryXY(global);

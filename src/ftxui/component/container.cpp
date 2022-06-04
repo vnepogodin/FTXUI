@@ -54,7 +54,7 @@ class ContainerBase : public ComponentBase {
   void SetActiveChild(const ComponentBase* child) noexcept override {
     for (size_t i = 0; i < children_.size(); ++i) {
       if (children_[i].get() == child) {
-        *selector_ = (int)i;
+        *selector_ = i;
         return;
       }
     }
@@ -88,7 +88,7 @@ class ContainerBase : public ComponentBase {
       const auto i =
           (*selector_ + offset * dir + children_.size()) % children_.size();
       if (children_[i]->Focusable()) {
-        *selector_ = (int)i;
+        *selector_ = i;
         return;
       }
     }

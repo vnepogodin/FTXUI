@@ -46,7 +46,7 @@ Component Dropdown(ConstStringListRef entries, int* selected) noexcept {
                                ranges::max(0, *selected_));
       title_ = entries_[*selected_];
       if (show_) {
-        const int max_height = 12;
+        static constexpr int max_height = 12;
         return vbox({
                    checkbox_->Render(),
                    separator(),

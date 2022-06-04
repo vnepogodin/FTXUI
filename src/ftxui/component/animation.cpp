@@ -177,13 +177,13 @@ float ExponentialInOut(float p) {
 
 // Modeled after the damped sine wave y = sin(13pi/2*x)*pow(2, 10 * (x - 1))
 float ElasticIn(float p) {
-  return std::sin(13.f * kPi2) * p) * std::pow(2.f, 10.f * (p - 1.f));
+  return std::sin(13.f * kPi2 * p) * std::pow(2.f, 10.f * (p - 1.f));
 }
 
 // Modeled after the damped sine wave y = sin(-13pi/2*(x + 1))*pow(2, -10x) +
 // 1
 float ElasticOut(float p) {
-  return std::sin(-13.f * kPi2) * (p + 1.f)) * std::pow(2.f, -10.f * p) + 1.f;
+  return std::sin(-13.f * kPi2 * (p + 1.f)) * std::pow(2.f, -10.f * p) + 1.f;
 }
 
 // Modeled after the piecewise exponentially-damped sine wave:

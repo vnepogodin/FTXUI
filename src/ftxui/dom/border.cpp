@@ -115,7 +115,7 @@ class BorderPixel : public Node {
  private:
   Pixel pixel_;
 
-  void ComputeRequirement() override {
+  void ComputeRequirement() noexcept override {
     Node::ComputeRequirement();
     requirement_ = children_[0]->requirement();
     requirement_.min_x += 2;
@@ -130,7 +130,7 @@ class BorderPixel : public Node {
     requirement_.selected_box.y_max++;
   }
 
-  void SetBox(Box box) override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
     if (children_.size() == 2) {
       Box title_box;
@@ -147,7 +147,7 @@ class BorderPixel : public Node {
     children_[0]->SetBox(box);
   }
 
-  void Render(Screen& screen) override {
+  void Render(Screen& screen) noexcept override {
     // Draw content.
     children_[0]->Render(screen);
 

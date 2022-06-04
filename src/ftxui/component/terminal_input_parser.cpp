@@ -14,7 +14,7 @@ TerminalInputParser::TerminalInputParser(Sender<Task> out)
 
 void TerminalInputParser::Timeout(int time) {
   timeout_ += time;
-  const int timeout_threshold = 50;
+  static constexpr int timeout_threshold = 50;
   if (timeout_ < timeout_threshold) {
     return;
   }
@@ -147,7 +147,7 @@ TerminalInputParser::Output TerminalInputParser::ParseUTF8() {
   auto value = uint32_t(head & ~mask);  // NOLINT
 
   // Invalid UTF8, with more than 5 bytes.
-  const unsigned int max_utf8_bytes = 5;
+  static constexpr unsigned int max_utf8_bytes = 5;
   if (first_zero == 1 || first_zero >= max_utf8_bytes) {
     return DROP;
   }
