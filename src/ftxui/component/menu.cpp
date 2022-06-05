@@ -112,7 +112,7 @@ class MenuBase : public ComponentBase {
       elements.push_back(option_->elements_prefix());
 
     for (int i = 0; i < size(); ++i) {
-      if (i != 0 && option_->elements_infix) {
+      if (i != 0 && option_->elements_infix)
         elements.push_back(option_->elements_infix());
 
       const bool is_focused = (focused_entry() == i) && is_menu_focused;
@@ -320,12 +320,12 @@ class MenuBase : public ComponentBase {
     if (!box_.Contain(event.mouse().x, event.mouse().y)) {
       return false;
     }
-    int old_selected = *selected_;
+    const int old_selected = *selected_;
 
-    if (event.mouse().button == Mouse::WheelUp) {
+    if (event.mouse().button == Mouse::Button::WheelUp) {
       (*selected_)--;
     }
-    if (event.mouse().button == Mouse::WheelDown) {
+    if (event.mouse().button == Mouse::Button::WheelDown) {
       (*selected_)++;
     }
 
@@ -567,7 +567,6 @@ Component MenuEntry(ConstStringRef label,
       float target = focused ? 1.F : hovered_ ? 0.5F : 0.F;  // NOLINT
       if (target == animator_background_.to())
         return;
-      }
       animator_background_ =
           animation::Animator(&animation_background_, target,
                               option_->animated_colors.background.duration,

@@ -101,7 +101,7 @@ class Animator {
         current_(-delay)
     { RequestAnimationFrame(); }
 
-  void OnAnimation(const Params& params) {
+  void OnAnimation(const Params& params) noexcept {
     current_ += params.duration();
 
     if (current_ >= duration_) {

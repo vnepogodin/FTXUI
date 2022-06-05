@@ -165,7 +165,7 @@ float ExponentialOut(float p) {
 // y = (1/2)2^(10(2x - 1))         ; [0,0.5)
 // y = -(1/2)*2^(-10(2x - 1))) + 1 ; [0.5,1]
 float ExponentialInOut(float p) {
-  if (p == 0.0 || p == 1.F) {
+  if (p == 0.F || p == 1.F) {
     return p;
   }
 
@@ -244,37 +244,5 @@ float ElasticInOut(float p) {
   return 0.5f * BounceOut(p * 2.f - 1.f) + 0.5f;
 }
 }  // namespace easing
-
-Animator::Animator(float* from,
-                   float to,
-                   Duration duration,
-                   easing::Function easing_function,
-                   Duration delay)
-    : value_(from),
-      from_(*from),
-      to_(to),
-      duration_(duration),
-      easing_function_(std::move(easing_function)),
-      current_(-delay) {
-  RequestAnimationFrame();
-}
-
-void Animator::OnAnimation(Params& params) noexcept {
-  current_ += params.duration();
-
-  if (current_ >= duration_) {
-    *value_ = to_;
-    return;
-  }
-
-  if (current_ <= Duration()) {
-    *value_ = from_;
-  } else {
-    *value_ = from_ +
-              (to_ - from_) * easing_function_(current_ / duration_);  // NOLINT
-  }
-
-  RequestAnimationFrame();
-}
 
 }  // namespace ftxui::animation

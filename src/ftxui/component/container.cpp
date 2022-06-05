@@ -163,10 +163,10 @@ class VerticalContainer : public ContainerBase {
       return false;
     }
 
-    if (event.mouse().button == Mouse::WheelUp) {
+    if (event.mouse().button == Mouse::Button::WheelUp) {
       MoveSelector(-1);
     }
-    if (event.mouse().button == Mouse::WheelDown) {
+    if (event.mouse().button == Mouse::Button::WheelDown) {
       MoveSelector(+1);
     }
     *selector_ = ranges::max(

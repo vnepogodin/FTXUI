@@ -36,6 +36,7 @@ class Reflect : public Node {
   Box& reflected_box_;
 };
 
+[[gnu::const]]
 Decorator reflect(Box& box) noexcept {
   return [&](Element child) -> Element {
     return std::make_shared<Reflect>(std::move(child), box);

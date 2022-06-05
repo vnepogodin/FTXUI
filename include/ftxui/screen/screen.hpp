@@ -14,7 +14,17 @@ namespace ftxui {
 /// @brief A unicode character and its associated style.
 /// @ingroup screen
 struct Pixel {
-  bool operator==(const Pixel& other) const;
+  constexpr bool operator==(const Pixel& other) const noexcept {
+    return character == other.character &&                //
+           background_color == other.background_color &&  //
+           foreground_color == other.foreground_color &&  //
+           blink == other.blink &&                        //
+           bold == other.bold &&                          //
+           dim == other.dim &&                            //
+           inverted == other.inverted &&                  //
+           underlined == other.underlined &&              //
+           automerge == other.automerge;                  //
+  }
 
   // The graphemes stored into the pixel. To support combining characters,
   // like: a⃦, this can potentially contains multiple codepoitns.

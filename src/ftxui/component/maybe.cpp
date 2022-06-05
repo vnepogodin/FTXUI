@@ -77,6 +77,7 @@ Component Maybe(Component child, const bool* show) noexcept {
 /// auto component = Renderer([]{ return "Hello World!"; });
 /// auto maybe_component = component | Maybe(&show);
 /// ```
+[[gnu::const]]
 ComponentDecorator Maybe(const bool* show) noexcept {
   return [show](auto&& child) { return Maybe(child, show); };
 }

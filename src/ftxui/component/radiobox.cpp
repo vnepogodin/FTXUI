@@ -151,10 +151,10 @@ class RadioboxBase : public ComponentBase {
 
     int old_hovered = hovered_;
 
-    if (event.mouse().button == Mouse::WheelUp) {
+    if (event.mouse().button == Mouse::Button::WheelUp) {
       (hovered_)--;
     }
-    if (event.mouse().button == Mouse::WheelDown) {
+    if (event.mouse().button == Mouse::Button::WheelDown) {
       (hovered_)++;
     }
 

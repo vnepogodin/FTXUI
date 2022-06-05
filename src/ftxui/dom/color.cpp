@@ -83,6 +83,7 @@ Element bgcolor(Color color, Element child) noexcept {
 /// ```cpp
 /// Element document = text("red") | color(Color::Red);
 /// ```
+[[gnu::const]]
 Decorator color(Color c) noexcept {
   return [c](Element child) { return color(c, std::move(child)); };
 }
@@ -97,6 +98,7 @@ Decorator color(Color c) noexcept {
 /// ```cpp
 /// Element document = text("red") | bgcolor(Color::Red);
 /// ```
+[[gnu::const]]
 Decorator bgcolor(Color color) noexcept {
   return [color](Element child) { return bgcolor(color, std::move(child)); };
 }

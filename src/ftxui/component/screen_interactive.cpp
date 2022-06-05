@@ -669,6 +669,7 @@ void ScreenInteractive::Draw(const Component& component) noexcept {
   }
 }
 
+[[gnu::const]]
 Closure ScreenInteractive::ExitLoopClosure() noexcept {
   return [this] {
     quit_ = true;

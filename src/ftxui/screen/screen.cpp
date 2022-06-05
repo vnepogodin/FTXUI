@@ -347,18 +347,6 @@ bool ShouldAttemptAutoMerge(Pixel& pixel) {
 
 }  // namespace
 
-constexpr bool Pixel::operator==(const Pixel& other) const noexcept {
-  return character == other.character &&                //
-         background_color == other.background_color &&  //
-         foreground_color == other.foreground_color &&  //
-         blink == other.blink &&                        //
-         bold == other.bold &&                          //
-         dim == other.dim &&                            //
-         inverted == other.inverted &&                  //
-         underlined == other.underlined &&              //
-         automerge == other.automerge;                  //
-}
-
 /// Use the terminal dimensions.
 /// @see Fixed
 /// @see Fit

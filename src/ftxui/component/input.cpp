@@ -11,7 +11,6 @@
 #include <ftxui/component/component.hpp>          // for Make, Input
 #include <ftxui/component/component_base.hpp>     // for ComponentBase
 #include <ftxui/component/component_options.hpp>  // for InputOption
-#include <ftxui/component/deprecated.hpp>         // for Input
 #include <ftxui/component/event.hpp>  // for Event, Event::ArrowLeft, Event::ArrowRight, Event::Backspace, Event::Custom, Event::Delete, Event::End, Event::Home, Event::Return
 #include <ftxui/component/mouse.hpp>  // for Mouse, Mouse::Left, Mouse::Pressed
 #include <ftxui/component/screen_interactive.hpp>  // for Component
@@ -122,7 +121,7 @@ class InputBase : public ComponentBase {
 
     // Backspace.
     if (event == Event::Backspace) {
-      if (cursor_position() == 0) {
+      if (cursor_position() == 0)
         return false;
       const size_t start = GlyphPosition(*content_, cursor_position() - 1);
       const size_t end = GlyphPosition(*content_, cursor_position());
@@ -134,7 +133,7 @@ class InputBase : public ComponentBase {
 
     // Delete
     if (event == Event::Delete) {
-      if (cursor_position() == int(content_->size())) {
+      if (cursor_position() == int(content_->size()))
         return false;
       const size_t start = GlyphPosition(*content_, cursor_position());
       const size_t end = GlyphPosition(*content_, cursor_position() + 1);
@@ -209,7 +208,7 @@ class InputBase : public ComponentBase {
     size_t original_cell = 0;
     for (size_t i = 0; i < mapping.size(); i++) {
       if (mapping[i] == original_glyph) {
-        original_cell = (int)i;
+        original_cell = i;
         break;
       }
     }

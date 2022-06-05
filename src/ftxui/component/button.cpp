@@ -65,8 +65,8 @@ Component Button(const ConstStringRef& label,
          std::function<void()> on_click,
          Ref<ButtonOption> option)
         : label_(std::move(label)),
-          on_click_(std::move(on_click)),
-          option_(std::move(option)) {}
+          option_(std::move(option)),
+          on_click_(std::move(on_click)) {}
 
     // Component implementation:
     Element Render() noexcept override {
@@ -157,8 +157,8 @@ Component Button(const ConstStringRef& label,
         return false;
       }
 
-      if (event.mouse().button == Mouse::Left &&
-          event.mouse().motion == Mouse::Pressed) {
+      if (event.mouse().button == Mouse::Button::Left &&
+          event.mouse().motion == Mouse::Motion::Pressed) {
         TakeFocus();
         OnClick();
         return true;

@@ -18,7 +18,7 @@ class Size : public Node {
  public:
   Size(Element child, Direction direction, Constraint constraint, int value)
       : Node(unpack(std::move(child))),
-        value_(static_cast<int>(value)),
+        value_(value),
         direction_(direction),
         constraint_(constraint) {}
 
@@ -86,6 +86,7 @@ class Size : public Node {
 /// @param constraint The type of constraint.
 /// @param value The value.
 /// @ingroup dom
+[[gnu::const]]
 Decorator size(Direction direction, Constraint constraint, int value) noexcept {
   return [=](Element e) {
     return std::make_shared<Size>(std::move(e), direction, constraint, value);

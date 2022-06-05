@@ -25,6 +25,7 @@ namespace ftxui {
 ///   | focusPositionRelative(0.f, 1.f)
 ///   | frame;
 /// ```
+[[gnu::const]]
 Decorator focusPositionRelative(float x, float y) noexcept {
   class Impl : public NodeDecorator {
    public:
@@ -64,11 +65,12 @@ Decorator focusPositionRelative(float x, float y) noexcept {
 ///   | focusPosition(10, 10)
 ///   | frame;
 /// ```
+[[gnu::const]]
 Decorator focusPosition(int x, int y) noexcept {
   class Impl : public NodeDecorator {
    public:
     Impl(Element child, int x, int y)
-        : NodeDecorator(std::move(child)), x_(static_cast<int32_t>(x)), y_(static_cast<int32_t>(y)) {}
+        : NodeDecorator(std::move(child)), x_(x), y_(y) {}
 
     void ComputeRequirement() noexcept override {
       NodeDecorator::ComputeRequirement();

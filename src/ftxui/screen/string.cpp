@@ -261,6 +261,7 @@ namespace ftxui {
   return width;
 }
 
+[[gnu::pure]]
 int string_width(const std::string& input) {
   int width = 0;
   size_t start = 0;
@@ -331,6 +332,7 @@ std::vector<std::string> Utf8ToGlyphs(const std::string& input) {
   return out;
 }
 
+[[gnu::pure]]
 int GlyphPosition(const std::string& input, size_t glyph_index, size_t start) {
   if (glyph_index <= 0) {
     return 0;
@@ -400,6 +402,7 @@ std::vector<int> CellToGlyphIndex(const std::string& input) {
   return out;
 }
 
+[[gnu::pure]]
 int GlyphCount(const std::string& input) {
   int size = 0;
   size_t start = 0;

@@ -216,6 +216,7 @@ Decorator borderWith(const Pixel& pixel) noexcept {
 /// @brief Same as border but with different styles.
 /// @ingroup dom
 /// @see border
+[[gnu::const]]
 Decorator borderStyled(BorderStyle style) noexcept {
   return [style](Element child) {
     return std::make_shared<Border>(unpack(std::move(child)), style);

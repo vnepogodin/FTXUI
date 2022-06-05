@@ -33,7 +33,7 @@ constexpr int Wrap(int input, int modulo) noexcept {
 }
 
 constexpr void Order(int& a, int& b) noexcept {
-  if (a >= b)
+  if (a >= b) {
     std::swap(a, b);
   }
 }
