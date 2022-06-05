@@ -1,8 +1,23 @@
 #ifndef FTXUI_SCREEN_BOX_HPP
 #define FTXUI_SCREEN_BOX_HPP
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
 #include <range/v3/algorithm/max.hpp>
 #include <range/v3/algorithm/min.hpp>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 namespace ftxui {
 

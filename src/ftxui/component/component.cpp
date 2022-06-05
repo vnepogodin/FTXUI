@@ -11,8 +11,23 @@
 #include <ftxui/component/screen_interactive.hpp>  // for Component, ScreenInteractive
 #include <ftxui/dom/elements.hpp>                  // for text, Element
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
 #include <range/v3/algorithm/find_if.hpp>
 #include <range/v3/algorithm/any_of.hpp>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 namespace ftxui::animation {
 class Params;
