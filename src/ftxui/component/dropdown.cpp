@@ -1,17 +1,16 @@
-#include <algorithm>  // for max, min
 #include <memory>     // for __shared_ptr_access
-#include <ranges>
 #include <string>       // for string
 #include <string_view>  // for string_view
 #include <utility>      // for move
 
-#include "ftxui/component/component.hpp"  // for Maybe, Checkbox, Make, Radiobox, Vertical, Dropdown
-#include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
-#include "ftxui/component/component_options.hpp"  // for CheckboxOption, EntryState
-#include "ftxui/dom/elements.hpp"  // for operator|, Element, border, filler, operator|=, separator, size, text, vbox, frame, vscroll_indicator, hbox, HEIGHT, LESS_THAN, bold, inverted
-#include "ftxui/util/ref.hpp"      // for ConstStringListRef
+#include <ftxui/component/component.hpp>  // for Maybe, Checkbox, Make, Radiobox, Vertical, Dropdown
+#include <ftxui/component/component_base.hpp>  // for Component, ComponentBase
+#include <ftxui/component/component_options.hpp>  // for CheckboxOption, EntryState
+#include <ftxui/dom/elements.hpp>  // for operator|, Element, border, filler, operator|=, separator, size, text, vbox, frame, vscroll_indicator, hbox, HEIGHT, LESS_THAN, bold, inverted
+#include <ftxui/util/ref.hpp>      // for ConstStringListRef
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 

@@ -1,4 +1,3 @@
-#include <algorithm>  // for copy, max, min
 #include <array>      // for array
 #include <chrono>  // for operator-, milliseconds, duration, operator>=, time_point, common_type<>::type
 #include <csignal>  // for signal, raise, SIGTSTP, SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGWINCH
@@ -6,7 +5,6 @@
 #include <functional>        // for function
 #include <initializer_list>  // for initializer_list
 #include <iostream>  // for cout, ostream, basic_ostream, operator<<, endl, flush
-#include <ranges>
 #include <stack>        // for stack
 #include <thread>       // for thread, sleep_for
 #include <type_traits>  // for decay_t
@@ -24,7 +22,7 @@
 #include <ftxui/dom/node.hpp>                         // for Node, Render
 #include <ftxui/screen/terminal.hpp>                  // for Size, Dimensions
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/min.hpp>
 
 #if defined(_WIN32)
 #define DEFINE_CONSOLEV2_PROPERTIES

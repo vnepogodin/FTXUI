@@ -3,10 +3,8 @@
 #include <cstdint>  // for uint8_t
 #include <cstdlib>  // for abs
 
-#include <algorithm>  // for max, min
 #include <array>
 #include <memory>  // for make_shared
-#include <ranges>
 #include <unordered_map>  // for allocator, unordered_map
 #include <utility>        // for move, pair
 #include <vector>         // for vector
@@ -19,7 +17,8 @@
 #include <ftxui/screen/string.hpp>    // for Utf8ToGlyphs
 #include <ftxui/util/ref.hpp>         // for ConstRef
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 

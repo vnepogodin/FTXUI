@@ -1,7 +1,5 @@
-#include <algorithm>  // for min, max
 #include <cstddef>    // for size_t
 #include <memory>     // for make_shared, __shared_ptr_access
-#include <ranges>
 #include <utility>  // for move
 #include <vector>   // for __alloc_traits<>::value_type
 
@@ -10,7 +8,8 @@
 #include <ftxui/dom/requirement.hpp>  // for Requirement
 #include <ftxui/screen/box.hpp>       // for Box
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 

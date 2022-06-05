@@ -1,4 +1,3 @@
-#include <ranges>
 #include <utility>  // for move
 
 #include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse
@@ -12,7 +11,8 @@
 #include <ftxui/screen/color.hpp>  // for Color, Color::GrayDark, Color::GrayLight
 #include <ftxui/util/ref.hpp>      // for StringRef
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 

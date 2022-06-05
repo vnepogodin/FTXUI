@@ -1,8 +1,6 @@
-#include <algorithm>   // for max, min
 #include <cstddef>     // for size_t
 #include <functional>  // for function
 #include <memory>      // for shared_ptr, allocator
-#include <ranges>
 #include <string>   // for string, wstring
 #include <utility>  // for move
 #include <vector>   // for vector
@@ -20,7 +18,8 @@
 #include <ftxui/screen/util.hpp>  // for clamp
 #include <ftxui/util/ref.hpp>  // for StringRef, Ref, WideStringRef, ConstStringRef
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 

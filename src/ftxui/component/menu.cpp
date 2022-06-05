@@ -1,7 +1,5 @@
-#include <algorithm>   // for max, reverse
 #include <chrono>      // for milliseconds
 #include <functional>  // for function
-#include <ranges>
 #include <string>   // for char_traits, operator+, string, basic_string
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
@@ -19,7 +17,7 @@
 #include <ftxui/screen/util.hpp>   // for clamp
 #include <ftxui/util/ref.hpp>  // for Ref, ConstStringListRef, ConstStringRef
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/reverse.hpp>
 
 namespace ftxui {
 

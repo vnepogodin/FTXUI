@@ -1,8 +1,6 @@
-#include <algorithm>  // for find_if, any_of
 #include <cassert>    // for assert
 #include <cstddef>    // for size_t
 #include <iterator>   // for begin, end
-#include <ranges>     // for ranges
 #include <utility>    // for move
 #include <vector>     // for vector, __alloc_traits<>::value_type
 
@@ -13,7 +11,8 @@
 #include <ftxui/component/screen_interactive.hpp>  // for Component, ScreenInteractive
 #include <ftxui/dom/elements.hpp>                  // for text, Element
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/find_if.hpp>
+#include <range/v3/algorithm/any_of.hpp>
 
 namespace ftxui::animation {
 class Params;

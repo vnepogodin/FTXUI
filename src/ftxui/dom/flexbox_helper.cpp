@@ -1,14 +1,12 @@
-#include "ftxui/dom/flexbox_helper.hpp"
-
-#include <algorithm>  // for min, max
 #include <cstddef>    // for size_t
 #include <memory>     // for allocator_traits<>::value_type
-#include <ranges>
 #include <utility>  // for swap, move
 
+#include <ftxui/dom/flexbox_helper.hpp>
 #include <ftxui/dom/box_helper.hpp>  // for Element, Compute
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui::flexbox_helper {
 

@@ -1,9 +1,6 @@
 #include <ftxui/dom/box_helper.hpp>
 
-#include <algorithm>  // for max
-#include <ranges>
-
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
 
 namespace ftxui::box_helper {
 

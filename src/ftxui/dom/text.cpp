@@ -1,6 +1,4 @@
-#include <algorithm>  // for min
 #include <memory>     // for make_shared
-#include <ranges>
 #include <string>       // for string, wstring
 #include <string_view>  // for string_view
 #include <utility>
@@ -14,7 +12,7 @@
 #include <ftxui/screen/screen.hpp>    // for Pixel, Screen
 #include <ftxui/screen/string.hpp>  // for string_width, Utf8ToGlyphs, to_string
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 

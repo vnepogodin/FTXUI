@@ -1,6 +1,4 @@
-#include <algorithm>  // for max
 #include <memory>     // for make_shared, __shared_ptr_access
-#include <ranges>
 #include <string>   // for string
 #include <utility>  // for move
 #include <vector>   // for __alloc_traits<>::value_type
@@ -12,7 +10,7 @@
 #include <ftxui/screen/box.hpp>          // for Box
 #include <ftxui/screen/screen.hpp>       // for Screen, Pixel
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
 
 namespace ftxui {
 

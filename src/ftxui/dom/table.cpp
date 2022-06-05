@@ -1,13 +1,10 @@
-#include "ftxui/dom/table.hpp"
-
-#include <algorithm>  // for max
 #include <memory>  // for allocator, shared_ptr, allocator_traits<>::value_type
-#include <ranges>
 #include <utility>  // for move, swap
 
+#include <ftxui/dom/table.hpp>
 #include <ftxui/dom/elements.hpp>  // for Element, operator|, text, separatorCharacter, Elements, BorderStyle, Decorator, emptyElement, size, gridbox, EQUAL, flex, flex_shrink, HEIGHT, WIDTH
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
 
 namespace ftxui {
 namespace {

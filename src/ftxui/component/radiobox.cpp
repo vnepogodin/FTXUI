@@ -1,7 +1,5 @@
-#include <algorithm>   // for max
 #include <functional>  // for function
 #include <memory>      // for shared_ptr, allocator_traits<>::value_type
-#include <ranges>
 #include <string>   // for string
 #include <utility>  // for move
 #include <vector>   // for vector
@@ -17,8 +15,6 @@
 #include <ftxui/screen/box.hpp>    // for Box
 #include <ftxui/screen/util.hpp>   // for clamp
 #include <ftxui/util/ref.hpp>      // for Ref, ConstStringListRef
-
-namespace ranges = std::ranges;
 
 namespace ftxui {
 

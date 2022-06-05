@@ -1,6 +1,4 @@
-#include <algorithm>  // for max, min
 #include <memory>     // for make_shared, __shared_ptr_access
-#include <ranges>
 #include <utility>  // for move
 #include <vector>   // for __alloc_traits<>::value_type
 
@@ -11,7 +9,8 @@
 #include <ftxui/screen/screen.hpp>   // for Screen, Screen::Cursor
 #include <ftxui/util/autoreset.hpp>  // for AutoReset
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/max.hpp>
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 

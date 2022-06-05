@@ -1,7 +1,5 @@
-#include <algorithm>   // for min
 #include <functional>  // for function
 #include <memory>      // for __shared_ptr_access, make_unique
-#include <ranges>
 #include <utility>  // for move
 #include <vector>   // for vector
 
@@ -12,7 +10,7 @@
 #include <ftxui/screen/screen.hpp>    // for Full
 #include <ftxui/screen/terminal.hpp>  // for Dimensions
 
-namespace ranges = std::ranges;
+#include <range/v3/algorithm/min.hpp>
 
 namespace ftxui {
 
