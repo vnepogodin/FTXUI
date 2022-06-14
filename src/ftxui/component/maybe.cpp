@@ -43,7 +43,7 @@ Component Maybe(Component child, const std::function<bool()>& show) noexcept {
 /// ### Example
 ///
 /// ```cpp
-/// auto component = Renderer([]{ return "Hello World!"; });
+/// auto component = Renderer([]{ return text("Hello World!"); });
 /// auto maybe_component = component | Maybe([&]{ return counter == 42; });
 /// ```
 ComponentDecorator Maybe(std::function<bool()> show) noexcept {
@@ -60,7 +60,7 @@ ComponentDecorator Maybe(std::function<bool()> show) noexcept {
 /// ### Example
 ///
 /// ```cpp
-/// auto component = Renderer([]{ return "Hello World!"; });
+/// auto component = Renderer([]{ return text("Hello World!"); });
 /// auto maybe_component = Maybe(component, &show);
 /// ```
 Component Maybe(Component child, const bool* show) noexcept {
@@ -74,7 +74,7 @@ Component Maybe(Component child, const bool* show) noexcept {
 /// ### Example
 ///
 /// ```cpp
-/// auto component = Renderer([]{ return "Hello World!"; });
+/// auto component = Renderer([]{ return text("Hello World!"); });
 /// auto maybe_component = component | Maybe(&show);
 /// ```
 [[gnu::const]]

@@ -25,7 +25,7 @@ namespace ftxui {
 namespace {
 
 // NOLINTNEXTLINE
-static const std::string charset[6][6] = {
+static const std::string charset[5][6] = {
     {"┌", "┐", "└", "┘", "─", "│"},  //
     {"┏", "┓", "┗", "┛", "━", "┃"},  //
     {"╔", "╗", "╚", "╝", "═", "║"},  //

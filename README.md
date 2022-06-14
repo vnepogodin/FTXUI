@@ -326,6 +326,8 @@ Feel free to add your projects here:
 - [tabdeeli](https://github.com/typon/tabdeeli)
 - [tiles](https://github.com/tusharpm/tiles)
 - [cachyos-cli-installer](https://github.com/cachyos/new-cli-installer)
+- [beagle-config](https://github.com/SAtacker/beagle-config)
+- [turing_cmd](https://github.com/DanArmor/turing_cmd)
 
 ## [cpp-best-practices/game_jam](https://github.com/cpp-best-practices/game_jam)
 

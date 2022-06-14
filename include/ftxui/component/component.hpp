@@ -88,6 +88,9 @@ Component Maybe(Component, const std::function<bool()>&) noexcept;
 ComponentDecorator Maybe(const bool* show) noexcept;
 ComponentDecorator Maybe(std::function<bool()>) noexcept;
 
+Component Modal(const Component& main, const Component& modal, const bool* show_modal) noexcept;
+ComponentDecorator Modal(const Component& modal, const bool* show_modal) noexcept;
+
 Component Collapsible(const ConstStringRef& label,
                       const Component& child,
                       Ref<bool> show = false) noexcept;

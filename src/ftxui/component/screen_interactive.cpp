@@ -2,8 +2,10 @@
 #include <chrono>  // for operator-, milliseconds, duration, operator>=, time_point, common_type<>::type
 #include <csignal>  // for signal, raise, SIGTSTP, SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGWINCH
 #include <cstdio>   // for fileno, size_t, stdin
-#include <functional>        // for function
-#include <initializer_list>  // for initializer_list
+#include <ftxui/component/task.hpp>  // for Task, Closure, AnimationTask
+#include <ftxui/screen/screen.hpp>   // for Pixel, Screen::Cursor, Screen
+#include <functional>                // for function
+#include <initializer_list>          // for initializer_list
 #include <iostream>  // for cout, ostream, basic_ostream, operator<<, endl, flush
 #include <stack>        // for stack
 #include <thread>       // for thread, sleep_for
