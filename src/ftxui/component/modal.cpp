@@ -12,19 +12,19 @@ namespace ftxui {
 // top of the other when |show_modal| is true.
 /// @ingroup component
 // NOLINTNEXTLINE
-Component Modal(Component main, Component modal, const bool* show_modal) {
+Component Modal(const Component& main, const Component& modal, const bool* show_modal) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(Component main, Component modal, const bool* show_modal)
-        : main_(std::move(main)),
-          modal_(std::move(modal)),
+    explicit Impl(const Component& main, const Component& modal, const bool* show_modal)
+        : main_(main),
+          modal_(modal),
           show_modal_(show_modal) {
       selector_ = *show_modal_;
       Add(Container::Tab({main_, modal_}, &selector_));
     }
 
    private:
-    Element Render() override {
+    Element Render() noexcept override {
       selector_ = *show_modal_;
       auto document = main_->Render();
       if (*show_modal_) {
@@ -36,7 +36,7 @@ Component Modal(Component main, Component modal, const bool* show_modal) {
       return document;
     }
 
-    bool OnEvent(Event event) override {
+    bool OnEvent(const Event& event) noexcept override {
       selector_ = *show_modal_;
       return ComponentBase::OnEvent(event);
     }
@@ -53,7 +53,7 @@ Component Modal(Component main, Component modal, const bool* show_modal) {
 // the top of the other when |show_modal| is true.
 /// @ingroup component
 // NOLINTNEXTLINE
-ComponentDecorator Modal(Component modal, const bool* show_modal) {
+ComponentDecorator Modal(const Component& modal, const bool* show_modal) noexcept {
   return [modal, show_modal](Component main) {
     return Modal(std::move(main), modal, show_modal);
   };
