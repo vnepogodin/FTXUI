@@ -648,7 +648,7 @@ Component MenuEntry(ConstStringRef label,
         animation::Animator(&animation_foreground_, 0.F);
   };
 
-  return std::make_shared<Impl>(label, option);
+  return Make<Impl>(label, option);
 }
 
 }  // namespace ftxui
