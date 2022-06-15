@@ -4,6 +4,7 @@
 #include <ftxui/screen/string.hpp>
 #include <string>
 #include <string_view>
+#include <memory>
 
 namespace ftxui {
 
@@ -51,9 +52,9 @@ class Ref {
 class StringRef {
  public:
   StringRef(std::string* ref) : address_(ref) {}
-  StringRef(std::string ref) : owned_(std::move(ref)) {}
+  StringRef(std::string&& ref) : owned_(std::move(ref)) {}
   StringRef(const wchar_t* ref) : StringRef(to_string(std::wstring(ref))) {}
-  StringRef(const char* ref) : StringRef(std::string(ref)) {}
+  //StringRef(const char* ref) : StringRef(std::string(ref)) {}
   constexpr std::string& operator*() noexcept {
     return address_ ? *address_ : owned_;
   }
@@ -70,17 +71,24 @@ class StringRef {
 /// class convert multiple immutable string toward a shared representation.
 class ConstStringRef {
  public:
+  ConstStringRef() = default;
+  ConstStringRef(ConstStringRef&&) = default;
+  ConstStringRef(const ConstStringRef&) = default;
+
+  ConstStringRef& operator=(ConstStringRef&&) = default;
+  ConstStringRef& operator=(const ConstStringRef&) = default;
+
   ConstStringRef(const std::string* ref) : address_(ref) {}
   ConstStringRef(const std::string_view* ref)
       : ConstStringRef(to_wstring(std::string(ref->data()))) {}
   ConstStringRef(const std::wstring* ref) : ConstStringRef(to_string(*ref)) {}
-  ConstStringRef(std::string ref) : owned_(std::move(ref)) {}
+  ConstStringRef(const std::string& ref) : owned_(ref) {}
   ConstStringRef(std::wstring ref) : ConstStringRef(to_string(ref)) {}
-  ConstStringRef(std::string_view ref)
+  ConstStringRef(const std::string_view& ref)
       : ConstStringRef(to_wstring(std::string(ref.data(), ref.size()))) {}
   ConstStringRef(const wchar_t* ref) : ConstStringRef(std::wstring(ref)) {}
   ConstStringRef(const char* ref)
-      : ConstStringRef(to_wstring(std::string(ref))) {}
+      : ConstStringRef(to_wstring(std::move(std::string{ref}))) {}
   constexpr const std::string& operator*() const noexcept {
     return address_ ? *address_ : owned_;
   }
@@ -96,6 +104,13 @@ class ConstStringRef {
 /// @brief An adapter. Reference a list of strings.
 class ConstStringListRef {
  public:
+  ConstStringListRef() = default;
+  ConstStringListRef(ConstStringListRef&&) = default;
+  ConstStringListRef(const ConstStringListRef&) = default;
+
+  ConstStringListRef& operator=(ConstStringListRef&&) = default;
+  ConstStringListRef& operator=(const ConstStringListRef&) = default;
+
   [[maybe_unused]] ConstStringListRef(const std::string* ref, const size_t size)
       : ref_(::new std::vector<std::string>(ref, ref + size)) {}
   [[maybe_unused]]  ConstStringListRef(const std::wstring* ref, const size_t size)

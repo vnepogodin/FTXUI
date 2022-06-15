@@ -1,8 +1,9 @@
 #include <cstddef>    // for size_t
-#include <memory>  // for make_shared, __shared_ptr_access, allocator, shared_ptr, allocator_traits<>::value_type
+#include <memory>  // for make_unique, __shared_ptr_access, allocator, shared_ptr, allocator_traits<>::value_type
 #include <string_view>  // for std::string_view
 #include <utility>      // for move
 #include <vector>       // for vector, __alloc_traits<>::value_type
+#include <algorithm> // for transform
 
 #include <ftxui/component/component.hpp>  // for Horizontal, Vertical, Tab
 #include <ftxui/component/component_base.hpp>  // for Components, Component, ComponentBase
@@ -33,10 +34,10 @@ namespace ftxui {
 
 class ContainerBase : public ComponentBase {
  public:
-  ContainerBase(Components children, int* selector)
+  ContainerBase(const Components& children, int* selector)
       : selector_(selector ? selector : &selected_) {
-    for (Component& child : children) {
-      Add(std::move(child));
+    for (const auto& child : children) {
+      Add(child);
     }
   }
 
@@ -115,8 +116,8 @@ class VerticalContainer : public ContainerBase {
 
   Element Render() noexcept override {
     Elements elements;
-    for (auto&& it : children_)
-      elements.push_back(it->Render());
+    std::transform(children_.begin(), children_.end(), std::back_inserter(elements),
+                    [](auto&& it) { return it->Render(); });
     if (elements.empty()) {
       return text("Empty container") | reflect(box_);
     }
@@ -198,9 +199,8 @@ class HorizontalContainer : public ContainerBase {
 
   Element Render() noexcept override {
     Elements elements;
-    for (auto& it : children_) {
-      elements.push_back(it->Render());
-    }
+    std::transform(children_.begin(), children_.end(), std::back_inserter(elements),
+                    [](auto&& it) { return it->Render(); });
     if (elements.empty()) {
       return text("Empty container");
     }
@@ -270,8 +270,8 @@ namespace Container {
 ///   children_4,
 /// });
 /// ```
-Component Vertical(Components children) noexcept {
-  return Vertical(std::move(children), nullptr);
+Component Vertical(const Components& children) noexcept {
+  return Vertical(children, nullptr);
 }
 
 /// @brief A list of components, drawn one by one vertically and navigated
@@ -292,8 +292,8 @@ Component Vertical(Components children) noexcept {
 ///   children_4,
 /// });
 /// ```
-Component Vertical(Components children, int* selector) noexcept {
-  return std::make_shared<VerticalContainer>(std::move(children), selector);
+Component Vertical(const Components& children, int* selector) noexcept {
+  return std::make_unique<VerticalContainer>(children, selector);
 }
 
 /// @brief A list of components, drawn one by one horizontally and navigated
@@ -313,8 +313,8 @@ Component Vertical(Components children, int* selector) noexcept {
 ///   children_4,
 /// }, &selected_children);
 /// ```
-Component Horizontal(Components children) noexcept {
-  return Horizontal(std::move(children), nullptr);
+Component Horizontal(const Components& children) noexcept {
+  return Horizontal(children, nullptr);
 }
 
 /// @brief A list of components, drawn one by one horizontally and navigated
@@ -335,8 +335,8 @@ Component Horizontal(Components children) noexcept {
 ///   children_4,
 /// }, selected_children);
 /// ```
-Component Horizontal(Components children, int* selector) noexcept {
-  return std::make_shared<HorizontalContainer>(std::move(children), selector);
+Component Horizontal(const Components& children, int* selector) noexcept {
+  return std::make_unique<HorizontalContainer>(children, selector);
 }
 
 /// @brief A list of components, where only one is drawn and interacted with at
@@ -358,8 +358,8 @@ Component Horizontal(Components children, int* selector) noexcept {
 ///   children_4,
 /// }, &tab_drawn);
 /// ```
-Component Tab(Components children, int* selector) noexcept {
-  return std::make_shared<TabContainer>(std::move(children), selector);
+Component Tab(const Components& children, int* selector) noexcept {
+  return std::make_unique<TabContainer>(children, selector);
 }
 
 }  // namespace Container

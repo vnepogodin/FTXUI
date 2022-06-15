@@ -19,7 +19,7 @@ using Elements = std::vector<Element>;
 class Node {
  public:
   constexpr Node() noexcept = default;
-  Node(Elements children);
+  Node(const Elements& children);
   virtual ~Node() = default;
 
   Node(const Node&) = delete;
@@ -35,7 +35,7 @@ class Node {
 
   // Step 2: Assign this element its final dimensions.
   //         Propagated from Parents to Children.
-  virtual void SetBox(Box box);
+  virtual void SetBox(const Box& box);
 
   // Step 3: Draw this element.
   virtual void Render(Screen& screen);

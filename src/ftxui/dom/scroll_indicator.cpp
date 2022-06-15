@@ -1,6 +1,5 @@
-#include <memory>     // for make_shared, __shared_ptr_access
+#include <memory>     // for make_unique, __shared_ptr_access
 #include <string>   // for string
-#include <utility>  // for move
 #include <vector>   // for __alloc_traits<>::value_type
 
 #include <ftxui/dom/elements.hpp>        // for Element, vscroll_indicator
@@ -32,7 +31,7 @@ namespace ftxui {
 /// @brief Add a filter that will invert the foreground and the background
 /// colors.
 /// @ingroup dom
-Element vscroll_indicator(Element child) noexcept {
+Element vscroll_indicator(const Element& child) noexcept {
   class Impl : public NodeDecorator {
     using NodeDecorator::NodeDecorator;
 
@@ -42,7 +41,7 @@ Element vscroll_indicator(Element child) noexcept {
       requirement_.min_x++;
     }
 
-    void SetBox(Box box) noexcept override {
+    void SetBox(const Box& box) noexcept override {
       ftxui::NodeDecorator::SetBox(box);
       if (box_.x_min > box_.x_max) {
         box_.x_max--;
@@ -81,7 +80,7 @@ Element vscroll_indicator(Element child) noexcept {
       }
     };
   };
-  return std::make_shared<Impl>(std::move(child));
+  return std::make_unique<Impl>(child);
 }
 
 }  // namespace ftxui

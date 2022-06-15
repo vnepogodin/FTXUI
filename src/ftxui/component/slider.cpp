@@ -143,7 +143,7 @@ Component Slider(ConstStringRef label,
                  T min,
                  T max,
                  T increment) noexcept {
-  return Make<SliderBase<T>>(std::move(label), value, min, max, increment);
+  return std::make_unique<SliderBase<T>>(label, value, min, max, increment);
 }
 
 template Component Slider(ConstStringRef label,

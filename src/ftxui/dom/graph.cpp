@@ -1,5 +1,5 @@
 #include <functional>  // for function
-#include <memory>      // for allocator, make_shared
+#include <memory>      // for allocator, make_unique
 #include <string>      // for string
 #include <utility>     // for move
 #include <vector>      // for vector
@@ -60,7 +60,7 @@ class Graph : public Node {
 /// @brief Draw a graph using a GraphFunction.
 /// @param graph_function the function to be called to get the data.
 Element graph(const GraphFunction& graph_function) noexcept {
-  return std::make_shared<Graph>(graph_function);
+  return std::make_unique<Graph>(graph_function);
 }
 
 }  // namespace ftxui

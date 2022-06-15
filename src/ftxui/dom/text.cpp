@@ -1,4 +1,4 @@
-#include <memory>     // for make_shared
+#include <memory>     // for make_unique
 #include <string>       // for string, wstring
 #include <string_view>  // for string_view
 #include <utility>
@@ -35,9 +35,9 @@ using ftxui::Screen;
 
 class Text : public Node {
  public:
-  explicit Text(const char* text) : text_(text) {}
-  explicit Text(std::string text) : text_(std::move(text)) {}
-  explicit Text(const std::string_view text) : text_(text) {}
+  //explicit Text(const char* text) : text_(text) {}
+  explicit Text(const std::string& text) : text_(text) {}
+  //explicit Text(const std::string_view text) : text_(text) {}
 
   void ComputeRequirement() override {
     requirement_.min_x = string_width(text_);
@@ -109,16 +109,16 @@ class VText : public Node {
 /// Hello world!
 /// ```
 Element text(const std::string& text) noexcept {
-  return std::make_shared<Text>(text);
+  return std::make_unique<Text>(text);
 }
 
-Element text(const std::string_view text) noexcept {
-  return std::make_shared<Text>(text);
-}
+//Element text(const std::string_view text) noexcept {
+//  return std::make_unique<Text>(text);
+//}
 
-Element text(const char* text) noexcept {
-  return std::make_shared<Text>(text);
-}
+//Element text(const char* text) noexcept {
+//  return std::make_unique<Text>(text);
+//}
 
 /// @brief Display a piece of unicode text.
 /// @ingroup dom
@@ -136,7 +136,7 @@ Element text(const char* text) noexcept {
 /// Hello world!
 /// ```
 Element text(const std::wstring& text) noexcept {  // NOLINT
-  return std::make_shared<Text>(ftxui::to_string(text));
+  return std::make_unique<Text>(ftxui::to_string(text));
 }
 
 /// @brief Display a piece of unicode text vertically.
@@ -166,7 +166,7 @@ Element text(const std::wstring& text) noexcept {  // NOLINT
 /// !
 /// ```
 Element vtext(const std::string& text) noexcept {
-  return std::make_shared<VText>(text);
+  return std::make_unique<VText>(text);
 }
 
 /// @brief Display a piece unicode text vertically.
@@ -196,7 +196,7 @@ Element vtext(const std::string& text) noexcept {
 /// !
 /// ```
 Element vtext(const std::wstring& text) noexcept {  // NOLINT
-  return std::make_shared<VText>(ftxui::to_string(text));
+  return std::make_unique<VText>(ftxui::to_string(text));
 }
 
 }  // namespace ftxui

@@ -18,7 +18,7 @@ namespace {
 class CheckboxBase : public ComponentBase {
  public:
   CheckboxBase(ConstStringRef label, bool* state, Ref<CheckboxOption> option)
-      : label_(std::move(label)), state_(state), option_(std::move(option)) {}
+      : label_(label), state_(state), option_(std::move(option)) {}
 
  private:
   // Component implementation.
@@ -112,10 +112,10 @@ class CheckboxBase : public ComponentBase {
 /// ```bash
 /// ☐ Make a sandwitch
 /// ```
-Component Checkbox(const ConstStringRef& label,
+Component Checkbox(ConstStringRef label,
                    bool* checked,
-                   Ref<CheckboxOption> option) noexcept {
-  return Make<CheckboxBase>(label, checked, std::move(option));
+                   const Ref<CheckboxOption>& option) noexcept {
+  return std::make_unique<CheckboxBase>(label, checked, option);
 }
 
 }  // namespace ftxui

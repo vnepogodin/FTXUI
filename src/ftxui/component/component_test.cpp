@@ -1,6 +1,6 @@
 #include <gtest/gtest-message.h>  // for Message
 #include <gtest/gtest-test-part.h>  // for TestPartResult, SuiteApiResolver, TestFactoryImpl
-#include <memory>  // for shared_ptr, __shared_ptr_access, allocator, __shared_ptr_access<>::element_type, make_shared
+#include <memory>  // for shared_ptr, __shared_ptr_access, allocator, __shared_ptr_access<>::element_type, make_unique
 
 #include "ftxui/component/component.hpp"       // for Make
 #include "ftxui/component/component_base.hpp"  // for ComponentBase, Component
@@ -10,7 +10,7 @@ namespace ftxui {
 
 namespace {
 Component Make() {
-  return std::make_shared<ComponentBase>();
+  return std::make_unique<ComponentBase>();
 }
 }  // namespace
 

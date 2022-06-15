@@ -56,17 +56,17 @@ Element DefaultTransform(const EntryState& params) noexcept {  // NOLINT
 /// └─────────────┘
 /// ```
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-Component Button(const ConstStringRef& label,
-                 std::function<void()> on_click,
-                 Ref<ButtonOption> option) noexcept {
+Component Button(ConstStringRef label,
+                 const std::function<void()>& on_click,
+                 const Ref<ButtonOption>& option) noexcept {
   class Impl : public ComponentBase {
    public:
     Impl(ConstStringRef label,
-         std::function<void()> on_click,
-         Ref<ButtonOption> option)
-        : label_(std::move(label)),
-          option_(std::move(option)),
-          on_click_(std::move(on_click)) {}
+         const std::function<void()>& on_click,
+         const Ref<ButtonOption>& option)
+        : label_(label),
+          option_(option),
+          on_click_(on_click) {}
 
     // Component implementation:
     Element Render() noexcept override {
@@ -183,7 +183,7 @@ Component Button(const ConstStringRef& label,
         animation::Animator(&animation_foreground_);
   };
 
-  return Make<Impl>(std::move(label), std::move(on_click), std::move(option));
+  return std::make_unique<Impl>(label, on_click, option);
 }
 
 }  // namespace ftxui

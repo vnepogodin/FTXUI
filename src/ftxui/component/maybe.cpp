@@ -10,10 +10,10 @@
 
 namespace ftxui {
 
-Component Maybe(Component child, const std::function<bool()>& show) noexcept {
+Component Maybe(const Component& child, const std::function<bool()>& show) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(std::function<bool()> show) : show_(std::move(show)) {}
+    explicit Impl(const std::function<bool()>& show) : show_(show) {}
 
    private:
     Element Render() noexcept override {
@@ -46,8 +46,8 @@ Component Maybe(Component child, const std::function<bool()>& show) noexcept {
 /// auto component = Renderer([]{ return text("Hello World!"); });
 /// auto maybe_component = component | Maybe([&]{ return counter == 42; });
 /// ```
-ComponentDecorator Maybe(std::function<bool()> show) noexcept {
-  return [show = std::move(show)](auto&& child) mutable {
+ComponentDecorator Maybe(const std::function<bool()>& show) noexcept {
+  return [show](auto&& child) mutable {
     return Maybe(child, show);
   };
 }
@@ -63,8 +63,8 @@ ComponentDecorator Maybe(std::function<bool()> show) noexcept {
 /// auto component = Renderer([]{ return text("Hello World!"); });
 /// auto maybe_component = Maybe(component, &show);
 /// ```
-Component Maybe(Component child, const bool* show) noexcept {
-  return Maybe(std::move(child), [show] { return *show; });
+Component Maybe(const Component& child, const bool* show) noexcept {
+  return Maybe(child, [show] { return *show; });
 }
 
 /// @brief Decorate a component. It is shown only when |show| is true.

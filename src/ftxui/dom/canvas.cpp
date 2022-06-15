@@ -4,7 +4,7 @@
 #include <cstdlib>  // for abs
 
 #include <array>
-#include <memory>  // for make_shared
+#include <memory>  // for make_unique
 #include <unordered_map>  // for allocator, unordered_map
 #include <utility>        // for move, pair
 #include <vector>         // for vector
@@ -892,7 +892,7 @@ Element canvas(ConstRef<Canvas> canvas) noexcept {
     const Canvas& canvas() noexcept final { return *canvas_; }
     ConstRef<Canvas> canvas_;
   };
-  return std::make_shared<Impl>(std::move(canvas));
+  return std::make_unique<Impl>(std::move(canvas));
 }
 
 /// @brief Produce an element drawing a canvas of requested size.
@@ -926,7 +926,7 @@ Element canvas(int width,
     int height_;
     std::function<void(Canvas&)> fn_;
   };
-  return std::make_shared<Impl>(width, height, std::move(fn));
+  return std::make_unique<Impl>(width, height, std::move(fn));
 }
 
 /// @brief Produce an element drawing a canvas.

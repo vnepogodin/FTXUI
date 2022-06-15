@@ -1,5 +1,4 @@
-#include <memory>   // for make_shared, __shared_ptr_access
-#include <utility>  // for move
+#include <memory>   // for make_unique, __shared_ptr_access
 #include <vector>   // for __alloc_traits<>::value_type
 
 #include "ftxui/dom/elements.hpp"  // for Element, unpack, filler, flex, flex_grow, flex_shrink, notflex, xflex, xflex_grow, xflex_shrink, yflex, yflex_grow, yflex_shrink
@@ -67,8 +66,8 @@ constexpr void function_not_flex(Requirement& r) noexcept {
 
 class Flex : public Node {
  public:
-  explicit Flex(FlexFunction f) : f_(f) {}
-  Flex(FlexFunction f, Element child) : Node(unpack(std::move(child))), f_(f) {}
+  explicit Flex(const FlexFunction& f) : f_(f) {}
+  Flex(const FlexFunction& f, const Element& child) : Node(unpack(child)), f_(f) {}
   void ComputeRequirement() noexcept override {
     requirement_.min_x = 0;
     requirement_.min_y = 0;
@@ -79,7 +78,7 @@ class Flex : public Node {
     f_(requirement_);
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     if (children_.empty()) {
       return;
     }
@@ -93,7 +92,7 @@ class Flex : public Node {
 /// a container.
 /// @ingroup dom
 Element filler() noexcept {
-  return std::make_shared<Flex>(function_flex);
+  return std::make_unique<Flex>(function_flex);
 }
 
 /// @brief Make a child element to expand proportionally to the space left in a
@@ -117,62 +116,62 @@ Element filler() noexcept {
 /// │left││middle                                                   ││right│
 /// └────┘└─────────────────────────────────────────────────────────┘└─────┘
 /// ~~~
-Element flex(Element child) noexcept {
-  return std::make_shared<Flex>(function_flex, std::move(child));
+Element flex(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_flex, child);
 }
 
 /// @brief Expand/Minimize if possible/needed on the X axis.
 /// @ingroup dom
-Element xflex(Element child) noexcept {
-  return std::make_shared<Flex>(function_xflex, std::move(child));
+Element xflex(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_xflex, child);
 }
 
 /// @brief Expand/Minimize if possible/needed on the Y axis.
 /// @ingroup dom
-Element yflex(Element child) noexcept {
-  return std::make_shared<Flex>(function_yflex, std::move(child));
+Element yflex(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_yflex, child);
 }
 
 /// @brief Expand if possible.
 /// @ingroup dom
-Element flex_grow(Element child) noexcept {
-  return std::make_shared<Flex>(function_flex_grow, std::move(child));
+Element flex_grow(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_flex_grow, child);
 }
 
 /// @brief Expand if possible on the X axis.
 /// @ingroup dom
-Element xflex_grow(Element child) noexcept {
-  return std::make_shared<Flex>(function_xflex_grow, std::move(child));
+Element xflex_grow(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_xflex_grow, child);
 }
 
 /// @brief Expand if possible on the Y axis.
 /// @ingroup dom
-Element yflex_grow(Element child) noexcept {
-  return std::make_shared<Flex>(function_yflex_grow, std::move(child));
+Element yflex_grow(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_yflex_grow, child);
 }
 
 /// @brief Minimize if needed.
 /// @ingroup dom
-Element flex_shrink(Element child) noexcept {
-  return std::make_shared<Flex>(function_flex_shrink, std::move(child));
+Element flex_shrink(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_flex_shrink, child);
 }
 
 /// @brief Minimize if needed on the X axis.
 /// @ingroup dom
-Element xflex_shrink(Element child) noexcept {
-  return std::make_shared<Flex>(function_xflex_shrink, std::move(child));
+Element xflex_shrink(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_xflex_shrink, child);
 }
 
 /// @brief Minimize if needed on the Y axis.
 /// @ingroup dom
-Element yflex_shrink(Element child) noexcept {
-  return std::make_shared<Flex>(function_yflex_shrink, std::move(child));
+Element yflex_shrink(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_yflex_shrink, child);
 }
 
 /// @brief Make the element not flexible.
 /// @ingroup dom
-Element notflex(Element child) noexcept {
-  return std::make_shared<Flex>(function_not_flex, std::move(child));
+Element notflex(const Element& child) noexcept {
+  return std::make_unique<Flex>(function_not_flex, child);
 }
 
 }  // namespace ftxui

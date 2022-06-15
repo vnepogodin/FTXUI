@@ -1,5 +1,5 @@
 #include <cstddef>    // for size_t
-#include <memory>     // for make_shared, __shared_ptr_access
+#include <memory>     // for make_unique, __shared_ptr_access
 #include <utility>  // for move
 #include <vector>   // for __alloc_traits<>::value_type
 
@@ -30,8 +30,8 @@ namespace ftxui {
 
 class Size : public Node {
  public:
-  Size(Element child, Direction direction, Constraint constraint, int value)
-      : Node(unpack(std::move(child))),
+  Size(const Element& child, Direction direction, Constraint constraint, int value)
+      : Node(unpack(child)),
         value_(value),
         direction_(direction),
         constraint_(constraint) {}
@@ -63,14 +63,15 @@ class Size : public Node {
     }
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
 
+    Box tmp = box;
     if (direction_ == WIDTH) {
       switch (constraint_) {
         case LESS_THAN:
         case EQUAL:
-          box.x_max = ranges::min(box.x_min + value_ + 1, box.x_max);
+          tmp.x_max = ranges::min(box.x_min + value_ + 1, box.x_max);
           break;
         case GREATER_THAN:
           break;
@@ -79,13 +80,13 @@ class Size : public Node {
       switch (constraint_) {
         case LESS_THAN:
         case EQUAL:
-          box.y_max = ranges::min(box.y_min + value_ + 1, box.y_max);
+          tmp.y_max = ranges::min(box.y_min + value_ + 1, box.y_max);
           break;
         case GREATER_THAN:
           break;
       }
     }
-    children_[0]->SetBox(box);
+    children_[0]->SetBox(tmp);
   }
 
  private:
@@ -102,8 +103,8 @@ class Size : public Node {
 /// @ingroup dom
 [[gnu::const]]
 Decorator size(Direction direction, Constraint constraint, int value) noexcept {
-  return [=](Element e) {
-    return std::make_shared<Size>(std::move(e), direction, constraint, value);
+  return [=](auto&& e) {
+    return std::make_unique<Size>(e, direction, constraint, value);
   };
 }
 

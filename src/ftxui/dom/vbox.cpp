@@ -1,6 +1,5 @@
 #include <cstddef>    // for size_t
-#include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
-#include <utility>  // for move
+#include <memory>  // for __shared_ptr_access, shared_ptr, make_unique, allocator_traits<>::value_type
 #include <vector>   // for vector, __alloc_traits<>::value_type
 
 #include <ftxui/dom/box_helper.hpp>   // for Element, Compute
@@ -30,7 +29,7 @@ namespace ftxui {
 
 class VBox : public Node {
  public:
-  explicit VBox(Elements children) : Node(std::move(children)) {}
+  explicit VBox(const Elements& children) : Node(children) {}
 
   void ComputeRequirement() noexcept override {
     requirement_.min_x = 0;
@@ -54,7 +53,7 @@ class VBox : public Node {
     }
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
 
     std::vector<box_helper::Element> elements(children_.size());
@@ -68,12 +67,13 @@ class VBox : public Node {
     const int target_size = box.y_max - box.y_min + 1;
     box_helper::Compute(&elements, target_size);
 
+    Box temp = box;
     int y = box.y_min;
     for (size_t i = 0; i < children_.size(); ++i) {
-      box.y_min = y;
-      box.y_max = y + elements[i].size - 1;
-      children_[i]->SetBox(box);
-      y = box.y_max + 1;
+      temp.y_min = y;
+      temp.y_max = y + elements[i].size - 1;
+      children_[i]->SetBox(temp);
+      y = temp.y_max + 1;
     }
   }
 };
@@ -91,8 +91,8 @@ class VBox : public Node {
 ///   text("Down"),
 /// });
 /// ```
-Element vbox(Elements children) noexcept {
-  return std::make_shared<VBox>(std::move(children));
+Element vbox(const Elements& children) noexcept {
+  return std::make_unique<VBox>(children);
 }
 
 }  // namespace ftxui

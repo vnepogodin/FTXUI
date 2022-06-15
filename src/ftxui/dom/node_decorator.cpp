@@ -8,12 +8,12 @@
 
 namespace ftxui {
 
-void NodeDecorator::ComputeRequirement() {
+void NodeDecorator::ComputeRequirement() noexcept {
   Node::ComputeRequirement();
   requirement_ = children_[0]->requirement();
 }
 
-void NodeDecorator::SetBox(Box box) {
+void NodeDecorator::SetBox(const Box& box) noexcept {
   Node::SetBox(box);
   children_[0]->SetBox(box);
 }

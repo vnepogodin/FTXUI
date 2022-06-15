@@ -24,10 +24,10 @@ namespace {
 /// @ingroup component
 class RadioboxBase : public ComponentBase {
  public:
-  RadioboxBase(ConstStringListRef entries,
+  RadioboxBase(const ConstStringListRef& entries,
                int* selected,
-               Ref<RadioboxOption> option)
-      : selected_(selected), option_(std::move(option)), entries_(entries) {
+               const Ref<RadioboxOption>& option)
+      : selected_(selected), option_(option), entries_(entries) {
     hovered_ = *selected_;
   }
 
@@ -218,8 +218,8 @@ class RadioboxBase : public ComponentBase {
 /// ```
 Component Radiobox(ConstStringListRef entries,
                    int* selected,
-                   Ref<RadioboxOption> option) noexcept {
-  return Make<RadioboxBase>(entries, selected, std::move(option));
+                   const Ref<RadioboxOption>& option) noexcept {
+  return std::make_unique<RadioboxBase>(entries, selected, option);
 }
 
 }  // namespace ftxui

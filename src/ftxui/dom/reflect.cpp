@@ -1,4 +1,4 @@
-#include <memory>   // for make_shared, __shared_ptr_access
+#include <memory>   // for make_unique, __shared_ptr_access
 #include <utility>  // for move
 #include <vector>   // for __alloc_traits<>::value_type
 
@@ -13,15 +13,15 @@ namespace ftxui {
 // Helper class.
 class Reflect : public Node {
  public:
-  Reflect(Element child, Box& box)
-      : Node(unpack(std::move(child))), reflected_box_(box) {}
+  Reflect(const Element& child, Box& box)
+      : Node(unpack(child)), reflected_box_(box) {}
 
   void ComputeRequirement() noexcept final {
     Node::ComputeRequirement();
     requirement_ = children_[0]->requirement();
   }
 
-  void SetBox(Box box) noexcept final {
+  void SetBox(const Box& box) noexcept final {
     reflected_box_ = box;
     Node::SetBox(box);
     children_[0]->SetBox(box);
@@ -38,8 +38,8 @@ class Reflect : public Node {
 
 [[gnu::const]]
 Decorator reflect(Box& box) noexcept {
-  return [&](Element child) -> Element {
-    return std::make_shared<Reflect>(std::move(child), box);
+  return [&](auto&& child) -> Element {
+    return std::make_unique<Reflect>(child, box);
   };
 }
 

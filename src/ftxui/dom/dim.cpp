@@ -1,5 +1,4 @@
-#include <memory>   // for make_shared
-#include <utility>  // for move
+#include <memory>   // for make_unique
 
 #include "ftxui/dom/elements.hpp"        // for Element, dim
 #include "ftxui/dom/node.hpp"            // for Node
@@ -25,8 +24,8 @@ class Dim : public NodeDecorator {
 
 /// @brief Use a light font, for elements with less emphasis.
 /// @ingroup dom
-Element dim(Element child) noexcept {
-  return std::make_shared<Dim>(std::move(child));
+Element dim(const Element& child) noexcept {
+  return std::make_unique<Dim>(child);
 }
 
 }  // namespace ftxui

@@ -1,4 +1,4 @@
-#include <memory>   // for make_shared
+#include <memory>   // for make_unique
 #include <utility>  // for move
 
 #include "ftxui/dom/elements.hpp"  // for Decorator, Element, focusPosition, focusPositionRelative
@@ -29,8 +29,8 @@ namespace ftxui {
 Decorator focusPositionRelative(float x, float y) noexcept {
   class Impl : public NodeDecorator {
    public:
-    Impl(Element child, float x, float y)
-        : NodeDecorator(std::move(child)), x_(x), y_(y) {}
+    Impl(const Element& child, float x, float y)
+        : NodeDecorator(child), x_(x), y_(y) {}
 
     void ComputeRequirement() noexcept override {
       NodeDecorator::ComputeRequirement();
@@ -48,8 +48,8 @@ Decorator focusPositionRelative(float x, float y) noexcept {
     const float y_;
   };
 
-  return [x, y](Element child) {
-    return std::make_shared<Impl>(std::move(child), x, y);
+  return [x, y](auto&& child) {
+    return std::make_unique<Impl>(child, x, y);
   };
 }
 
@@ -69,8 +69,8 @@ Decorator focusPositionRelative(float x, float y) noexcept {
 Decorator focusPosition(int x, int y) noexcept {
   class Impl : public NodeDecorator {
    public:
-    Impl(Element child, int x, int y)
-        : NodeDecorator(std::move(child)), x_(x), y_(y) {}
+    Impl(const Element& child, int x, int y)
+        : NodeDecorator(child), x_(x), y_(y) {}
 
     void ComputeRequirement() noexcept override {
       NodeDecorator::ComputeRequirement();
@@ -88,8 +88,8 @@ Decorator focusPosition(int x, int y) noexcept {
     const int y_;
   };
 
-  return [x, y](Element child) {
-    return std::make_shared<Impl>(std::move(child), x, y);
+  return [x, y](auto&& child) {
+    return std::make_unique<Impl>(child, x, y);
   };
 }
 

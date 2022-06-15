@@ -46,7 +46,7 @@ Component Modal(const Component& main, const Component& modal, const bool* show_
     const bool* show_modal_;
     int selector_ = 0;
   };
-  return Make<Impl>(main, modal, show_modal);
+  return std::make_unique<Impl>(main, modal, show_modal);
 }
 
 // Decorate a component. Add a |modal| window on top of it. It is shown one on
@@ -54,8 +54,8 @@ Component Modal(const Component& main, const Component& modal, const bool* show_
 /// @ingroup component
 // NOLINTNEXTLINE
 ComponentDecorator Modal(const Component& modal, const bool* show_modal) noexcept {
-  return [modal, show_modal](Component main) {
-    return Modal(std::move(main), modal, show_modal);
+  return [modal, show_modal](auto&& main) {
+    return Modal(main, modal, show_modal);
   };
 }
 

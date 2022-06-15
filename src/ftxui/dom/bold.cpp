@@ -1,4 +1,4 @@
-#include <memory>   // for make_shared
+#include <memory>   // for make_unique
 #include <utility>  // for move
 
 #include "ftxui/dom/elements.hpp"        // for Element, bold
@@ -25,8 +25,8 @@ class Bold : public NodeDecorator {
 
 /// @brief Use a bold font, for elements with more emphasis.
 /// @ingroup dom
-Element bold(Element child) noexcept {
-  return std::make_shared<Bold>(std::move(child));
+Element bold(const Element& child) noexcept {
+  return std::make_unique<Bold>(child);
 }
 
 }  // namespace ftxui

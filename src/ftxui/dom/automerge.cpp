@@ -1,5 +1,4 @@
-#include <memory>   // for make_shared
-#include <utility>  // for move
+#include <memory>   // for make_unique
 
 #include <ftxui/dom/elements.hpp>        // for Element, automerge
 #include <ftxui/dom/node.hpp>            // for Node
@@ -11,7 +10,7 @@ namespace ftxui {
 
 /// @brief Enable character to be automatically merged with others nearby.
 /// @ingroup dom
-Element automerge(Element child) noexcept {
+Element automerge(const Element& child) noexcept {
   class Impl : public NodeDecorator {
    public:
     using NodeDecorator::NodeDecorator;
@@ -26,7 +25,7 @@ Element automerge(Element child) noexcept {
     }
   };
 
-  return std::make_shared<Impl>(std::move(child));
+  return std::make_unique<Impl>(child);
 }
 
 }  // namespace ftxui

@@ -1,4 +1,4 @@
-#include <memory>  // for allocator, make_shared
+#include <memory>  // for allocator, make_unique
 #include <string>  // for string
 
 #include "ftxui/dom/elements.hpp"  // for GaugeDirection, Element, GaugeDirection::Down, GaugeDirection::Left, GaugeDirection::Right, GaugeDirection::Up, gauge, gaugeDirection, gaugeDown, gaugeLeft, gaugeRight, gaugeUp
@@ -154,7 +154,7 @@ class Gauge : public Node {
 //  @param direction Direction of progress bars progression.
 /// @ingroup dom
 Element gaugeDirection(float progress, GaugeDirection direction) noexcept {
-  return std::make_shared<Gauge>(progress, direction);
+  return std::make_unique<Gauge>(progress, direction);
 }
 
 /// @brief Draw a high definition progress bar progressing from left to right.

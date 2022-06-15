@@ -33,7 +33,7 @@ class ScreenInteractive : public Screen {
   // Return the currently active screen, nullptr if none.
   static ScreenInteractive* Active() noexcept;
 
-  void Loop(Component) noexcept;
+  void Loop(const Component&) noexcept;
   Closure ExitLoopClosure() noexcept;
 
   void Post(const Task& task) noexcept;
@@ -54,7 +54,7 @@ class ScreenInteractive : public Screen {
   void Install() noexcept;
   void Uninstall() noexcept;
 
-  void Main(Component component) noexcept;
+  void Main(const Component& component) noexcept;
 
   void Draw(const Component& component) noexcept;
   void SigStop() noexcept;

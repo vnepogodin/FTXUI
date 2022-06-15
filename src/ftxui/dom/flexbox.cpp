@@ -1,6 +1,6 @@
 #include <cstddef>    // for size_t
-#include <memory>  // for __shared_ptr_access, shared_ptr, allocator_traits<>::value_type, make_shared
-#include <utility>  // for move, swap
+#include <memory>  // for __shared_ptr_access, shared_ptr, allocator_traits<>::value_type, make_unique
+#include <utility>  // for swap
 #include <vector>   // for vector
 
 #include <ftxui/dom/elements.hpp>  // for Element, Elements, flexbox, hflow, vflow
@@ -67,8 +67,8 @@ FlexboxConfig Normalize(FlexboxConfig config) noexcept {
 
 class Flexbox : public Node {
  public:
-  Flexbox(Elements children, FlexboxConfig config)
-      : Node(std::move(children)),
+  Flexbox(const Elements& children, FlexboxConfig config)
+      : Node(children),
         config_(config),
         config_normalized_(Normalize(config)) {
     requirement_.flex_grow_x = 1;
@@ -160,7 +160,7 @@ class Flexbox : public Node {
     }
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
 
     int asked_previous = asked_;
@@ -232,8 +232,8 @@ class Flexbox : public Node {
 //       .SetGapCrossAxis(1)
 //  )
 /// ```
-Element flexbox(Elements children, FlexboxConfig config) noexcept {
-  return std::make_shared<Flexbox>(std::move(children), config);
+Element flexbox(const Elements& children, FlexboxConfig config) noexcept {
+  return std::make_unique<Flexbox>(children, config);
 }
 
 /// @brief A container displaying elements in rows from left to right. When
@@ -250,8 +250,8 @@ Element flexbox(Elements children, FlexboxConfig config) noexcept {
 ///   text("element 3"),
 /// });
 /// ```
-Element hflow(Elements children) noexcept {
-  return flexbox(std::move(children), FlexboxConfig());
+Element hflow(const Elements& children) noexcept {
+  return flexbox(children, FlexboxConfig());
 }
 
 /// @brief A container displaying elements in rows from top to bottom. When
@@ -270,8 +270,8 @@ Element hflow(Elements children) noexcept {
 ///   text("element 3"),
 /// });
 /// ```
-Element vflow(Elements children) noexcept {
-  return flexbox(std::move(children),
+Element vflow(const Elements& children) noexcept {
+  return flexbox(children,
                  FlexboxConfig().Set(FlexboxConfig::Direction::Column));
 }
 

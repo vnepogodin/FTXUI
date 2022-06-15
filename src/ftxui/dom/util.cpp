@@ -2,6 +2,7 @@
 #include <memory>      // for __shared_ptr_access, make_unique
 #include <utility>  // for move
 #include <vector>   // for vector
+#include <algorithm> // for transform
 
 #include <ftxui/dom/elements.hpp>     // for Element, Decorator, Elements, operator|, Fit, emptyElement, nothing, operator|=
 #include <ftxui/dom/node.hpp>         // for Node, Node::Status
@@ -30,16 +31,16 @@
 namespace ftxui {
 
 namespace {
-Decorator compose(Decorator a, Decorator b) noexcept {
-  return [a = std::move(a), b = std::move(b)](Element element) {
-    return b(a(std::move(element)));
+Decorator compose(const Decorator& a, const Decorator& b) noexcept {
+  return [a, b](auto&& element) {
+    return b(a(element));
   };
 }
 }  // namespace
 
 /// @brief A decoration doing absolutely nothing.
 /// @ingroup dom
-Element nothing(Element element) noexcept {
+Element nothing(const Element& element) noexcept {
   return element;
 }
 
@@ -51,19 +52,17 @@ Element nothing(Element element) noexcept {
 /// ```cpp
 /// auto decorator = bold | blink;
 /// ```
-Decorator operator|(Decorator a, Decorator b) noexcept {
-  return compose(std::move(a),  //
-                 std::move(b));
+Decorator operator|(const Decorator& a, const Decorator& b) noexcept {
+  return compose(a, b);
 }
 
 /// @brief From a set of element, apply a decorator to every elements.
 /// @return the set of decorated element.
 /// @ingroup dom
-Elements operator|(Elements elements, const Decorator& decorator) noexcept {  // NOLINT
+Elements operator|(const Elements& elements, const Decorator& decorator) noexcept {  // NOLINT
   Elements output;
-  for (auto& it : elements) {
-    output.push_back(std::move(it) | decorator);
-  }
+  std::transform(elements.begin(), elements.end(), std::back_inserter(output),
+                [&decorator](auto&& elem) { return elem | decorator; });
   return output;
 }
 
@@ -80,8 +79,8 @@ Elements operator|(Elements elements, const Decorator& decorator) noexcept {  //
 /// ```cpp
 /// text("Hello") | bold;
 /// ```
-Element operator|(Element element, const Decorator& decorator) noexcept {  // NOLINT
-  return decorator(std::move(element));
+Element operator|(const Element& element, const Decorator& decorator) noexcept {  // NOLINT
+  return decorator(element);
 }
 
 /// @brief Apply a decorator to an element.

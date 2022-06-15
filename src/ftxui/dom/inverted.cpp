@@ -1,5 +1,4 @@
-#include <memory>   // for make_shared
-#include <utility>  // for move
+#include <memory>   // for make_unique
 
 #include "ftxui/dom/elements.hpp"        // for Element, inverted
 #include "ftxui/dom/node.hpp"            // for Node
@@ -26,8 +25,8 @@ class Inverted : public NodeDecorator {
 /// @brief Add a filter that will invert the foreground and the background
 /// colors.
 /// @ingroup dom
-Element inverted(Element child) noexcept {
-  return std::make_shared<Inverted>(std::move(child));
+Element inverted(const Element& child) noexcept {
+  return std::make_unique<Inverted>(child);
 }
 
 }  // namespace ftxui

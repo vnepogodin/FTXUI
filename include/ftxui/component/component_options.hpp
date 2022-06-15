@@ -39,11 +39,11 @@ struct UnderlineOption {
   animation::Duration follower_duration = std::chrono::milliseconds(250);
   animation::Duration follower_delay = std::chrono::milliseconds(0);
 
-  void SetAnimation(animation::Duration d, animation::easing::Function f);
+  void SetAnimation(animation::Duration d, const animation::easing::Function& f);
   void SetAnimationDuration(animation::Duration d);
-  void SetAnimationFunction(animation::easing::Function f);
-  void SetAnimationFunction(animation::easing::Function f_leader,
-                            animation::easing::Function f_follower);
+  void SetAnimationFunction(const animation::easing::Function& f);
+  void SetAnimationFunction(const animation::easing::Function& f_leader,
+                            const animation::easing::Function& f_follower);
 };
 
 /// @brief Option about a potentially animated color.
@@ -53,7 +53,7 @@ struct AnimatedColorOption {
       Color inactive,
       Color active,
       animation::Duration duration = std::chrono::milliseconds(250),
-      animation::easing::Function function = animation::easing::QuadraticInOut);
+      const animation::easing::Function& function = animation::easing::QuadraticInOut);
 
   bool enabled{false};
   Color inactive{};

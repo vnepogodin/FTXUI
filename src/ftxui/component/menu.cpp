@@ -80,8 +80,8 @@ bool IsHorizontal(const MenuOption::Direction& direction) noexcept {
 /// @ingroup component
 class MenuBase : public ComponentBase {
  public:
-  MenuBase(ConstStringListRef entries, int* selected, Ref<MenuOption> option)
-      : entries_(entries), selected_(selected), option_(std::move(option)) {}
+  MenuBase(ConstStringListRef entries, int* selected, const Ref<MenuOption>& option)
+      : entries_(entries), selected_(selected), option_(option) {}
 
   [[nodiscard]] bool IsHorizontal() noexcept {
     return ftxui::IsHorizontal(option_->direction);
@@ -509,8 +509,8 @@ class MenuBase : public ComponentBase {
 /// ```
 Component Menu(ConstStringListRef entries,
                int* selected,
-               Ref<MenuOption> option) noexcept {
-  return Make<MenuBase>(entries, selected, std::move(option));
+               const Ref<MenuOption>& option) noexcept {
+  return std::make_unique<MenuBase>(entries, selected, option);
 }
 
 /// @brief An horizontal list of elements. The user can navigate through them.
@@ -549,11 +549,11 @@ Component Toggle(ConstStringListRef entries, int* selected) noexcept {
 ///   entry 3
 /// ```
 Component MenuEntry(ConstStringRef label,
-                    Ref<MenuEntryOption> option) noexcept {
+                    const Ref<MenuEntryOption>& option) noexcept {
   class Impl : public ComponentBase {
    public:
-    Impl(ConstStringRef label, Ref<MenuEntryOption> option)
-        : label_(std::move(label)), option_(std::move(option)) {}
+    Impl(ConstStringRef label, const Ref<MenuEntryOption>& option)
+        : label_(std::move(label)), option_(option) {}
 
    private:
     Element Render() noexcept override {
@@ -648,7 +648,7 @@ Component MenuEntry(ConstStringRef label,
         animation::Animator(&animation_foreground_, 0.F);
   };
 
-  return Make<Impl>(std::move(label), std::move(option));
+  return std::make_shared<Impl>(label, option);
 }
 
 }  // namespace ftxui

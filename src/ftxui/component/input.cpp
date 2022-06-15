@@ -52,12 +52,12 @@ std::string PasswordField(size_t size) noexcept {
 // An input box. The user can type text into it.
 class InputBase : public ComponentBase {
  public:
-  InputBase(StringRef content,
+  InputBase(const StringRef& content,
             ConstStringRef placeholder,
-            Ref<InputOption> option)
-      : content_(std::move(content)),
-        placeholder_(std::move(placeholder)),
-        option_(std::move(option)) {}
+            const Ref<InputOption>& option)
+      : content_(content),
+        placeholder_(placeholder),
+        option_(option) {}
 
   int cursor_position_internal_ = 0;
   int& cursor_position() noexcept {
@@ -130,8 +130,6 @@ class InputBase : public ComponentBase {
     if (event.is_mouse()) {
       return OnMouseEvent(event);
     }
-
-    std::string c;
 
     // Backspace.
     if (event == Event::Backspace) {
@@ -275,10 +273,10 @@ class InputBase : public ComponentBase {
 /// ```bash
 /// placeholder
 /// ```
-Component Input(const StringRef& content,
-                const ConstStringRef& placeholder,
-                Ref<InputOption> option) noexcept {
-  return Make<InputBase>(content, placeholder, std::move(option));
+Component Input(StringRef content,
+                ConstStringRef placeholder,
+                const Ref<InputOption>& option) noexcept {
+  return std::make_unique<InputBase>(content, placeholder, option);
 }
 
 }  // namespace ftxui

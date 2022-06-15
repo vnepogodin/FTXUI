@@ -32,7 +32,7 @@ namespace ftxui {
 Component Dropdown(ConstStringListRef entries, int* selected) noexcept {
   class Impl : public ComponentBase {
    public:
-    Impl(ConstStringListRef entries, int* selected)
+    Impl(const ConstStringListRef& entries, int* selected)
         : entries_(entries), selected_(selected) {
       CheckboxOption option;
       option.transform = [](auto&& s) {
@@ -85,7 +85,7 @@ Component Dropdown(ConstStringListRef entries, int* selected) noexcept {
     Component radiobox_{};
   };
 
-  return Make<Impl>(entries, selected);
+  return std::make_unique<Impl>(entries, selected);
 }
 
 }  // namespace ftxui

@@ -12,18 +12,18 @@ namespace ftxui {
 void AnimatedColorOption::Set(Color a_inactive,
                               Color a_active,
                               animation::Duration a_duration,
-                              animation::easing::Function a_function) {
+                              const animation::easing::Function& a_function) {
   enabled = true;
   inactive = a_inactive;
   active = a_active;
   duration = a_duration;
-  function = std::move(a_function);
+  function = a_function;
 }
 
 void UnderlineOption::SetAnimation(animation::Duration d,
-                                   animation::easing::Function f) {
+                                   const animation::easing::Function& f) {
   SetAnimationDuration(d);
-  SetAnimationFunction(std::move(f));
+  SetAnimationFunction(f);
 }
 
 void UnderlineOption::SetAnimationDuration(animation::Duration d) {
@@ -31,16 +31,16 @@ void UnderlineOption::SetAnimationDuration(animation::Duration d) {
   follower_duration = d;
 }
 
-void UnderlineOption::SetAnimationFunction(animation::easing::Function f) {
+void UnderlineOption::SetAnimationFunction(const animation::easing::Function& f) {
   leader_function = f;
-  follower_function = std::move(f);
+  follower_function = f;
 }
 
 void UnderlineOption::SetAnimationFunction(
-    animation::easing::Function f_leader,
-    animation::easing::Function f_follower) {
-  leader_function = std::move(f_leader);
-  follower_function = std::move(f_follower);
+    const animation::easing::Function& f_leader,
+    const animation::easing::Function& f_follower) {
+  leader_function = f_leader;
+  follower_function = f_follower;
 }
 
 // static
@@ -148,7 +148,7 @@ ButtonOption ButtonOption::Simple() {
 // static
 ButtonOption ButtonOption::WithoutBorder() {
   ButtonOption option;
-  option.transform = [](EntryState s) {
+  option.transform = [](const EntryState& s) {
     auto element = text(s.label);
     if (s.focused)
       element |= inverted;

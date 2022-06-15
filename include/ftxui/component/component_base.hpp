@@ -32,7 +32,7 @@ class ComponentBase {
   [[nodiscard]] ComponentBase* Parent() const noexcept;
   Component& ChildAt(size_t i) noexcept;
   [[nodiscard]] std::size_t ChildCount() const noexcept;
-  void Add(Component children) noexcept;
+  void Add(const Component& children) noexcept;
   void Detach() noexcept;
   void DetachAllChildren() noexcept;
 

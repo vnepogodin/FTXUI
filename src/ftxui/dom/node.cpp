@@ -6,7 +6,7 @@
 
 namespace ftxui {
 
-Node::Node(Elements children) : children_(std::move(children)) {}
+Node::Node(const Elements& children) : children_(children) {}
 
 /// @brief Compute how much space an elements needs.
 /// @ingroup dom
@@ -18,7 +18,7 @@ void Node::ComputeRequirement() {
 
 /// @brief Assign a position and a dimension to an element for drawing.
 /// @ingroup dom
-void Node::SetBox(Box box) {
+void Node::SetBox(const Box& box) {
   box_ = box;
 }
 

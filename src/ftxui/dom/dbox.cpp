@@ -1,4 +1,4 @@
-#include <memory>     // for __shared_ptr_access, shared_ptr, make_shared
+#include <memory>     // for __shared_ptr_access, shared_ptr, make_unique
 #include <utility>  // for move
 #include <vector>   // for vector
 
@@ -28,7 +28,7 @@ namespace ftxui {
 
 class DBox : public Node {
  public:
-  explicit DBox(Elements children) : Node(std::move(children)) {}
+  explicit DBox(const Elements& children) : Node(children) {}
 
   void ComputeRequirement() noexcept override {
     requirement_.min_x = 0;
@@ -52,7 +52,7 @@ class DBox : public Node {
     }
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
 
     for (auto& child : children_) {
@@ -65,8 +65,8 @@ class DBox : public Node {
 /// @param children_ The input element.
 /// @return The right aligned element.
 /// @ingroup dom
-Element dbox(Elements children_) noexcept {
-  return std::make_shared<DBox>(std::move(children_));
+Element dbox(const Elements& children_) noexcept {
+  return std::make_unique<DBox>(children_);
 }
 
 }  // namespace ftxui

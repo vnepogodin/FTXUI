@@ -1,5 +1,5 @@
 #include <cstddef>    // for size_t
-#include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
+#include <memory>  // for __shared_ptr_access, shared_ptr, make_unique, allocator_traits<>::value_type
 #include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
 
@@ -30,7 +30,7 @@ namespace ftxui {
 
 class HBox : public Node {
  public:
-  explicit HBox(Elements children) : Node(std::move(children)) {}
+  explicit HBox(const Elements& children) : Node(children) {}
 
   void ComputeRequirement() noexcept override {
     requirement_.min_x = 0;
@@ -54,7 +54,7 @@ class HBox : public Node {
     }
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
 
     std::vector<box_helper::Element> elements(children_.size());
@@ -65,15 +65,16 @@ class HBox : public Node {
       element.flex_grow = requirement.flex_grow_x;
       element.flex_shrink = requirement.flex_shrink_x;
     }
-    int target_size = box.x_max - box.x_min + 1;
+    const int target_size = box.x_max - box.x_min + 1;
     box_helper::Compute(&elements, target_size);
 
+    Box temp = box;
     int x = box.x_min;
     for (std::size_t i = 0; i < children_.size(); ++i) {
-      box.x_min = x;
-      box.x_max = x + elements[i].size - 1;
-      children_[i]->SetBox(box);
-      x = box.x_max + 1;
+      temp.x_min = x;
+      temp.x_max = x + elements[i].size - 1;
+      children_[i]->SetBox(temp);
+      x = temp.x_max + 1;
     }
   }
 };
@@ -90,8 +91,8 @@ class HBox : public Node {
 ///   text("Right"),
 /// });
 /// ```
-Element hbox(Elements children) noexcept {
-  return std::make_shared<HBox>(std::move(children));
+Element hbox(const Elements& children) noexcept {
+  return std::make_unique<HBox>(children);
 }
 
 }  // namespace ftxui

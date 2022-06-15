@@ -1,5 +1,4 @@
-#include <memory>   // for make_shared
-#include <utility>  // for move
+#include <memory>   // for make_unique
 
 #include "ftxui/dom/elements.hpp"        // for Element, blink
 #include "ftxui/dom/node.hpp"            // for Node
@@ -25,8 +24,8 @@ class Blink : public NodeDecorator {
 
 /// @brief The text drawn alternates in between visible and hidden.
 /// @ingroup dom
-Element blink(Element child) noexcept {
-  return std::make_shared<Blink>(std::move(child));
+Element blink(const Element& child) noexcept {
+  return std::make_unique<Blink>(child);
 }
 
 }  // namespace ftxui

@@ -1,5 +1,4 @@
-#include <memory>   // for make_shared
-#include <utility>  // for move
+#include <memory>   // for make_unique
 
 #include "ftxui/dom/elements.hpp"        // for Element, clear_under
 #include "ftxui/dom/node.hpp"            // for Node
@@ -29,8 +28,8 @@ class ClearUnder : public NodeDecorator {
 //         combinaison with dbox.
 /// @see ftxui::dbox
 /// @ingroup dom
-Element clear_under(Element child) noexcept {
-  return std::make_shared<ClearUnder>(std::move(child));
+Element clear_under(const Element& child) noexcept {
+  return std::make_unique<ClearUnder>(child);
 }
 
 }  // namespace ftxui

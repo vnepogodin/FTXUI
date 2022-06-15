@@ -67,10 +67,10 @@ ComponentBase::~ComponentBase() noexcept {
 /// @brief Add a child.
 /// @@param child The child to be attached.
 /// @ingroup component
-void ComponentBase::Add(Component child) noexcept {
+void ComponentBase::Add(const Component& child) noexcept {
   child->Detach();
   child->parent_ = this;
-  children_.push_back(std::move(child));
+  children_.push_back(child);
 }
 
 /// @brief Detach this child from its parent.

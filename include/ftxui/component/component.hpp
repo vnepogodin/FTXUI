@@ -2,7 +2,7 @@
 #define FTXUI_COMPONENT_HPP
 
 #include <functional>  // for function
-#include <memory>      // for make_shared, shared_ptr
+#include <memory>      // for make_unique, shared_ptr
 #include <string>      // for wstring
 #include <utility>     // for forward
 #include <vector>      // for vector
@@ -22,49 +22,49 @@ struct RadioboxOption;
 struct MenuEntryOption;
 
 template <class T, class... Args>
-constexpr std::shared_ptr<T> Make(Args&&... args) noexcept {
-  return std::make_shared<T>(std::forward<Args>(args)...);
+constexpr std::unique_ptr<T> Make(Args&&... args) noexcept {
+  return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
 // Pipe operator to decorate components.
-using ComponentDecorator = std::function<Component(Component)>;
-using ElementDecorator = std::function<Element(Element)>;
-Component operator|(Component component, const ComponentDecorator& decorator) noexcept;
-Component operator|(Component component, ElementDecorator decorator) noexcept;
+using ComponentDecorator = std::function<Component(const Component&)>;
+using ElementDecorator = std::function<Element(const Element&)>;
+Component operator|(const Component& component, const ComponentDecorator& decorator) noexcept;
+Component operator|(const Component& component, const ElementDecorator& decorator) noexcept;
 Component& operator|=(Component& component, const ComponentDecorator& decorator) noexcept;
-Component& operator|=(Component& component, ElementDecorator decorator) noexcept;
+Component& operator|=(Component& component, const ElementDecorator& decorator) noexcept;
 
 namespace Container {
-Component Vertical(Components children) noexcept;
-Component Vertical(Components children, int* selector) noexcept;
-Component Horizontal(Components children) noexcept;
-Component Horizontal(Components children, int* selector) noexcept;
-Component Tab(Components children, int* selector) noexcept;
+Component Vertical(const Components& children) noexcept;
+Component Vertical(const Components& children, int* selector) noexcept;
+Component Horizontal(const Components& children) noexcept;
+Component Horizontal(const Components& children, int* selector) noexcept;
+Component Tab(const Components& children, int* selector) noexcept;
 
 }  // namespace Container
 
-Component Button(const ConstStringRef& label,
-                 std::function<void()> on_click,
-                 Ref<ButtonOption> = ButtonOption::Simple()) noexcept;
+Component Button(ConstStringRef label,
+                 const std::function<void()>& on_click,
+                 const Ref<ButtonOption>& = ButtonOption::Simple()) noexcept;
 
-Component Checkbox(const ConstStringRef& label,
+Component Checkbox(ConstStringRef label,
                    bool* checked,
-                   Ref<CheckboxOption> option = CheckboxOption::Simple()) noexcept;
+                   const Ref<CheckboxOption>& option = CheckboxOption::Simple()) noexcept;
 
-Component Input(const StringRef& content,
-                const ConstStringRef& placeholder,
-                Ref<InputOption> option = {}) noexcept;
+Component Input(StringRef content,
+                ConstStringRef placeholder,
+                const Ref<InputOption>& option = {}) noexcept;
 
 Component Menu(ConstStringListRef entries,
                int* selected_,
-               Ref<MenuOption> = MenuOption::Vertical()) noexcept;
-Component MenuEntry(ConstStringRef label, Ref<MenuEntryOption> = {}) noexcept;
+               const Ref<MenuOption>& = MenuOption::Vertical()) noexcept;
+Component MenuEntry(ConstStringRef label, const Ref<MenuEntryOption>& = {}) noexcept;
 
 Component Dropdown(ConstStringListRef entries, int* selected) noexcept;
 
 Component Radiobox(ConstStringListRef entries,
                    int* selected_,
-                   Ref<RadioboxOption> option = {}) noexcept;
+                   const Ref<RadioboxOption>& option = {}) noexcept;
 Component Toggle(ConstStringListRef entries, int* selected) noexcept;
 
 template <class T>  // T = {int, float, long}
@@ -75,23 +75,23 @@ Component ResizableSplitRight(const Component& main, const Component& back, int*
 Component ResizableSplitTop(const Component& main, const Component& back, int* main_size) noexcept;
 Component ResizableSplitBottom(const Component& main, const Component& back, int* main_size) noexcept;
 
-Component Renderer(Component child, std::function<Element()>) noexcept;
-Component Renderer(std::function<Element()>) noexcept;
+Component Renderer(const Component& child, const std::function<Element()>&) noexcept;
+Component Renderer(const std::function<Element()>&) noexcept;
 Component Renderer(const std::function<Element(bool /* focused */)>&) noexcept;
-ComponentDecorator Renderer(ElementDecorator) noexcept;
+ComponentDecorator Renderer(const ElementDecorator&) noexcept;
 
 Component CatchEvent(const Component& child, const std::function<bool(const Event&)>&) noexcept;
 ComponentDecorator CatchEvent(const std::function<bool(const Event&)>& on_event) noexcept;
 
-Component Maybe(Component, const bool* show) noexcept;
-Component Maybe(Component, const std::function<bool()>&) noexcept;
+Component Maybe(const Component&, const bool* show) noexcept;
+Component Maybe(const Component&, const std::function<bool()>&) noexcept;
 ComponentDecorator Maybe(const bool* show) noexcept;
-ComponentDecorator Maybe(std::function<bool()>) noexcept;
+ComponentDecorator Maybe(const std::function<bool()>&) noexcept;
 
 Component Modal(const Component& main, const Component& modal, const bool* show_modal) noexcept;
 ComponentDecorator Modal(const Component& modal, const bool* show_modal) noexcept;
 
-Component Collapsible(const ConstStringRef& label,
+Component Collapsible(ConstStringRef label,
                       const Component& child,
                       Ref<bool> show = false) noexcept;
 }  // namespace ftxui

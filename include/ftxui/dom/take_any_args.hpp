@@ -3,21 +3,22 @@
 
 // IWYU pragma: private, include "ftxui/dom/elements.hpp"
 #include <type_traits>
+#include <algorithm>
 
 namespace ftxui {
 
 template <class T>
-void Merge(Elements& /*container*/, T /*element*/) {}
+void Merge(Elements& /*container*/, const T& /*element*/) {}
 
 template <>
-inline void Merge(Elements& container, Element element) {
-  container.push_back(std::move(element));
+inline void Merge(Elements& container, const Element& element) {
+  container.push_back(element);
 }
 
 template <>
-inline void Merge(Elements& container, Elements elements) {
-  for (auto& element : elements)
-    container.push_back(std::move(element));
+inline void Merge(Elements& container, const Elements& elements) {
+  std::copy(elements.begin(), elements.end(),
+          std::back_inserter(container));
 }
 
 // Turn a set of arguments into a vector.

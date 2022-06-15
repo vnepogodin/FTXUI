@@ -12,9 +12,9 @@ struct Box;
 // Helper class.
 class NodeDecorator : public Node {
  public:
-  NodeDecorator(Element child) : Node(unpack(std::move(child))) {}
-  void ComputeRequirement() override;
-  void SetBox(Box box) override;
+  NodeDecorator(const Element& child) : Node(unpack(child)) {}
+  void ComputeRequirement() noexcept override;
+  void SetBox(const Box& box) noexcept override;
 };
 
 }  // namespace ftxui

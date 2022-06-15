@@ -1,6 +1,5 @@
 #include <cstddef>    // for size_t
-#include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
-#include <utility>  // for move
+#include <memory>  // for __shared_ptr_access, shared_ptr, make_unique, allocator_traits<>::value_type
 #include <vector>   // for vector, __alloc_traits<>::value_type
 
 #include <ftxui/dom/box_helper.hpp>   // for Element, Compute
@@ -49,7 +48,7 @@ int Integrate(std::vector<int>& elements) {
 
 class GridBox : public Node {
  public:
-  explicit GridBox(std::vector<Elements> lines) : lines_(std::move(lines)) {
+  explicit GridBox(const std::vector<Elements>& lines) : lines_(lines) {
     y_size = static_cast<int>(lines_.size());
     for (const auto& line : lines_)
       x_size = ranges::max(x_size, static_cast<int>(line.size()));
@@ -104,7 +103,7 @@ class GridBox : public Node {
     }
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
 
     box_helper::Element init;
@@ -193,8 +192,8 @@ class GridBox : public Node {
 ///│south-west││south ││south-east│
 ///╰──────────╯╰──────╯╰──────────╯
 /// ```
-Element gridbox(std::vector<Elements> lines) noexcept {
-  return std::make_shared<GridBox>(std::move(lines));
+Element gridbox(const std::vector<Elements>& lines) noexcept {
+  return std::make_unique<GridBox>(lines);
 }
 
 }  // namespace ftxui

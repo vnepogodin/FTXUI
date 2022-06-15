@@ -348,7 +348,7 @@ CapturedMouse ScreenInteractive::CaptureMouse() noexcept {
       [this] { mouse_captured = false; });
 }
 
-void ScreenInteractive::Loop(Component component) noexcept {  // NOLINT
+void ScreenInteractive::Loop(const Component& component) noexcept {  // NOLINT
   // Suspend previously active screen:
   if (g_active_screen) {
     std::swap(suspended_screen_, g_active_screen);
@@ -528,7 +528,7 @@ void ScreenInteractive::Uninstall() noexcept {
 }
 
 // NOLINTNEXTLINE
-void ScreenInteractive::Main(Component component) noexcept {
+void ScreenInteractive::Main(const Component& component) noexcept {
   previous_animation_time = animation::Clock::now();
 
   auto draw = [&] {

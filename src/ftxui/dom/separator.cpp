@@ -1,5 +1,5 @@
 #include <array>    // for array, array<>::value_type
-#include <memory>   // for make_shared, allocator
+#include <memory>   // for make_unique, allocator
 #include <string>   // for basic_string, string
 #include <utility>  // for move
 
@@ -128,7 +128,7 @@ class SeparatorWithPixel : public SeparatorAuto {
 /// down
 /// ```
 Element separator() noexcept {
-  return std::make_shared<SeparatorAuto>(LIGHT);
+  return std::make_unique<SeparatorAuto>(LIGHT);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -165,7 +165,7 @@ Element separator() noexcept {
 /// down
 /// ```
 Element separatorStyled(BorderStyle style) noexcept {
-  return std::make_shared<SeparatorAuto>(style);
+  return std::make_unique<SeparatorAuto>(style);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -201,7 +201,7 @@ Element separatorStyled(BorderStyle style) noexcept {
 /// down
 /// ```
 Element separatorLight() noexcept {
-  return std::make_shared<SeparatorAuto>(LIGHT);
+  return std::make_unique<SeparatorAuto>(LIGHT);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -237,7 +237,7 @@ Element separatorLight() noexcept {
 /// down
 /// ```
 Element separatorHeavy() noexcept {
-  return std::make_shared<SeparatorAuto>(HEAVY);
+  return std::make_unique<SeparatorAuto>(HEAVY);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -273,7 +273,7 @@ Element separatorHeavy() noexcept {
 /// down
 /// ```
 Element separatorDouble() noexcept {
-  return std::make_shared<SeparatorAuto>(DOUBLE);
+  return std::make_unique<SeparatorAuto>(DOUBLE);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -309,7 +309,7 @@ Element separatorDouble() noexcept {
 /// down
 /// ```
 Element separatorEmpty() noexcept {
-  return std::make_shared<SeparatorAuto>(EMPTY);
+  return std::make_unique<SeparatorAuto>(EMPTY);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -346,7 +346,7 @@ Element separatorEmpty() noexcept {
 /// down
 /// ```
 Element separatorCharacter(const std::string& value) noexcept {
-  return std::make_shared<Separator>(value);
+  return std::make_unique<Separator>(value);
 }
 
 /// @brief Draw a separator in between two element filled with a given pixel.
@@ -376,7 +376,7 @@ Element separatorCharacter(const std::string& value) noexcept {
 /// Down
 /// ```
 Element separator(const Pixel& pixel) noexcept {
-  return std::make_shared<SeparatorWithPixel>(pixel);
+  return std::make_unique<SeparatorWithPixel>(pixel);
 }
 
 /// @brief Draw an horizontal bar, with the area in between left/right colored
@@ -446,7 +446,7 @@ Element separatorHSelector(float left,
     Color unselected_color_{};
     Color selected_color_{};
   };
-  return std::make_shared<Impl>(left, right, unselected_color, selected_color);
+  return std::make_unique<Impl>(left, right, unselected_color, selected_color);
 }
 
 /// @brief Draw an vertical bar, with the area in between up/down colored
@@ -516,7 +516,7 @@ Element separatorVSelector(float up,
     Color unselected_color_{};
     Color selected_color_{};
   };
-  return std::make_shared<Impl>(up, down, unselected_color, selected_color);
+  return std::make_unique<Impl>(up, down, unselected_color, selected_color);
 }
 
 }  // namespace ftxui

@@ -7,14 +7,14 @@
 namespace ftxui {
 
 // NOLINTNEXTLINE
-Component operator|(Component component,
+Component operator|(const Component& component,
                     const ComponentDecorator& decorator) noexcept {
-  return decorator(std::move(component));
+  return decorator(component);
 }
 
 // NOLINTNEXTLINE
-Component operator|(Component component, ElementDecorator decorator) noexcept {
-  return std::move(component) | Renderer(std::move(decorator));
+Component operator|(const Component& component, const ElementDecorator& decorator) noexcept {
+  return component | Renderer(decorator);
 }
 
 // NOLINTNEXTLINE
@@ -26,8 +26,8 @@ Component& operator|=(Component& component,
 
 // NOLINTNEXTLINE
 Component& operator|=(Component& component,
-                      ElementDecorator decorator) noexcept {
-  component = component | std::move(decorator);
+                      const ElementDecorator& decorator) noexcept {
+  component = component | decorator;
   return component;
 }
 

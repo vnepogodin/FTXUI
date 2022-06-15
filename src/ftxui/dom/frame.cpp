@@ -1,5 +1,4 @@
-#include <memory>     // for make_shared, __shared_ptr_access
-#include <utility>  // for move
+#include <memory>     // for make_unique, __shared_ptr_access
 #include <vector>   // for __alloc_traits<>::value_type
 
 #include <ftxui/dom/elements.hpp>  // for Element, unpack, Elements, focus, frame, select, xframe, yframe
@@ -33,7 +32,7 @@ namespace ftxui {
 
 class Select : public Node {
  public:
-  explicit Select(Elements children) : Node(std::move(children)) {}
+  explicit Select(const Elements& children) : Node(children) {}
 
   void ComputeRequirement() noexcept override {
     Node::ComputeRequirement();
@@ -46,14 +45,14 @@ class Select : public Node {
     requirement_.selection = Requirement::SELECTED;
   };
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
     children_[0]->SetBox(box);
   }
 };
 
-Element select(Element child) noexcept {
-  return std::make_shared<Select>(unpack(std::move(child)));
+Element select(const Element& child) noexcept {
+  return std::make_unique<Select>(unpack(child));
 }
 
 // -----------------------------------------------------------------------------
@@ -93,23 +92,23 @@ class Focus : public Select {
   }
 };
 
-Element focus(Element child) noexcept {
-  return std::make_shared<Focus>(unpack(std::move(child)));
+Element focus(const Element& child) noexcept {
+  return std::make_unique<Focus>(unpack(child));
 }
 
 // -----------------------------------------------------------------------------
 
 class Frame : public Node {
  public:
-  Frame(Elements children, bool x_frame, bool y_frame)
-      : Node(std::move(children)), x_frame_(x_frame), y_frame_(y_frame) {}
+  Frame(const Elements& children, bool x_frame, bool y_frame)
+      : Node(children), x_frame_(x_frame), y_frame_(y_frame) {}
 
   void ComputeRequirement() noexcept override {
     Node::ComputeRequirement();
     requirement_ = children_[0]->requirement();
   }
 
-  void SetBox(Box box) noexcept override {
+  void SetBox(const Box& box) noexcept override {
     Node::SetBox(box);
     auto& selected_box = requirement_.selected_box;
     Box children_box = box;
@@ -152,16 +151,16 @@ class Frame : public Node {
 /// be larger than its container. In this case only a smaller portion is
 /// displayed. The view is scrollable to make the focused element visible.
 /// @see focus
-Element frame(Element child) noexcept {
-  return std::make_shared<Frame>(unpack(std::move(child)), true, true);
+Element frame(const Element& child) noexcept {
+  return std::make_unique<Frame>(unpack(child), true, true);
 }
 
-Element xframe(Element child) noexcept {
-  return std::make_shared<Frame>(unpack(std::move(child)), true, false);
+Element xframe(const Element& child) noexcept {
+  return std::make_unique<Frame>(unpack(child), true, false);
 }
 
-Element yframe(Element child) noexcept {
-  return std::make_shared<Frame>(unpack(std::move(child)), false, true);
+Element yframe(const Element& child) noexcept {
+  return std::make_unique<Frame>(unpack(child), false, true);
 }
 
 }  // namespace ftxui

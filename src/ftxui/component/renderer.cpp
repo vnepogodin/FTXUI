@@ -25,16 +25,16 @@ namespace ftxui {
 /// });
 /// screen.Loop(renderer);
 /// ```
-Component Renderer(std::function<Element()> render) noexcept {
+Component Renderer(const std::function<Element()>& render) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(std::function<Element()> render)
-        : render_(std::move(render)) {}
+    explicit Impl(const std::function<Element()>& render)
+        : render_(render) {}
     Element Render() noexcept override { return render_(); }
     std::function<Element()> render_;
   };
 
-  return Make<Impl>(std::move(render));
+  return std::make_unique<Impl>(render);
 }
 
 /// @brief Return a new Component, similar to |child|, but using |render| as the
@@ -57,9 +57,9 @@ Component Renderer(std::function<Element()> render) noexcept {
 /// });
 /// screen.Loop(renderer);
 /// ```
-Component Renderer(Component child, std::function<Element()> render) noexcept {
-  Component renderer = Renderer(std::move(render));
-  renderer->Add(std::move(child));
+Component Renderer(const Component& child, const std::function<Element()>& render) noexcept {
+  Component renderer = Renderer(render);
+  renderer->Add(child);
   return renderer;
 }
 
@@ -83,8 +83,8 @@ Component Renderer(Component child, std::function<Element()> render) noexcept {
 Component Renderer(const std::function<Element(bool)>& render) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(std::function<Element(bool)> render)
-        : render_(std::move(render)) {}
+    explicit Impl(const std::function<Element(bool)>& render)
+        : render_(render) {}
 
    private:
     Element Render() noexcept override {
@@ -123,7 +123,7 @@ Component Renderer(const std::function<Element(bool)>& render) noexcept {
 ///  | Renderer(inverted);
 /// screen.Loop(renderer);
 /// ```
-ComponentDecorator Renderer(ElementDecorator decorator) noexcept {
+ComponentDecorator Renderer(const ElementDecorator& decorator) noexcept {
   return [decorator](auto&& component) {
     return Renderer(component, [component, decorator] {
       return component->Render() | decorator;
