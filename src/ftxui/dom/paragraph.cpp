@@ -1,7 +1,6 @@
 #include <sstream>  // for basic_istream, stringstream
 #include <string>   // for string, allocator, getline
 #include <algorithm>
-#include <string>  // for string, allocator
 #include <string_view>
 #include <utility>  // for move
 
@@ -68,7 +67,7 @@ Element paragraphAlignJustify(const std::string& the_text) noexcept {
       FlexboxConfig::JustifyContent::SpaceBetween);
   Elements words = Split(the_text);
   words.push_back(text(std::string{}) | xflex);
-  return flexbox(std::move(words), config);
+  return flexbox(words, config);
 }
 
 }  // namespace ftxui

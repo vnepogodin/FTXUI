@@ -52,11 +52,11 @@ std::string PasswordField(size_t size) noexcept {
 // An input box. The user can type text into it.
 class InputBase : public ComponentBase {
  public:
-  InputBase(const StringRef& content,
+  InputBase(StringRef content,
             ConstStringRef placeholder,
             const Ref<InputOption>& option)
-      : content_(content),
-        placeholder_(placeholder),
+      : content_(std::move(content)),
+        placeholder_(std::move(placeholder)),
         option_(option) {}
 
   int cursor_position_internal_ = 0;

@@ -118,8 +118,8 @@ class Border : public Node {
 // For reference, here is the charset for normal border:
 class BorderPixel : public Node {
  public:
-  BorderPixel(const Elements& children, const Pixel& pixel)
-      : Node(children), pixel_(pixel) {}
+  BorderPixel(const Elements& children, Pixel pixel)
+      : Node(children), pixel_(std::move(pixel)) {}
 
  private:
   Pixel pixel_;
@@ -214,7 +214,7 @@ Element border(const Element& child) noexcept {
 /// @see border
 Decorator borderWith(const Pixel& pixel) noexcept {
   return [pixel](auto&& child) {
-    return std::make_unique<BorderPixel>(unpack(std::move(child)), pixel);
+    return std::make_unique<BorderPixel>(unpack(std::forward<decltype(child)>(child)), pixel);
   };
 }
 
@@ -224,7 +224,7 @@ Decorator borderWith(const Pixel& pixel) noexcept {
 [[gnu::const]]
 Decorator borderStyled(BorderStyle style) noexcept {
   return [style](auto&& child) {
-    return std::make_unique<Border>(unpack(std::move(child)), style);
+    return std::make_unique<Border>(unpack(std::forward<decltype(child)>(child)), style);
   };
 }
 

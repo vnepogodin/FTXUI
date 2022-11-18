@@ -14,10 +14,10 @@ namespace {
 
 class ResizableSplitLeftBase : public ComponentBase {
  public:
-  ResizableSplitLeftBase(const Component& main,
-                         const Component& child,
+  ResizableSplitLeftBase(Component main,
+                         Component child,
                          int* main_size)
-      : main_(main), child_(child), main_size_(main_size) {
+      : main_(std::move(main)), child_(std::move(child)), main_size_(main_size) {
     Add(Container::Horizontal({
         main_,
         child_,
@@ -72,10 +72,10 @@ class ResizableSplitLeftBase : public ComponentBase {
 
 class ResizableSplitRightBase : public ComponentBase {
  public:
-  ResizableSplitRightBase(const Component& main,
-                          const Component& child,
+  ResizableSplitRightBase(Component main,
+                          Component child,
                           int* main_size)
-      : main_(main), child_(child), main_size_(main_size) {
+      : main_(std::move(main)), child_(std::move(child)), main_size_(main_size) {
     Add(Container::Horizontal({
         child_,
         main_,
@@ -130,10 +130,10 @@ class ResizableSplitRightBase : public ComponentBase {
 
 class ResizableSplitTopBase : public ComponentBase {
  public:
-  ResizableSplitTopBase(const Component& main,
-                        const Component& child,
+  ResizableSplitTopBase(Component main,
+                        Component child,
                         int* main_size)
-      : main_(main), child_(child), main_size_(main_size) {
+      : main_(std::move(main)), child_(std::move(child)), main_size_(main_size) {
     Add(Container::Vertical({
         main_,
         child_,
@@ -188,10 +188,10 @@ class ResizableSplitTopBase : public ComponentBase {
 
 class ResizableSplitBottomBase : public ComponentBase {
  public:
-  ResizableSplitBottomBase(const Component& main,
-                           const Component& child,
+  ResizableSplitBottomBase(Component main,
+                           Component child,
                            int* main_size)
-      : main_(main), child_(child), main_size_(main_size) {
+      : main_(std::move(main)), child_(std::move(child)), main_size_(main_size) {
     Add(Container::Vertical({
         child_,
         main_,

@@ -15,11 +15,11 @@ namespace ftxui {
 Component Modal(const Component& main, const Component& modal, const bool* show_modal) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(const Component& main, const Component& modal, const bool* show_modal)
-        : main_(main),
-          modal_(modal),
-          show_modal_(show_modal) {
-      selector_ = *show_modal_;
+    explicit Impl(Component main, Component modal, const bool* show_modal)
+        : main_(std::move(main)),
+          modal_(std::move(modal)),
+          show_modal_(show_modal),
+          selector_(*show_modal_) {
       Add(Container::Tab({main_, modal_}, &selector_));
     }
 

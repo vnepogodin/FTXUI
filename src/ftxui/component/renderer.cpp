@@ -28,8 +28,8 @@ namespace ftxui {
 Component Renderer(const std::function<Element()>& render) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(const std::function<Element()>& render)
-        : render_(render) {}
+    explicit Impl(std::function<Element()> render)
+        : render_(std::move(render)) {}
     Element Render() noexcept override { return render_(); }
     std::function<Element()> render_;
   };
@@ -83,8 +83,8 @@ Component Renderer(const Component& child, const std::function<Element()>& rende
 Component Renderer(const std::function<Element(bool)>& render) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(const std::function<Element(bool)>& render)
-        : render_(render) {}
+    explicit Impl(std::function<Element(bool)> render)
+        : render_(std::move(render)) {}
 
    private:
     Element Render() noexcept override {

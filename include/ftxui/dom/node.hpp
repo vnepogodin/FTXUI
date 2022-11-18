@@ -19,7 +19,7 @@ using Elements = std::vector<Element>;
 class Node {
  public:
   constexpr Node() noexcept = default;
-  Node(const Elements& children);
+  Node(Elements children);
   virtual ~Node() = default;
 
   Node(const Node&) = delete;

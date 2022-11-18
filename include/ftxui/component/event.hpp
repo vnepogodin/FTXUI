@@ -71,7 +71,7 @@ struct Event {
     event.device_ = mouse;
     return event;
   }
-  static Event CursorReporting(const std::string&, int x, int y) noexcept;
+  static Event CursorReporting(const std::string&, int x, int y);
 
   // --- Arrow ---
   static const Event ArrowLeft;

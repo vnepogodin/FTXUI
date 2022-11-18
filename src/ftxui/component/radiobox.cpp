@@ -27,8 +27,8 @@ class RadioboxBase : public ComponentBase {
   RadioboxBase(const ConstStringListRef& entries,
                int* selected,
                const Ref<RadioboxOption>& option)
-      : selected_(selected), option_(option), entries_(entries) {
-    hovered_ = *selected_;
+      : selected_(selected), hovered_(*selected_),
+        option_(option), entries_(entries)  {
   }
 
  private:
@@ -55,7 +55,7 @@ class RadioboxBase : public ComponentBase {
 
       elements.push_back(element | focus_management | reflect(boxes_[i]));
     }
-    return vbox(std::move(elements)) | reflect(box_);
+    return vbox(elements) | reflect(box_);
   }
 
   // NOLINTNEXTLINE(readability-function-cognitive-complexity)

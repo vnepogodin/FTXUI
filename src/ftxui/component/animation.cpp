@@ -4,9 +4,7 @@
 
 #include "ftxui/component/animation.hpp"
 
-namespace ftxui::animation {
-
-namespace easing {
+namespace ftxui::animation::easing {
 
 namespace {
 constexpr float kPi = 3.14159265358979323846F;
@@ -243,6 +241,5 @@ float ElasticInOut(float p) {
   }
   return 0.5f * BounceOut(p * 2.f - 1.f) + 0.5f;
 }
-}  // namespace easing
 
-}  // namespace ftxui::animation
+}  // namespace ftxui::animation::easing

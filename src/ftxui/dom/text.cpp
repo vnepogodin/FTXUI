@@ -36,7 +36,7 @@ using ftxui::Screen;
 class Text : public Node {
  public:
   //explicit Text(const char* text) : text_(text) {}
-  explicit Text(const std::string& text) : text_(text) {}
+  explicit Text(std::string text) : text_(std::move(text)) {}
   //explicit Text(const std::string_view text) : text_(text) {}
 
   void ComputeRequirement() override {

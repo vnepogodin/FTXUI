@@ -43,11 +43,11 @@ Component Tab(const Components& children, int* selector) noexcept;
 
 }  // namespace Container
 
-Component Button(ConstStringRef label,
+Component Button(const ConstStringRef& label,
                  const std::function<void()>& on_click,
                  const Ref<ButtonOption>& = ButtonOption::Simple()) noexcept;
 
-Component Checkbox(ConstStringRef label,
+Component Checkbox(const ConstStringRef& label,
                    bool* checked,
                    const Ref<CheckboxOption>& option = CheckboxOption::Simple()) noexcept;
 
@@ -58,7 +58,7 @@ Component Input(StringRef content,
 Component Menu(ConstStringListRef entries,
                int* selected_,
                const Ref<MenuOption>& = MenuOption::Vertical()) noexcept;
-Component MenuEntry(ConstStringRef label, const Ref<MenuEntryOption>& = {}) noexcept;
+Component MenuEntry(const ConstStringRef& label, const Ref<MenuEntryOption>& = {}) noexcept;
 
 Component Dropdown(ConstStringListRef entries, int* selected) noexcept;
 
@@ -91,7 +91,7 @@ ComponentDecorator Maybe(const std::function<bool()>&) noexcept;
 Component Modal(const Component& main, const Component& modal, const bool* show_modal) noexcept;
 ComponentDecorator Modal(const Component& modal, const bool* show_modal) noexcept;
 
-Component Collapsible(ConstStringRef label,
+Component Collapsible(const ConstStringRef& label,
                       const Component& child,
                       Ref<bool> show = false) noexcept;
 }  // namespace ftxui

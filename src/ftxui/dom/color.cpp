@@ -85,7 +85,7 @@ Element bgcolor(const Color& color, const Element& child) noexcept {
 /// ```
 [[gnu::const]]
 Decorator color(Color c) noexcept {
-  return [c](auto&& child) { return color(c, std::move(child)); };
+  return [c](auto&& child) { return color(c, std::forward<decltype(child)>(child)); };
 }
 
 /// @brief Decorate using a background color.
@@ -100,7 +100,7 @@ Decorator color(Color c) noexcept {
 /// ```
 [[gnu::const]]
 Decorator bgcolor(Color color) noexcept {
-  return [color](auto&& child) { return bgcolor(color, std::move(child)); };
+  return [color](auto&& child) { return bgcolor(color, std::forward<decltype(child)>(child)); };
 }
 
 }  // namespace ftxui

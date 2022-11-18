@@ -56,17 +56,17 @@ Element DefaultTransform(const EntryState& params) noexcept {  // NOLINT
 /// └─────────────┘
 /// ```
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-Component Button(ConstStringRef label,
+Component Button(const ConstStringRef& label,
                  const std::function<void()>& on_click,
                  const Ref<ButtonOption>& option) noexcept {
   class Impl : public ComponentBase {
    public:
     Impl(ConstStringRef label,
-         const std::function<void()>& on_click,
+         std::function<void()> on_click,
          const Ref<ButtonOption>& option)
-        : label_(label),
+        : label_(std::move(label)),
           option_(option),
-          on_click_(on_click) {}
+          on_click_(std::move(on_click)) {}
 
     // Component implementation:
     Element Render() noexcept override {

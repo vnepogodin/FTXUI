@@ -69,7 +69,7 @@ class ContainerBase : public ComponentBase {
   void SetActiveChild(const ComponentBase* child) noexcept override {
     for (size_t i = 0; i < children_.size(); ++i) {
       if (children_[i].get() == child) {
-        *selector_ = i;
+        *selector_ = static_cast<int32_t>(i);
         return;
       }
     }
@@ -103,7 +103,7 @@ class ContainerBase : public ComponentBase {
       const auto i =
           (*selector_ + offset * dir + children_.size()) % children_.size();
       if (children_[i]->Focusable()) {
-        *selector_ = i;
+        *selector_ = static_cast<int32_t>(i);
         return;
       }
     }
@@ -121,7 +121,7 @@ class VerticalContainer : public ContainerBase {
     if (elements.empty()) {
       return text("Empty container") | reflect(box_);
     }
-    return vbox(std::move(elements)) | reflect(box_);
+    return vbox(elements) | reflect(box_);
   }
 
   bool EventHandler(const Event& event) noexcept override {
@@ -204,7 +204,7 @@ class HorizontalContainer : public ContainerBase {
     if (elements.empty()) {
       return text("Empty container");
     }
-    return hbox(std::move(elements));
+    return hbox(elements);
   }
 
   bool EventHandler(const Event& event) noexcept override {

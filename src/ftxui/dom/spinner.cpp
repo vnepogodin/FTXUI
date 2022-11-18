@@ -268,10 +268,10 @@ Element spinner(int charset_index, size_t image_index) noexcept {
   charset_index %= static_cast<int>(elements.size());
   image_index %= static_cast<int>(elements[charset_index].size());
   std::vector<Element> lines;
-  for (const auto& it : elements[charset_index][image_index]) {
-    lines.push_back(text(it));
-  }
-  return vbox(std::move(lines));
+  auto&& temp_iter = elements[charset_index][image_index];
+  std::transform(temp_iter.begin(), temp_iter.end(), std::back_inserter(lines),
+               [](auto&& it) { return text(it); });
+  return vbox(lines);
 }
 
 }  // namespace ftxui

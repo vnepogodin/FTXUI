@@ -6,7 +6,7 @@
 
 namespace ftxui {
 
-Node::Node(const Elements& children) : children_(children) {}
+Node::Node(Elements children) : children_(std::move(children)) {}
 
 /// @brief Compute how much space an elements needs.
 /// @ingroup dom

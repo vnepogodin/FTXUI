@@ -3,7 +3,7 @@
 namespace ftxui {
 
 // static
-Event Event::CursorReporting(const std::string& input, int x, int y) noexcept {
+Event Event::CursorReporting(const std::string& input, int x, int y) {
   Event event;
   event.type_ = Type::CursorReporting;
   event.input_ = input;

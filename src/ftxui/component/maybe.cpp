@@ -13,7 +13,7 @@ namespace ftxui {
 Component Maybe(const Component& child, const std::function<bool()>& show) noexcept {
   class Impl : public ComponentBase {
    public:
-    explicit Impl(const std::function<bool()>& show) : show_(show) {}
+    explicit Impl(std::function<bool()> show) : show_(std::move(show)) {}
 
    private:
     Element Render() noexcept override {
@@ -30,7 +30,7 @@ Component Maybe(const Component& child, const std::function<bool()>& show) noexc
   };
 
   auto maybe = Make<Impl>(show);
-  maybe->Add(std::move(child));
+  maybe->Add(child);
   return maybe;
 }
 

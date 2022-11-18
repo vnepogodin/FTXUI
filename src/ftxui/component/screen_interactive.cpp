@@ -362,7 +362,7 @@ void ScreenInteractive::Loop(const Component& component) noexcept {  // NOLINT
   // This screen is now active:
   g_active_screen = this;
   g_active_screen->Install();
-  g_active_screen->Main(std::move(component));
+  g_active_screen->Main(component);
   g_active_screen->Uninstall();
   g_active_screen = nullptr;
 

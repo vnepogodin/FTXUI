@@ -58,11 +58,11 @@ Table::Table() noexcept {
 
 Table::Table(const std::vector<std::vector<std::string>>& input) noexcept {
   std::vector<std::vector<Element>> output;
-  for (auto& row : input) {
+  for (const auto& row : input) {
     output.emplace_back();
     auto& output_row = output.back();
-    for (auto& cell : row) {
-      output_row.push_back(text(std::move(cell)));
+    for (const auto& cell : row) {
+      output_row.push_back(text(cell));
     }
   }
   Initialize(std::move(output));

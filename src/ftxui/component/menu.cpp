@@ -156,7 +156,7 @@ class MenuBase : public ComponentBase {
       ranges::reverse(elements);
 
     const auto bar =
-        IsHorizontal() ? hbox(std::move(elements)) : vbox(std::move(elements));
+        IsHorizontal() ? hbox(elements) : vbox(elements);
 
     if (!option_->underline.enabled) {
       return bar | reflect(box_);
@@ -548,7 +548,7 @@ Component Toggle(ConstStringListRef entries, int* selected) noexcept {
 ///   entry 2
 ///   entry 3
 /// ```
-Component MenuEntry(ConstStringRef label,
+Component MenuEntry(const ConstStringRef& label,
                     const Ref<MenuEntryOption>& option) noexcept {
   class Impl : public ComponentBase {
    public:

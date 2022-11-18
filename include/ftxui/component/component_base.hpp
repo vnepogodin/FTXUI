@@ -75,7 +75,7 @@ class ComponentBase {
   void TakeFocus() noexcept;
 
  protected:
-  CapturedMouse CaptureMouse(const Event& event) noexcept;
+  static CapturedMouse CaptureMouse(const Event& event) noexcept;
 
   Components children_;
 
