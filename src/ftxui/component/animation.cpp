@@ -6,6 +6,7 @@
 
 namespace ftxui::animation::easing {
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
 constexpr float kPi = 3.14159265358979323846F;
 constexpr float kPi2 = kPi / 2.F;
@@ -243,5 +244,6 @@ float ElasticInOut(float p) {
   return 0.5f * BounceOut(p * 2.f - 1.f) + 0.5f;
 }
 // NOLINTEND(hicpp-uppercase-literal-suffix,readability-uppercase-literal-suffix)
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
 }  // namespace ftxui::animation::easing
