@@ -32,7 +32,7 @@ Component Collapsible(const ConstStringRef& label,
                       Ref<bool> show) noexcept {
   class Impl : public ComponentBase {
    public:
-    Impl(ConstStringRef label, const Component& child, Ref<bool> show)
+    Impl(const ConstStringRef& label, const Component& child, Ref<bool> show)
         : show_(show) {
       CheckboxOption opt;
       opt.transform = [](auto&& s) {
@@ -47,7 +47,7 @@ Component Collapsible(const ConstStringRef& label,
         return hbox({prefix, t});
       };
       Add(Container::Vertical({
-          Checkbox(std::move(label), show_.operator->(), opt),
+          Checkbox(label, show_.operator->(), opt),
           Maybe(child, show_.operator->()),
       }));
     }

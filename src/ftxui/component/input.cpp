@@ -273,8 +273,8 @@ class InputBase : public ComponentBase {
 /// ```bash
 /// placeholder
 /// ```
-Component Input(StringRef content,
-                ConstStringRef placeholder,
+Component Input(const StringRef& content,
+                const ConstStringRef& placeholder,
                 const Ref<InputOption>& option) noexcept {
   return std::make_unique<InputBase>(content, placeholder, option);
 }

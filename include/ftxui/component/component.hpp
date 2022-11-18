@@ -51,8 +51,8 @@ Component Checkbox(const ConstStringRef& label,
                    bool* checked,
                    const Ref<CheckboxOption>& option = CheckboxOption::Simple()) noexcept;
 
-Component Input(StringRef content,
-                ConstStringRef placeholder,
+Component Input(const StringRef& content,
+                const ConstStringRef& placeholder,
                 const Ref<InputOption>& option = {}) noexcept;
 
 Component Menu(ConstStringListRef entries,
