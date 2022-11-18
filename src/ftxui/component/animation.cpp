@@ -11,7 +11,7 @@ constexpr float kPi = 3.14159265358979323846F;
 constexpr float kPi2 = kPi / 2.F;
 }  // namespace
 
-// NOLINTBEGIN(readability-identifier-length)
+// NOLINTBEGIN(hicpp-uppercase-literal-suffix,readability-uppercase-literal-suffix)
 // Easing function have been taken out of:
 // https://github.com/warrenm/AHEasing/blob/master/AHEasing/easing.c
 //
@@ -242,6 +242,6 @@ float ElasticInOut(float p) {
   }
   return 0.5f * BounceOut(p * 2.f - 1.f) + 0.5f;
 }
-// NOLINTEND(readability-identifier-length)
+// NOLINTEND(hicpp-uppercase-literal-suffix,readability-uppercase-literal-suffix)
 
 }  // namespace ftxui::animation::easing
