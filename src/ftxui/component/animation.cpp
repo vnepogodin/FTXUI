@@ -11,6 +11,7 @@ constexpr float kPi = 3.14159265358979323846F;
 constexpr float kPi2 = kPi / 2.F;
 }  // namespace
 
+// NOLINTBEGIN(readability-identifier-length)
 // Easing function have been taken out of:
 // https://github.com/warrenm/AHEasing/blob/master/AHEasing/easing.c
 //
@@ -241,5 +242,6 @@ float ElasticInOut(float p) {
   }
   return 0.5f * BounceOut(p * 2.f - 1.f) + 0.5f;
 }
+// NOLINTEND(readability-identifier-length)
 
 }  // namespace ftxui::animation::easing
