@@ -8,11 +8,11 @@
 namespace ftxui {
 
 template <class T>
-void Merge(Elements& /*container*/, const T& /*element*/) {}
+void Merge(Elements& /*container*/, T&& /*element*/) {}
 
 template <>
-inline void Merge(Elements& container, const Element& element) {
-  container.push_back(element);
+inline void Merge(Elements& container, Element&& element) {
+  container.push_back(std::move(element));
 }
 
 template <>
@@ -25,7 +25,8 @@ inline void Merge(Elements& container, const Elements& elements) {
 template <class... Args>
 Elements unpack(Args... args) {
   std::vector<Element> vec;
-  (Merge(vec, std::move(args)), ...);
+  static_assert((std::is_constructible_v<Element, Args> && ...));
+  (Merge(vec, std::forward<Args>(args)), ...);
   return vec;
 }
 
