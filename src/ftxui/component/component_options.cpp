@@ -1,53 +1,75 @@
+// Copyright 2022 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include "ftxui/component/component_options.hpp"
 
-#include <ftxui/screen/color.hpp>  // for Color, Color::Black, Color::White, Color::GrayDark, Color::GrayLight
-#include <memory>   // for shared_ptr
-#include <utility>  // for move
-
+#include <ftxui/screen/color.hpp>  // for Color, Color::White, Color::Black, Color::GrayDark, Color::Blue, Color::GrayLight, Color::Red
+#include <memory>                  // for shared_ptr
+#include <utility>                 // for move
 #include "ftxui/component/animation.hpp"  // for Function, Duration
-#include "ftxui/dom/elements.hpp"  // for operator|=, text, Element, bold, inverted, operator|, dim, hbox, automerge, borderEmpty, borderLight
+#include "ftxui/dom/direction.hpp"
+#include "ftxui/dom/elements.hpp"  // for operator|=, Element, text, bgcolor, inverted, bold, dim, operator|, color, borderEmpty, hbox, automerge, border, borderLight
 
 namespace ftxui {
 
-void AnimatedColorOption::Set(Color a_inactive,
-                              Color a_active,
-                              animation::Duration a_duration,
-                              const animation::easing::Function& a_function) {
+/// @brief A color option that can be animated.
+/// @params _inactive The color when the component is inactive.
+/// @params _active The color when the component is active.
+/// @params _duration The duration of the animation.
+/// @params _function The easing function of the animation.
+void AnimatedColorOption::Set(Color _inactive,
+                              Color _active,
+                              animation::Duration _duration,
+                              animation::easing::Function _function) {
   enabled = true;
-  inactive = a_inactive;
-  active = a_active;
-  duration = a_duration;
-  function = a_function;
+  inactive = _inactive;
+  active = _active;
+  duration = _duration;
+  function = std::move(_function);
 }
 
+/// @brief Set how the underline should animate.
+/// @param d The duration of the animation.
+/// @param f The easing function of the animation.
 void UnderlineOption::SetAnimation(animation::Duration d,
-                                   const animation::easing::Function& f) {
+                                   animation::easing::Function f) {
   SetAnimationDuration(d);
-  SetAnimationFunction(f);
+  SetAnimationFunction(std::move(f));
 }
 
+/// @brief Set how the underline should animate.
+/// @param d The duration of the animation.
 void UnderlineOption::SetAnimationDuration(animation::Duration d) {
   leader_duration = d;
   follower_duration = d;
 }
 
-void UnderlineOption::SetAnimationFunction(const animation::easing::Function& f) {
+/// @brief Set how the underline should animate.
+/// @param f The easing function of the animation.
+void UnderlineOption::SetAnimationFunction(animation::easing::Function f) {
   leader_function = f;
-  follower_function = f;
+  follower_function = std::move(f);
 }
 
+/// @brief Set how the underline should animate.
+/// This is useful to desynchronize the animation of the leader and the
+/// follower.
+/// @param f_leader The duration of the animation for the leader.
+/// @param f_follower The duration of the animation for the follower.
 void UnderlineOption::SetAnimationFunction(
-    const animation::easing::Function& f_leader,
-    const animation::easing::Function& f_follower) {
-  leader_function = f_leader;
-  follower_function = f_follower;
+    animation::easing::Function f_leader,
+    animation::easing::Function f_follower) {
+  leader_function = std::move(f_leader);
+  follower_function = std::move(f_follower);
 }
 
+/// @brief Standard options for a horizontal menu.
+/// This can be useful to implement a tab bar.
 // static
 MenuOption MenuOption::Horizontal() {
   MenuOption option;
   option.direction = Direction::Right;
-  option.entries.transform = [](const EntryState& state) {
+  option.entries_option.transform = [](const EntryState& state) {
     Element e = text(state.label);
     if (state.focused) {
       e |= inverted;
@@ -65,6 +87,8 @@ MenuOption MenuOption::Horizontal() {
   return option;
 }
 
+/// @brief Standard options for an animated horizontal menu.
+/// This can be useful to implement a tab bar.
 // static
 MenuOption MenuOption::HorizontalAnimated() {
   auto option = Horizontal();
@@ -72,10 +96,12 @@ MenuOption MenuOption::HorizontalAnimated() {
   return option;
 }
 
+/// @brief Standard options for a vertical menu.
+/// This can be useful to implement a list of selectable items.
 // static
 MenuOption MenuOption::Vertical() {
   MenuOption option;
-  option.entries.transform = [](const EntryState& state) {
+  option.entries_option.transform = [](const EntryState& state) {
     Element e = text((state.active ? "> " : "  ") + state.label);  // NOLINT
     if (state.focused) {
       e |= inverted;
@@ -91,10 +117,12 @@ MenuOption MenuOption::Vertical() {
   return option;
 }
 
+/// @brief Standard options for an animated vertical menu.
+/// This can be useful to implement a list of selectable items.
 // static
 MenuOption MenuOption::VerticalAnimated() {
   auto option = MenuOption::Vertical();
-  option.entries.transform = [](const EntryState& state) {
+  option.entries_option.transform = [](const EntryState& state) {
     Element e = text(state.label);
     if (state.focused) {
       e |= inverted;
@@ -111,6 +139,8 @@ MenuOption MenuOption::VerticalAnimated() {
   return option;
 }
 
+/// @brief Standard options for a horizontal menu with some separator.
+/// This can be useful to implement a tab bar.
 // static
 MenuOption MenuOption::Toggle() {
   auto option = MenuOption::Horizontal();
@@ -123,9 +153,9 @@ MenuOption MenuOption::Toggle() {
 ButtonOption ButtonOption::Ascii() {
   ButtonOption option;
   option.transform = [](const EntryState& s) {
-    std::string label = s.focused ? "[" + s.label + "]"  //
-                                  : " " + s.label + " ";
-    return text(label);
+    const std::string t = s.focused ? "[" + s.label + "]"  //
+                                    : " " + s.label + " ";
+    return text(t);
   };
   return option;
 }
@@ -144,14 +174,33 @@ ButtonOption ButtonOption::Simple() {
   return option;
 }
 
-/// @brief Create a ButtonOption, inverted when focused, but with no border.
-// static
+/// @brief Create a ButtonOption. The button is shown using a border, inverted
+/// when focused. This is the current default.
+ButtonOption ButtonOption::Border() {
+  ButtonOption option;
+  option.transform = [](const EntryState& s) {
+    auto element = text(s.label) | border;
+    if (s.active) {
+      element |= bold;
+    }
+    if (s.focused) {
+      element |= inverted;
+    }
+    return element;
+  };
+  return option;
+}
+
 ButtonOption ButtonOption::WithoutBorder() {
   ButtonOption option;
   option.transform = [](const EntryState& s) {
     auto element = text(s.label);
-    if (s.focused)
+    if (s.active) {
+      element |= bold;
+    }
+    if (s.focused) {
       element |= inverted;
+    }
     return element;
   };
   return option;
@@ -177,7 +226,13 @@ ButtonOption ButtonOption::Animated(Color color) {
 /// @brief Create a ButtonOption, using animated colors.
 // static
 ButtonOption ButtonOption::Animated(Color background, Color foreground) {
-  return ButtonOption::Animated(background, foreground, foreground, background);
+  // NOLINTBEGIN
+  return ButtonOption::Animated(
+      /*bakground=*/background,
+      /*foreground=*/foreground,
+      /*background_active=*/foreground,
+      /*foreground_active=*/background);
+  // NOLINTEND
 }
 
 /// @brief Create a ButtonOption, using animated colors.
@@ -247,8 +302,51 @@ RadioboxOption RadioboxOption::Simple() {
   return option;
 }
 
-}  // namespace ftxui
+/// @brief Standard options for the input component.
+// static
+InputOption InputOption::Default() {
+  InputOption option;
+  option.transform = [](InputState state) {
+    state.element |= color(Color::White);
 
-// Copyright 2022 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
+    if (state.is_placeholder) {
+      state.element |= dim;
+    }
+
+    if (state.focused) {
+      state.element |= inverted;
+    } else if (state.hovered) {
+      state.element |= bgcolor(Color::GrayDark);
+    }
+
+    return state.element;
+  };
+  return option;
+}
+
+/// @brief Standard options for a more beautiful input component.
+// static
+InputOption InputOption::Spacious() {
+  InputOption option;
+  option.transform = [](InputState state) {
+    state.element |= borderEmpty;
+    state.element |= color(Color::White);
+
+    if (state.is_placeholder) {
+      state.element |= dim;
+    }
+
+    if (state.focused) {
+      state.element |= bgcolor(Color::Black);
+    }
+
+    if (state.hovered) {
+      state.element |= bgcolor(Color::GrayDark);
+    }
+
+    return state.element;
+  };
+  return option;
+}
+
+}  // namespace ftxui

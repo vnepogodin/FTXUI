@@ -1,14 +1,17 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <array>       // for array
 #include <chrono>      // for milliseconds
 #include <functional>  // for function
-#include <memory>      // for shared_ptr, __shared_ptr_access, allocator
-#include <string>      // for string, char_traits, basic_string, operator+
+#include <memory>      // for __shared_ptr_access, shared_ptr, allocator
+#include <string>      // for string, char_traits, operator+, basic_string
 #include <vector>      // for vector
 
 #include "ftxui/component/animation.hpp"  // for ElasticOut, Linear
 #include "ftxui/component/component.hpp"  // for Menu, Horizontal, Renderer, Vertical
 #include "ftxui/component/component_base.hpp"     // for ComponentBase
-#include "ftxui/component/component_options.hpp"  // for MenuOption, MenuEntryOption, AnimatedColorOption, AnimatedColorsOption, UnderlineOption
+#include "ftxui/component/component_options.hpp"  // for MenuOption, EntryState, MenuEntryOption, AnimatedColorOption, AnimatedColorsOption, UnderlineOption
 #include "ftxui/component/mouse.hpp"              // for ftxui
 #include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
 #include "ftxui/dom/elements.hpp"  // for separator, operator|, Element, text, bgcolor, hbox, bold, color, filler, border, vbox, borderDouble, dim, flex, hcenter
@@ -30,7 +33,7 @@ Component HMenu3(std::vector<std::string>* entries, int* selected);
 Component HMenu4(std::vector<std::string>* entries, int* selected);
 Component HMenu5(std::vector<std::string>* entries, int* selected);
 
-int main(int argc, const char* argv[]) {
+int main() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<std::string> entries{
@@ -110,13 +113,15 @@ int main(int argc, const char* argv[]) {
 
 Component VMenu1(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::Vertical();
-  option.entries.transform = [](EntryState state) {
+  option.entries_option.transform = [](EntryState state) {
     state.label = (state.active ? "> " : "  ") + state.label;
     Element e = text(state.label);
-    if (state.focused)
+    if (state.focused) {
       e = e | bgcolor(Color::Blue);
-    if (state.active)
+    }
+    if (state.active) {
       e = e | bold;
+    }
     return e;
   };
   return Menu(entries, selected, option);
@@ -124,13 +129,15 @@ Component VMenu1(std::vector<std::string>* entries, int* selected) {
 
 Component VMenu2(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::Vertical();
-  option.entries.transform = [](EntryState state) {
+  option.entries_option.transform = [](EntryState state) {
     state.label += (state.active ? " <" : "  ");
     Element e = hbox(filler(), text(state.label));
-    if (state.focused)
+    if (state.focused) {
       e = e | bgcolor(Color::Red);
-    if (state.active)
+    }
+    if (state.active) {
       e = e | bold;
+    }
     return e;
   };
   return Menu(entries, selected, option);
@@ -138,16 +145,19 @@ Component VMenu2(std::vector<std::string>* entries, int* selected) {
 
 Component VMenu3(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::Vertical();
-  option.entries.transform = [](EntryState state) {
+  option.entries_option.transform = [](EntryState state) {
     Element e = state.active ? text("[" + state.label + "]")
                              : text(" " + state.label + " ");
-    if (state.focused)
+    if (state.focused) {
       e = e | bold;
+    }
 
-    if (state.focused)
+    if (state.focused) {
       e = e | color(Color::Blue);
-    if (state.active)
+    }
+    if (state.active) {
       e = e | bold;
+    }
     return e;
   };
   return Menu(entries, selected, option);
@@ -155,7 +165,7 @@ Component VMenu3(std::vector<std::string>* entries, int* selected) {
 
 Component VMenu4(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::Vertical();
-  option.entries.transform = [](EntryState state) {
+  option.entries_option.transform = [](EntryState state) {
     if (state.active && state.focused) {
       return text(state.label) | color(Color::Yellow) | bgcolor(Color::Black) |
              bold;
@@ -175,7 +185,7 @@ Component VMenu4(std::vector<std::string>* entries, int* selected) {
 
 Component VMenu5(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::Vertical();
-  option.entries.transform = [](EntryState state) {
+  option.entries_option.transform = [](EntryState state) {
     auto element = text(state.label);
     if (state.active && state.focused) {
       return element | borderDouble;
@@ -201,19 +211,19 @@ Component VMenu6(std::vector<std::string>* entries, int* selected) {
 
 Component VMenu7(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::Vertical();
-  option.entries.animated_colors.foreground.enabled = true;
-  option.entries.animated_colors.background.enabled = true;
-  option.entries.animated_colors.background.active = Color::Red;
-  option.entries.animated_colors.background.inactive = Color::Black;
-  option.entries.animated_colors.foreground.active = Color::White;
-  option.entries.animated_colors.foreground.inactive = Color::Red;
+  option.entries_option.animated_colors.foreground.enabled = true;
+  option.entries_option.animated_colors.background.enabled = true;
+  option.entries_option.animated_colors.background.active = Color::Red;
+  option.entries_option.animated_colors.background.inactive = Color::Black;
+  option.entries_option.animated_colors.foreground.active = Color::White;
+  option.entries_option.animated_colors.foreground.inactive = Color::Red;
   return Menu(entries, selected, option);
 }
 
 Component VMenu8(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::Vertical();
-  option.entries.animated_colors.foreground.Set(Color::Red, Color::White,
-                                                std::chrono::milliseconds(500));
+  option.entries_option.animated_colors.foreground.Set(
+      Color::Red, Color::White, std::chrono::milliseconds(500));
   return Menu(entries, selected, option);
 }
 
@@ -240,19 +250,17 @@ Component HMenu5(std::vector<std::string>* entries, int* selected) {
   auto option = MenuOption::HorizontalAnimated();
   option.underline.SetAnimation(std::chrono::milliseconds(1500),
                                 animation::easing::ElasticOut);
-  option.entries.transform = [](EntryState state) {
+  option.entries_option.transform = [](EntryState state) {
     Element e = text(state.label) | hcenter | flex;
-    if (state.active && state.focused)
+    if (state.active && state.focused) {
       e = e | bold;
-    if (!state.focused && !state.active)
+    }
+    if (!state.focused && !state.active) {
       e = e | dim;
+    }
     return e;
   };
   option.underline.color_inactive = Color::Default;
   option.underline.color_active = Color::Red;
   return Menu(entries, selected, option);
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

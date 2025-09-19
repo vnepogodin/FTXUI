@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <functional>  // for function
 #include <memory>      // for shared_ptr, allocator, __shared_ptr_access
 #include <string>      // for string, basic_string
@@ -23,7 +26,7 @@ Component Wrap(std::string name, Component component) {
   });
 }
 
-int main(int argc, const char* argv[]) {
+int main() {
   auto screen = ScreenInteractive::FitComponent();
 
   // -- Menu
@@ -94,7 +97,25 @@ int main(int argc, const char* argv[]) {
   });
   sliders = Wrap("Slider", sliders);
 
-  // -- Layout -----------------------------------------------------------------
+  // A large text:
+  auto lorel_ipsum = Renderer([] {
+    return vbox({
+        text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "),
+        text("Sed do eiusmod tempor incididunt ut labore et dolore magna "
+             "aliqua. "),
+        text("Ut enim ad minim veniam, quis nostrud exercitation ullamco "
+             "laboris nisi ut aliquip ex ea commodo consequat. "),
+        text("Duis aute irure dolor in reprehenderit in voluptate velit esse "
+             "cillum dolore eu fugiat nulla pariatur. "),
+        text("Excepteur sint occaecat cupidatat non proident, sunt in culpa "
+             "qui officia deserunt mollit anim id est laborum. "),
+
+    });
+  });
+  lorel_ipsum = Wrap("Lorel Ipsum", lorel_ipsum);
+
+  // -- Layout
+  // -----------------------------------------------------------------
   auto layout = Container::Vertical({
       menu,
       toggle,
@@ -103,6 +124,7 @@ int main(int argc, const char* argv[]) {
       input,
       sliders,
       button,
+      lorel_ipsum,
   });
 
   auto component = Renderer(layout, [&] {
@@ -120,6 +142,8 @@ int main(int argc, const char* argv[]) {
                sliders->Render(),
                separator(),
                button->Render(),
+               separator(),
+               lorel_ipsum->Render(),
            }) |
            xflex | size(WIDTH, GREATER_THAN, 40) | border;
   });
@@ -128,7 +152,3 @@ int main(int argc, const char* argv[]) {
 
   return 0;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

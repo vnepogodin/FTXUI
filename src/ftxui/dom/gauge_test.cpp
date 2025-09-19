@@ -1,12 +1,13 @@
-#include <gtest/gtest-message.h>  // for Message
-#include <gtest/gtest-test-part.h>  // for SuiteApiResolver, TestFactoryImpl, TestPartResult
-#include <memory>                   // for allocator
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <gtest/gtest.h>
 
 #include "ftxui/dom/elements.hpp"   // for gauge, gaugeUp
 #include "ftxui/dom/node.hpp"       // for Render
 #include "ftxui/screen/screen.hpp"  // for Screen
-#include "gtest/gtest_pred_impl.h"  // for Test, EXPECT_EQ, TEST
 
+// NOLINTBEGIN
 namespace ftxui {
 
 TEST(GaugeTest, ZeroHorizontal) {
@@ -98,7 +99,4 @@ TEST(GaugeTest, OneVertical) {
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
+// NOLINTEND

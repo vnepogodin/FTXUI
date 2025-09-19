@@ -1,45 +1,38 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include "ftxui/component/screen_interactive.hpp"
+#include <algorithm>  // for copy, max, min
 #include <array>      // for array
-#include <chrono>  // for operator-, milliseconds, duration, operator>=, time_point, common_type<>::type
-#include <csignal>  // for signal, raise, SIGTSTP, SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM, SIGWINCH
-#include <cstdio>   // for fileno, size_t, stdin
+#include <atomic>
+#include <chrono>  // for operator-, milliseconds, operator>=, duration, common_type<>::type, time_point
+#include <csignal>  // for signal, SIGTSTP, SIGABRT, SIGWINCH, raise, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM, __sighandler_t, size_t
+#include <cstdint>
+#include <cstdio>                    // for fileno, stdin
 #include <ftxui/component/task.hpp>  // for Task, Closure, AnimationTask
-#include <ftxui/screen/screen.hpp>   // for Pixel, Screen::Cursor, Screen
-#include <functional>                // for function
-#include <initializer_list>          // for initializer_list
-#include <iostream>  // for cout, ostream, basic_ostream, operator<<, endl, flush
-#include <stack>        // for stack
-#include <thread>       // for thread, sleep_for
-#include <type_traits>  // for decay_t
-#include <utility>      // for move, swap
-#include <variant>      // for visit
-#include <vector>       // for vector
-
-#include <ftxui/component/animation.hpp>  // for TimePoint, Clock, Duration, Params, RequestAnimationFrame
-#include <ftxui/component/captured_mouse.hpp>  // for CapturedMouse, CapturedMouseInterface
-#include <ftxui/component/component_base.hpp>  // for ComponentBase
-#include <ftxui/component/event.hpp>           // for Event
-#include <ftxui/component/receiver.hpp>  // for ReceiverImpl, Sender, MakeReceiver, SenderImpl, Receiver
-#include <ftxui/component/screen_interactive.hpp>
-#include <ftxui/component/terminal_input_parser.hpp>  // for TerminalInputParser
-#include <ftxui/dom/node.hpp>                         // for Node, Render
-#include <ftxui/screen/terminal.hpp>                  // for Size, Dimensions
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-#include <range/v3/algorithm/min.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include <ftxui/screen/screen.hpp>  // for Pixel, Screen::Cursor, Screen, Screen::Cursor::Hidden
+#include <functional>        // for function
+#include <initializer_list>  // for initializer_list
+#include <iostream>  // for cout, ostream, operator<<, basic_ostream, endl, flush
+#include <memory>
+#include <stack>  // for stack
+#include <string>
+#include <thread>   // for thread, sleep_for
+#include <tuple>    // for _Swallow_assign, ignore
+#include <utility>  // for move, swap
+#include <variant>  // for visit, variant
+#include <vector>   // for vector
+#include "ftxui/component/animation.hpp"  // for TimePoint, Clock, Duration, Params, RequestAnimationFrame
+#include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse, CapturedMouseInterface
+#include "ftxui/component/component_base.hpp"  // for ComponentBase
+#include "ftxui/component/event.hpp"           // for Event
+#include "ftxui/component/loop.hpp"            // for Loop
+#include "ftxui/component/task_runner.hpp"
+#include "ftxui/component/terminal_input_parser.hpp"  // for TerminalInputParser
+#include "ftxui/dom/node.hpp"                         // for Node, Render
+#include "ftxui/screen/terminal.hpp"                  // for Dimensions, Size
+#include "ftxui/screen/util.hpp"                      // for util::clamp
+#include "ftxui/util/autoreset.hpp"                   // for AutoReset
 
 #if defined(_WIN32)
 #define DEFINE_CONSOLEV2_PROPERTIES
@@ -47,14 +40,16 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <Windows.h>
+#include <windows.h>
 #ifndef UNICODE
 #error Must be compiled in UNICODE mode
 #endif
 #else
-#include <sys/select.h>  // for select, FD_ISSET, FD_SET, FD_ZERO, fd_set
+#include <fcntl.h>
+#include <sys/select.h>  // for select, FD_ISSET, FD_SET, FD_ZERO, fd_set, timeval
 #include <termios.h>  // for tcsetattr, termios, tcgetattr, TCSANOW, cc_t, ECHO, ICANON, VMIN, VTIME
 #include <unistd.h>  // for STDIN_FILENO, read
+#include <cerrno>
 #endif
 
 // Quick exit is missing in standard CLang headers
@@ -63,6 +58,20 @@
 #endif
 
 namespace ftxui {
+
+struct ScreenInteractive::Internal {
+  // Convert char to Event.
+  TerminalInputParser terminal_input_parser;
+
+  task::TaskRunner task_runner;
+
+  // The last time a character was received.
+  std::chrono::time_point<std::chrono::steady_clock> last_char_time =
+      std::chrono::steady_clock::now();
+
+  explicit Internal(std::function<void(Event)> out)
+      : terminal_input_parser(std::move(out)) {}
+};
 
 namespace animation {
 void RequestAnimationFrame() {
@@ -83,78 +92,28 @@ void Flush() {
 }
 
 constexpr int timeout_milliseconds = 20;
-constexpr int timeout_microseconds = timeout_milliseconds * 1000;
+[[maybe_unused]] constexpr int timeout_microseconds =
+    timeout_milliseconds * 1000;
 #if defined(_WIN32)
-
-void EventListener(std::atomic<bool>* quit, Sender<Task> out) {
-  auto console = GetStdHandle(STD_INPUT_HANDLE);
-  auto parser = TerminalInputParser(out->Clone());
-  while (!*quit) {
-    // Throttle ReadConsoleInput by waiting 250ms, this wait function will
-    // return if there is input in the console.
-    auto wait_result = WaitForSingleObject(console, timeout_milliseconds);
-    if (wait_result == WAIT_TIMEOUT) {
-      parser.Timeout(timeout_milliseconds);
-      continue;
-    }
-
-    DWORD number_of_events = 0;
-    if (!GetNumberOfConsoleInputEvents(console, &number_of_events))
-      continue;
-    if (number_of_events <= 0)
-      continue;
-
-    std::vector<INPUT_RECORD> records{number_of_events};
-    DWORD number_of_events_read = 0;
-    ReadConsoleInput(console, records.data(), (DWORD)records.size(),
-                     &number_of_events_read);
-    records.resize(number_of_events_read);
-
-    for (const auto& r : records) {
-      switch (r.EventType) {
-        case KEY_EVENT: {
-          auto key_event = r.Event.KeyEvent;
-          // ignore UP key events
-          if (key_event.bKeyDown == FALSE)
-            continue;
-          parser.Add((char)key_event.uChar.UnicodeChar);
-        } break;
-        case WINDOW_BUFFER_SIZE_EVENT:
-          out->Send(Event::Special({0}));
-          break;
-        case MENU_EVENT:
-        case FOCUS_EVENT:
-        case MOUSE_EVENT:
-          // TODO(mauve): Implement later.
-          break;
-      }
-    }
-  }
-}
 
 #elif defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 
-// Read char from the terminal.
-void EventListener(std::atomic<bool>* quit, Sender<Task> out) {
-  (void)timeout_microseconds;
-  auto parser = TerminalInputParser(std::move(out));
-
-  char c;
-  while (!*quit) {
-    while (read(STDIN_FILENO, &c, 1), c)
-      parser.Add(c);
-
-    emscripten_sleep(1);
-    parser.Timeout(1);
-  }
+extern "C" {
+EMSCRIPTEN_KEEPALIVE
+void ftxui_on_resize(int columns, int rows) {
+  Terminal::SetFallbackSize({
+      columns,
+      rows,
+  });
+  std::raise(SIGWINCH);
+}
 }
 
-#else
-#include <ctime>  // for timeval
+#else  // POSIX (Linux & Mac)
 
-int CheckStdinReady(int usec_timeout) {
-  timeval tv = {0, usec_timeout};
+int CheckStdinReady() {
+  timeval tv = {0, 0};  // NOLINT
   fd_set fds;
   FD_ZERO(&fds);                                          // NOLINT
   FD_SET(STDIN_FILENO, &fds);                             // NOLINT
@@ -162,36 +121,98 @@ int CheckStdinReady(int usec_timeout) {
   return FD_ISSET(STDIN_FILENO, &fds);                    // NOLINT
 }
 
-// Read char from the terminal.
-void EventListener(std::atomic<bool>* quit, Sender<Task> out) {
-  auto parser = TerminalInputParser(std::move(out));
+#endif
 
-  while (!*quit) {
-    if (!CheckStdinReady(timeout_microseconds)) {
-      parser.Timeout(timeout_milliseconds);
-      continue;
-    }
-
-    static constexpr size_t buffer_size = 100;
-    std::array<char, buffer_size> buffer;                     // NOLINT;
-    const int l = static_cast<int>(read(fileno(stdin), buffer.data(), buffer_size));  // NOLINT
-    for (int i = 0; i < l; ++i) {
-      parser.Add(buffer[i]);  // NOLINT
-    }
+std::stack<Closure> on_exit_functions;  // NOLINT
+void OnExit() {
+  while (!on_exit_functions.empty()) {
+    on_exit_functions.top()();
+    on_exit_functions.pop();
   }
 }
 
+std::atomic<int> g_signal_exit_count = 0;  // NOLINT
+#if !defined(_WIN32)
+std::atomic<int> g_signal_stop_count = 0;    // NOLINT
+std::atomic<int> g_signal_resize_count = 0;  // NOLINT
 #endif
 
+// Async signal safe function
+void RecordSignal(int signal) {
+  switch (signal) {
+    case SIGABRT:
+    case SIGFPE:
+    case SIGILL:
+    case SIGINT:
+    case SIGSEGV:
+    case SIGTERM:
+      g_signal_exit_count++;
+      break;
+
+#if !defined(_WIN32)
+    case SIGTSTP:  // NOLINT
+      g_signal_stop_count++;
+      break;
+
+    case SIGWINCH:  // NOLINT
+      g_signal_resize_count++;
+      break;
+#endif
+
+    default:
+      break;
+  }
+}
+
+void ExecuteSignalHandlers() {
+  int signal_exit_count = g_signal_exit_count.exchange(0);
+  while (signal_exit_count--) {
+    ScreenInteractive::Private::Signal(*g_active_screen, SIGABRT);
+  }
+
+#if !defined(_WIN32)
+  int signal_stop_count = g_signal_stop_count.exchange(0);
+  while (signal_stop_count--) {
+    ScreenInteractive::Private::Signal(*g_active_screen, SIGTSTP);
+  }
+
+  int signal_resize_count = g_signal_resize_count.exchange(0);
+  while (signal_resize_count--) {
+    ScreenInteractive::Private::Signal(*g_active_screen, SIGWINCH);
+  }
+#endif
+}
+
+void InstallSignalHandler(int sig) {
+  auto old_signal_handler = std::signal(sig, RecordSignal);
+  on_exit_functions.emplace(
+      [=] { std::ignore = std::signal(sig, old_signal_handler); });
+}
+
+// CSI: Control Sequence Introducer
 const std::string CSI = "\x1b[";  // NOLINT
+                                  //
+// DCS: Device Control String
+const std::string DCS = "\x1bP";  // NOLINT
+// ST: String Terminator
+const std::string ST = "\x1b\\";  // NOLINT
+
+// DECRQSS: Request Status String
+// DECSCUSR: Set Cursor Style
+const std::string DECRQSS_DECSCUSR = DCS + "$q q" + ST;  // NOLINT
 
 // DEC: Digital Equipment Corporation
-enum class DECMode {
+enum class DECMode : std::uint16_t {
   kLineWrap = 7,
-  kMouseX10 = 9,
   kCursor = 25,
+
+  kMouseX10 = 9,
   kMouseVt200 = 1000,
+  kMouseVt200Highlight = 1001,
+
+  kMouseBtnEventMouse = 1002,
   kMouseAnyEvent = 1003,
+
   kMouseUtf8 = 1005,
   kMouseSgrExtMode = 1006,
   kMouseUrxvtMode = 1015,
@@ -200,14 +221,14 @@ enum class DECMode {
 };
 
 // Device Status Report (DSR) {
-enum class DSRMode {
+enum class DSRMode : std::uint8_t {
   kCursor = 6,
 };
 
 std::string Serialize(const std::vector<DECMode>& parameters) {
   bool first = true;
   std::string out;
-  for (DECMode parameter : parameters) {
+  for (const DECMode parameter : parameters) {
     if (!first) {
       out += ";";
     }
@@ -232,35 +253,11 @@ std::string DeviceStatusReport(DSRMode ps) {
   return CSI + std::to_string(int(ps)) + "n";
 }
 
-using SignalHandler = void(int);
-std::stack<Closure> on_exit_functions;  // NOLINT
-void OnExit(int signal) {
-  (void)signal;
-  while (!on_exit_functions.empty()) {
-    on_exit_functions.top()();
-    on_exit_functions.pop();
-  }
-}
-
-const auto install_signal_handler = [](int sig, SignalHandler handler) {
-  auto old_signal_handler = std::signal(sig, handler);
-  on_exit_functions.push([=] { std::signal(sig, old_signal_handler); });
-};
-
-Closure g_on_resize = [] {};  // NOLINT
-void OnResize(int /* signal */) {
-  g_on_resize();
-}
-
-// void OnSigStop(int /*signal*/) {
-//   ScreenInteractive::Private::SigStop(*g_active_screen);
-// }
-
 class CapturedMouseImpl : public CapturedMouseInterface {
  public:
   explicit CapturedMouseImpl(std::function<void(void)> callback)
       : callback_(std::move(callback)) {}
-  ~CapturedMouseImpl() noexcept override { callback_(); }
+  ~CapturedMouseImpl() override { callback_(); }
   CapturedMouseImpl(const CapturedMouseImpl&) = delete;
   CapturedMouseImpl(CapturedMouseImpl&&) = delete;
   CapturedMouseImpl& operator=(const CapturedMouseImpl&) = delete;
@@ -270,76 +267,143 @@ class CapturedMouseImpl : public CapturedMouseInterface {
   std::function<void(void)> callback_;
 };
 
-void AnimationListener(std::atomic<bool>* quit, Sender<Task> out) noexcept {
-  // Animation at around 60fps.
-  const auto time_delta = std::chrono::milliseconds(15);
-  while (!*quit) {
-    out->Send(AnimationTask());
-    std::this_thread::sleep_for(time_delta);
-  }
-}
-
 }  // namespace
 
-ScreenInteractive::ScreenInteractive(int dimx,
+ScreenInteractive::ScreenInteractive(Dimension dimension,
+                                     int dimx,
                                      int dimy,
-                                     Dimension dimension,
-                                     bool use_alternative_screen) noexcept
+                                     bool use_alternative_screen)
     : Screen(dimx, dimy),
       dimension_(dimension),
       use_alternative_screen_(use_alternative_screen) {
-  task_receiver_ = MakeReceiver<Task>();
+  internal_ = std::make_unique<Internal>(
+      [&](Event event) { PostEvent(std::move(event)); });
 }
 
 // static
-ScreenInteractive ScreenInteractive::FixedSize(
-    int dimx,
-    int dimy) noexcept {
-  return {dimx, dimy, Dimension::Fixed, false};
+ScreenInteractive ScreenInteractive::FixedSize(int dimx, int dimy) {
+  return {
+      Dimension::Fixed,
+      dimx,
+      dimy,
+      /*use_alternative_screen=*/false,
+  };
 }
 
+/// Create a ScreenInteractive taking the full terminal size. This is using the
+/// alternate screen buffer to avoid messing with the terminal content.
+/// @note This is the same as `ScreenInteractive::FullscreenAlternateScreen()`
 // static
-ScreenInteractive ScreenInteractive::Fullscreen() noexcept {
-  return {0, 0, Dimension::Fullscreen, true};
+ScreenInteractive ScreenInteractive::Fullscreen() {
+  return FullscreenAlternateScreen();
 }
 
+/// Create a ScreenInteractive taking the full terminal size. The primary screen
+/// buffer is being used. It means if the terminal is resized, the previous
+/// content might mess up with the terminal content.
 // static
-ScreenInteractive ScreenInteractive::TerminalOutput() noexcept {
-  return {0, 0, Dimension::TerminalOutput, false};
+ScreenInteractive ScreenInteractive::FullscreenPrimaryScreen() {
+  auto terminal = Terminal::Size();
+  return {
+      Dimension::Fullscreen,
+      terminal.dimx,
+      terminal.dimy,
+      /*use_alternative_screen=*/false,
+  };
 }
 
+/// Create a ScreenInteractive taking the full terminal size. This is using the
+/// alternate screen buffer to avoid messing with the terminal content.
 // static
-ScreenInteractive ScreenInteractive::FitComponent() noexcept {
-  return {0, 0, Dimension::FitComponent, false};
+ScreenInteractive ScreenInteractive::FullscreenAlternateScreen() {
+  auto terminal = Terminal::Size();
+  return {
+      Dimension::Fullscreen,
+      terminal.dimx,
+      terminal.dimy,
+      /*use_alternative_screen=*/true,
+  };
 }
 
-void ScreenInteractive::Post(const Task& task) noexcept {
-  // Task/Events sent toward inactive screen or screen waiting to become
-  // inactive are dropped.
-  if (!task_sender_) {
-    return;
-  }
-
-  task_sender_->Send(task);
+/// Create a ScreenInteractive whose width match the terminal output width and
+/// the height matches the component being drawn.
+// static
+ScreenInteractive ScreenInteractive::TerminalOutput() {
+  auto terminal = Terminal::Size();
+  return {
+      Dimension::TerminalOutput,
+      terminal.dimx,
+      terminal.dimy,  // Best guess.
+      /*use_alternative_screen=*/false,
+  };
 }
 
-void ScreenInteractive::PostEvent(const Event& event) noexcept {
-  Post(static_cast<const Task&>(event));
+ScreenInteractive::~ScreenInteractive() = default;
+
+/// Create a ScreenInteractive whose width and height match the component being
+/// drawn.
+// static
+ScreenInteractive ScreenInteractive::FitComponent() {
+  auto terminal = Terminal::Size();
+  return {
+      Dimension::FitComponent,
+      terminal.dimx,  // Best guess.
+      terminal.dimy,  // Best guess.
+      false,
+  };
 }
 
-void ScreenInteractive::RequestAnimationFrame() noexcept {
+/// @brief Set whether mouse is tracked and events reported.
+/// called outside of the main loop. E.g `ScreenInteractive::Loop(...)`.
+/// @param enable Whether to enable mouse event tracking.
+/// @note This muse be called outside of the main loop. E.g. before calling
+/// `ScreenInteractive::Loop`.
+/// @note Mouse tracking is enabled by default.
+/// @note Mouse tracking is only supported on terminals that supports it.
+///
+/// ### Example
+///
+/// ```cpp
+/// auto screen = ScreenInteractive::TerminalOutput();
+/// screen.TrackMouse(false);
+/// screen.Loop(component);
+/// ```
+void ScreenInteractive::TrackMouse(bool enable) {
+  track_mouse_ = enable;
+}
+
+/// @brief Add a task to the main loop.
+/// It will be executed later, after every other scheduled tasks.
+void ScreenInteractive::Post(Task task) {
+  internal_->task_runner.PostTask([this, task = std::move(task)]() mutable {
+    HandleTask(component_, task);
+  });
+}
+
+/// @brief Add an event to the main loop.
+/// It will be executed later, after every other scheduled events.
+void ScreenInteractive::PostEvent(Event event) {
+  Post(event);
+}
+
+/// @brief Add a task to draw the screen one more time, until all the animations
+/// are done.
+void ScreenInteractive::RequestAnimationFrame() {
   if (animation_requested_) {
     return;
   }
   animation_requested_ = true;
-  const auto now = animation::Clock::now();
+  auto now = animation::Clock::now();
   const auto time_histeresis = std::chrono::milliseconds(33);
-  if (now - previous_animation_time >= time_histeresis) {
-    previous_animation_time = now;
+  if (now - previous_animation_time_ >= time_histeresis) {
+    previous_animation_time_ = now;
   }
 }
 
-CapturedMouse ScreenInteractive::CaptureMouse() noexcept {
+/// @brief Try to get the unique lock about behing able to capture the mouse.
+/// @return A unique lock if the mouse is not already captured, otherwise a
+/// null.
+CapturedMouse ScreenInteractive::CaptureMouse() {
   if (mouse_captured) {
     return nullptr;
   }
@@ -348,45 +412,73 @@ CapturedMouse ScreenInteractive::CaptureMouse() noexcept {
       [this] { mouse_captured = false; });
 }
 
-void ScreenInteractive::Loop(const Component& component) noexcept {  // NOLINT
+/// @brief Execute the main loop.
+/// @param component The component to draw.
+void ScreenInteractive::Loop(Component component) {  // NOLINT
+  class Loop loop(this, std::move(component));
+  loop.Run();
+}
+
+/// @brief Return whether the main loop has been quit.
+bool ScreenInteractive::HasQuitted() {
+  return quit_;
+}
+
+// private
+void ScreenInteractive::PreMain() {
   // Suspend previously active screen:
   if (g_active_screen) {
     std::swap(suspended_screen_, g_active_screen);
-    std::cout << suspended_screen_->reset_cursor_position
-              << suspended_screen_->ResetPosition(/*clear=*/true);
+    // Reset cursor position to the top of the screen and clear the screen.
+    suspended_screen_->ResetCursorPosition();
+    std::cout << suspended_screen_->ResetPosition(/*clear=*/true);
     suspended_screen_->dimx_ = 0;
     suspended_screen_->dimy_ = 0;
+
+    // Reset dimensions to force drawing the screen again next time:
     suspended_screen_->Uninstall();
   }
 
   // This screen is now active:
   g_active_screen = this;
   g_active_screen->Install();
-  g_active_screen->Main(component);
-  g_active_screen->Uninstall();
-  g_active_screen = nullptr;
 
+  previous_animation_time_ = animation::Clock::now();
+}
+
+// private
+void ScreenInteractive::PostMain() {
   // Put cursor position at the end of the drawing.
-  std::cout << reset_cursor_position;
+  ResetCursorPosition();
+
+  g_active_screen = nullptr;
 
   // Restore suspended screen.
   if (suspended_screen_) {
+    // Clear screen, and put the cursor at the beginning of the drawing.
     std::cout << ResetPosition(/*clear=*/true);
     dimx_ = 0;
     dimy_ = 0;
+    Uninstall();
     std::swap(g_active_screen, suspended_screen_);
     g_active_screen->Install();
   } else {
+    Uninstall();
+
+    std::cout << '\r';
     // On final exit, keep the current drawing and reset cursor position one
     // line after it.
-    std::cout << std::endl;
+    if (!use_alternative_screen_) {
+      std::cout << '\n';
+      std::cout << std::flush;
+    }
   }
 }
 
 /// @brief Decorate a function. It executes the same way, but with the currently
-/// active screen terminal hooks temporarily uninstalled during its execution.
+/// active screen terminal hooks temporarilly uninstalled during its execution.
 /// @param fn The function to decorate.
-Closure ScreenInteractive::WithRestoredIO(const Closure& fn) noexcept {  // NOLINT
+Closure ScreenInteractive::WithRestoredIO(Closure fn) {  // NOLINT
   return [this, fn] {
     Uninstall();
     fn();
@@ -394,38 +486,68 @@ Closure ScreenInteractive::WithRestoredIO(const Closure& fn) noexcept {  // NOLI
   };
 }
 
-void ScreenInteractive::Resume() noexcept {
-  // Restore this screen
-  if (suspended_) {
-    Install();
+/// @brief Force FTXUI to handle or not handle Ctrl-C, even if the component
+/// catches the Event::CtrlC.
+void ScreenInteractive::ForceHandleCtrlC(bool force) {
+  force_handle_ctrl_c_ = force;
+}
+
+/// @brief Force FTXUI to handle or not handle Ctrl-Z, even if the component
+/// catches the Event::CtrlZ.
+void ScreenInteractive::ForceHandleCtrlZ(bool force) {
+  force_handle_ctrl_z_ = force;
+}
+
+/// @brief Returns the content of the current selection
+std::string ScreenInteractive::GetSelection() {
+  if (!selection_) {
+    return "";
   }
+  return selection_->GetParts();
 }
 
-void ScreenInteractive::Suspend() noexcept {
-  // Suspend this screen
-  suspended_ = true;
-  Uninstall();
+void ScreenInteractive::SelectionChange(std::function<void()> callback) {
+  selection_on_change_ = std::move(callback);
 }
 
+/// @brief Return the currently active screen, or null if none.
 // static
-[[gnu::pure]] ScreenInteractive* ScreenInteractive::Active() noexcept {
+ScreenInteractive* ScreenInteractive::Active() {
   return g_active_screen;
 }
 
-void ScreenInteractive::Install() noexcept {
+// private
+void ScreenInteractive::Install() {
+  frame_valid_ = false;
+
+  // Flush the buffer for stdout to ensure whatever the user has printed before
+  // is fully applied before we start modifying the terminal configuration. This
+  // is important, because we are using two different channels (stdout vs
+  // termios/WinAPI) to communicate with the terminal emulator below. See
+  // https://github.com/ArthurSonzogni/FTXUI/issues/846
+  Flush();
+
   // After uninstalling the new configuration, flush it to the terminal to
   // ensure it is fully applied:
-  on_exit_functions.push([] { Flush(); });
+  on_exit_functions.emplace([] { Flush(); });
 
-  on_exit_functions.push([this] { ExitLoopClosure()(); });
+  on_exit_functions.emplace([this] { ExitLoopClosure()(); });
+
+  // Request the terminal to report the current cursor shape. We will restore it
+  // on exit.
+  std::cout << DECRQSS_DECSCUSR;
+  on_exit_functions.emplace([this] {
+    std::cout << "\033[?25h";  // Enable cursor.
+    std::cout << "\033[" + std::to_string(cursor_reset_shape_) + " q";
+  });
 
   // Install signal handlers to restore the terminal state on exit. The default
   // signal handlers are restored on exit.
-  for (int signal : {SIGTERM, SIGSEGV, SIGINT, SIGILL, SIGABRT, SIGFPE}) {
-    install_signal_handler(signal, OnExit);
+  for (const int signal : {SIGTERM, SIGSEGV, SIGINT, SIGILL, SIGABRT, SIGFPE}) {
+    InstallSignalHandler(signal);
   }
 
-  // Save the old terminal configuration and restore it on exit.
+// Save the old terminal configuration and restore it on exit.
 #if defined(_WIN32)
   // Enable VT processing on stdout and stdin
   auto stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -456,37 +578,62 @@ void ScreenInteractive::Install() noexcept {
 
   SetConsoleMode(stdin_handle, in_mode);
   SetConsoleMode(stdout_handle, out_mode);
-#else
-  struct termios terminal {};  // NOLINT
-  tcgetattr(STDIN_FILENO, &terminal);
-  on_exit_functions.push([=] { tcsetattr(STDIN_FILENO, TCSANOW, &terminal); });
+#else  // POSIX (Linux & Mac)
+  // #if defined(__EMSCRIPTEN__)
+  //// Reading stdin isn't blocking.
+  // int flags = fcntl(0, F_GETFL, 0);
+  // fcntl(0, F_SETFL, flags | O_NONBLOCK);
 
-  terminal.c_lflag &= ~ICANON;  // NOLINT Non canonique terminal.
-  terminal.c_lflag &= ~ECHO;    // NOLINT Do not print after a key press.
-  terminal.c_cc[VMIN] = 0;
-  terminal.c_cc[VTIME] = 0;
-  // auto oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-  // fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-  // on_exit_functions.push([=] { fcntl(STDIN_FILENO, F_GETFL, oldf); });
+  //// Restore the terminal configuration on exit.
+  // on_exit_functions.emplace([flags] { fcntl(0, F_SETFL, flags); });
+  // #endif
+  for (const int signal : {SIGWINCH, SIGTSTP}) {
+    InstallSignalHandler(signal);
+  }
+
+  struct termios terminal;  // NOLINT
+  tcgetattr(STDIN_FILENO, &terminal);
+  on_exit_functions.emplace(
+      [=] { tcsetattr(STDIN_FILENO, TCSANOW, &terminal); });
+
+  // Enabling raw terminal input mode
+  terminal.c_iflag &= ~IGNBRK;  // Disable ignoring break condition
+  terminal.c_iflag &= ~BRKINT;  // Disable break causing input and output to be
+                                // flushed
+  terminal.c_iflag &= ~PARMRK;  // Disable marking parity errors.
+  terminal.c_iflag &= ~ISTRIP;  // Disable striping 8th bit off characters.
+  terminal.c_iflag &= ~INLCR;   // Disable mapping NL to CR.
+  terminal.c_iflag &= ~IGNCR;   // Disable ignoring CR.
+  terminal.c_iflag &= ~ICRNL;   // Disable mapping CR to NL.
+  terminal.c_iflag &= ~IXON;    // Disable XON/XOFF flow control on output
+
+  terminal.c_lflag &= ~ECHO;    // Disable echoing input characters.
+  terminal.c_lflag &= ~ECHONL;  // Disable echoing new line characters.
+  terminal.c_lflag &= ~ICANON;  // Disable Canonical mode.
+  terminal.c_lflag &= ~ISIG;    // Disable sending signal when hitting:
+                                // -     => DSUSP
+                                // - C-Z => SUSP
+                                // - C-C => INTR
+                                // - C-d => QUIT
+  terminal.c_lflag &= ~IEXTEN;  // Disable extended input processing
+  terminal.c_cflag |= CS8;      // 8 bits per byte
+
+  terminal.c_cc[VMIN] = 0;   // Minimum number of characters for non-canonical
+                             // read.
+  terminal.c_cc[VTIME] = 0;  // Timeout in deciseconds for non-canonical read.
 
   tcsetattr(STDIN_FILENO, TCSANOW, &terminal);
 
-  // Handle resize.
-  g_on_resize = [&] { task_sender_->Send(Event::Special({0})); };
-  install_signal_handler(SIGWINCH, OnResize);
-
-  // Handle SIGTSTP/SIGCONT.
-  // install_signal_handler(SIGTSTP, OnSigStop);
 #endif
 
   auto enable = [&](const std::vector<DECMode>& parameters) {
     std::cout << Set(parameters);
-    on_exit_functions.push([=] { std::cout << Reset(parameters); });
+    on_exit_functions.emplace([=] { std::cout << Reset(parameters); });
   };
 
   auto disable = [&](const std::vector<DECMode>& parameters) {
     std::cout << Reset(parameters);
-    on_exit_functions.push([=] { std::cout << Set(parameters); });
+    on_exit_functions.emplace([=] { std::cout << Set(parameters); });
   };
 
   if (use_alternative_screen_) {
@@ -496,140 +643,250 @@ void ScreenInteractive::Install() noexcept {
   }
 
   disable({
-      DECMode::kCursor,
+      // DECMode::kCursor,
       DECMode::kLineWrap,
   });
 
-  enable({
-      // DECMode::kMouseVt200,
-      DECMode::kMouseAnyEvent,
-      DECMode::kMouseUtf8,
-      DECMode::kMouseSgrExtMode,
-  });
+  if (track_mouse_) {
+    enable({DECMode::kMouseVt200});
+    enable({DECMode::kMouseAnyEvent});
+    enable({DECMode::kMouseUrxvtMode});
+    enable({DECMode::kMouseSgrExtMode});
+  }
 
-  // After installing the new configuration, flush it to the terminal to ensure
-  // it is fully applied:
+  // After installing the new configuration, flush it to the terminal to
+  // ensure it is fully applied:
   Flush();
 
   quit_ = false;
-  task_sender_ = task_receiver_->MakeSender();
-  event_listener_ =
-      std::thread(&EventListener, &quit_, task_receiver_->MakeSender());
-  animation_listener_ =
-      std::thread(&AnimationListener, &quit_, task_receiver_->MakeSender());
+
+  PostAnimationTask();
 }
 
-void ScreenInteractive::Uninstall() noexcept {
-  ExitLoopClosure()();
-  event_listener_.join();
-  animation_listener_.join();
-
-  OnExit(0);
+// private
+void ScreenInteractive::Uninstall() {
+  ExitNow();
+  OnExit();
 }
 
+// private
 // NOLINTNEXTLINE
-void ScreenInteractive::Main(const Component& component) noexcept {
-  previous_animation_time = animation::Clock::now();
+void ScreenInteractive::RunOnceBlocking(Component component) {
+  // Set FPS to 60 at most.
+  const auto time_per_frame = std::chrono::microseconds(16666);  // 1s / 60fps
 
-  auto draw = [&] {
-    Draw(component);
-    std::cout << ToString() << set_cursor_position;
-    Flush();
-    Clear();
-  };
+  auto time = std::chrono::steady_clock::now();
+  size_t executed_task = internal_->task_runner.ExecutedTasks();
 
-  bool attempt_draw = true;
-  while (!quit_) {
-    if (attempt_draw && !task_receiver_->HasPending()) {
-      draw();
-      attempt_draw = false;
+  // Wait for at least one task to execute.
+  while (executed_task == internal_->task_runner.ExecutedTasks() &&
+         !HasQuitted()) {
+    RunOnce(component);
+
+    const auto now = std::chrono::steady_clock::now();
+    const auto delta = now - time;
+    time = now;
+
+    if (delta < time_per_frame) {
+      const auto sleep_duration = time_per_frame - delta;
+      std::this_thread::sleep_for(sleep_duration);
     }
-
-    Task task;
-    if (!task_receiver_->Receive(&task)) {
-      break;
-    }
-
-    // clang-format off
-    std::visit([&](auto&& arg) {
-      using T = std::decay_t<decltype(arg)>;
-
-      // Handle Event.
-      if constexpr (std::is_same_v<T, Event>) {
-        if (arg.is_cursor_reporting()) {
-          cursor_x_ = arg.cursor_x();
-          cursor_y_ = arg.cursor_y();
-          return;
-        }
-
-        if (arg.is_mouse()) {
-          arg.mouse().x -= cursor_x_;
-          arg.mouse().y -= cursor_y_;
-        }
-
-        arg.screen_ = this;
-        component->OnEvent(arg);
-        attempt_draw = true;
-        return;
-      }
-
-      // Handle callback
-      if constexpr (std::is_same_v<T, Closure>) {
-        arg();
-        return;
-      }
-
-      // Handle Animation
-      if constexpr (std::is_same_v<T, AnimationTask>) {
-        if (!animation_requested_) {
-          return;
-        }
-
-        animation_requested_ = false;
-        animation::TimePoint now = animation::Clock::now();
-        animation::Duration delta = now - previous_animation_time;
-        previous_animation_time = now;
-
-        animation::Params params(delta);
-        component->OnAnimation(params);
-        attempt_draw = true;
-        return;
-      }
-    },
-    task);
-    // clang-format on
   }
 }
 
+// private
+void ScreenInteractive::RunOnce(Component component) {
+  AutoReset set_component(&component_, component);
+  ExecuteSignalHandlers();
+  FetchTerminalEvents();
+
+  // Execute the pending tasks from the queue.
+  const size_t executed_task = internal_->task_runner.ExecutedTasks();
+  internal_->task_runner.RunUntilIdle();
+  // If no executed task, we can return early without redrawing the screen.
+  if (executed_task == internal_->task_runner.ExecutedTasks()) {
+    return;
+  }
+
+  ExecuteSignalHandlers();
+  Draw(component);
+
+  if (selection_data_previous_ != selection_data_) {
+    selection_data_previous_ = selection_data_;
+    if (selection_on_change_) {
+      selection_on_change_();
+      Post(Event::Custom);
+    }
+  }
+}
+
+// private
 // NOLINTNEXTLINE
-void ScreenInteractive::Draw(const Component& component) noexcept {
+void ScreenInteractive::HandleTask(Component component, Task& task) {
+  std::visit(
+      [&](auto&& arg) {
+        using T = std::decay_t<decltype(arg)>;
+
+        // clang-format off
+    // Handle Event.
+    if constexpr (std::is_same_v<T, Event>) {
+
+      if (arg.is_cursor_position()) {
+        cursor_x_ = arg.cursor_x();
+        cursor_y_ = arg.cursor_y();
+        return;
+      }
+
+      if (arg.is_cursor_shape()) {
+        cursor_reset_shape_= arg.cursor_shape();
+        return;
+      }
+
+      if (arg.is_mouse()) {
+        arg.mouse().x -= cursor_x_;
+        arg.mouse().y -= cursor_y_;
+      }
+
+      arg.screen_ = this;
+
+      bool handled = component->OnEvent(arg);
+
+      handled = HandleSelection(handled, arg);
+
+      if (arg == Event::CtrlC && (!handled || force_handle_ctrl_c_)) {
+        RecordSignal(SIGABRT);
+      }
+
+#if !defined(_WIN32)
+      if (arg == Event::CtrlZ && (!handled || force_handle_ctrl_z_)) {
+        RecordSignal(SIGTSTP);
+      }
+#endif
+
+      frame_valid_ = false;
+      return;
+    }
+
+    // Handle callback
+    if constexpr (std::is_same_v<T, Closure>) {
+      arg();
+      return;
+    }
+
+    // Handle Animation
+    if constexpr (std::is_same_v<T, AnimationTask>) {
+      if (!animation_requested_) {
+        return;
+      }
+
+      animation_requested_ = false;
+      const animation::TimePoint now = animation::Clock::now();
+      const animation::Duration delta = now - previous_animation_time_;
+      previous_animation_time_ = now;
+
+      animation::Params params(delta);
+      component->OnAnimation(params);
+      frame_valid_ = false;
+      return;
+    }
+  },
+  task);
+  // clang-format on
+}
+
+// private
+bool ScreenInteractive::HandleSelection(bool handled, Event event) {
+  if (handled) {
+    selection_pending_ = nullptr;
+    selection_data_.empty = true;
+    selection_ = nullptr;
+    return true;
+  }
+
+  if (!event.is_mouse()) {
+    return false;
+  }
+
+  auto& mouse = event.mouse();
+  if (mouse.button != Mouse::Left) {
+    return false;
+  }
+
+  if (mouse.motion == Mouse::Pressed) {
+    selection_pending_ = CaptureMouse();
+    selection_data_.start_x = mouse.x;
+    selection_data_.start_y = mouse.y;
+    selection_data_.end_x = mouse.x;
+    selection_data_.end_y = mouse.y;
+    return false;
+  }
+
+  if (!selection_pending_) {
+    return false;
+  }
+
+  if (mouse.motion == Mouse::Moved) {
+    if ((mouse.x != selection_data_.end_x) ||
+        (mouse.y != selection_data_.end_y)) {
+      selection_data_.end_x = mouse.x;
+      selection_data_.end_y = mouse.y;
+      selection_data_.empty = false;
+    }
+
+    return true;
+  }
+
+  if (mouse.motion == Mouse::Released) {
+    selection_pending_ = nullptr;
+    selection_data_.end_x = mouse.x;
+    selection_data_.end_y = mouse.y;
+    selection_data_.empty = false;
+    return true;
+  }
+
+  return false;
+}
+
+// private
+// NOLINTNEXTLINE
+void ScreenInteractive::Draw(Component component) {
+  if (frame_valid_) {
+    return;
+  }
   auto document = component->Render();
   int dimx = 0;
   int dimy = 0;
+  auto terminal = Terminal::Size();
+  document->ComputeRequirement();
   switch (dimension_) {
     case Dimension::Fixed:
       dimx = dimx_;
       dimy = dimy_;
       break;
     case Dimension::TerminalOutput:
-      document->ComputeRequirement();
-      dimx = Terminal::Size().dimx;
-      dimy = document->requirement().min_y;
+      dimx = terminal.dimx;
+      dimy = util::clamp(document->requirement().min_y, 0, terminal.dimy);
       break;
     case Dimension::Fullscreen:
-      dimx = Terminal::Size().dimx;
-      dimy = Terminal::Size().dimy;
+      dimx = terminal.dimx;
+      dimy = terminal.dimy;
       break;
     case Dimension::FitComponent:
-      auto terminal = Terminal::Size();
-      document->ComputeRequirement();
-      dimx = ranges::min(document->requirement().min_x, terminal.dimx);
-      dimy = ranges::min(document->requirement().min_y, terminal.dimy);
+      dimx = util::clamp(document->requirement().min_x, 0, terminal.dimx);
+      dimy = util::clamp(document->requirement().min_y, 0, terminal.dimy);
       break;
   }
 
-  const bool resized = (dimx != dimx_) || (dimy != dimy_);
-  std::cout << reset_cursor_position << ResetPosition(/*clear=*/resized);
+  const bool resized = frame_count_ == 0 || (dimx != dimx_) || (dimy != dimy_);
+  ResetCursorPosition();
+  std::cout << ResetPosition(/*clear=*/resized);
+
+  // If the terminal width decrease, the terminal emulator will start wrapping
+  // lines and make the display dirty. We should clear it completely.
+  if ((dimx < dimx_) && !use_alternative_screen_) {
+    std::cout << "\033[J";  // clear terminal output
+    std::cout << "\033[H";  // move cursor to home position
+  }
 
   // Resize the screen if needed.
   if (resized) {
@@ -665,53 +922,225 @@ void ScreenInteractive::Draw(const Component& component) noexcept {
 #endif
   previous_frame_resized_ = resized;
 
-  Render(*this, document);
+  selection_ = selection_data_.empty
+                   ? std::make_unique<Selection>()
+                   : std::make_unique<Selection>(
+                         selection_data_.start_x, selection_data_.start_y,  //
+                         selection_data_.end_x, selection_data_.end_y);
+  Render(*this, document.get(), *selection_);
 
   // Set cursor position for user using tools to insert CJK characters.
-  set_cursor_position = "";
+  {
+    const int dx = dimx_ - 1 - cursor_.x + int(dimx_ != terminal.dimx);
+    const int dy = dimy_ - 1 - cursor_.y;
+
+    set_cursor_position.clear();
+    reset_cursor_position.clear();
+
+    if (dy != 0) {
+      set_cursor_position += "\x1B[" + std::to_string(dy) + "A";
+      reset_cursor_position += "\x1B[" + std::to_string(dy) + "B";
+    }
+
+    if (dx != 0) {
+      set_cursor_position += "\x1B[" + std::to_string(dx) + "D";
+      reset_cursor_position += "\x1B[" + std::to_string(dx) + "C";
+    }
+
+    if (cursor_.shape == Cursor::Hidden) {
+      set_cursor_position += "\033[?25l";
+    } else {
+      set_cursor_position += "\033[?25h";
+      set_cursor_position +=
+          "\033[" + std::to_string(int(cursor_.shape)) + " q";
+    }
+  }
+
+  std::cout << ToString() << set_cursor_position;
+  Flush();
+  Clear();
+  frame_valid_ = true;
+  frame_count_++;
+}
+
+// private
+void ScreenInteractive::ResetCursorPosition() {
+  std::cout << reset_cursor_position;
   reset_cursor_position = "";
-
-  const int dx = dimx_ - 1 - cursor_.x;
-  const int dy = dimy_ - 1 - cursor_.y;
-
-  if (dx != 0) {
-    set_cursor_position += "\x1B[" + std::to_string(dx) + "D";
-    reset_cursor_position += "\x1B[" + std::to_string(dx) + "C";
-  }
-  if (dy != 0) {
-    set_cursor_position += "\x1B[" + std::to_string(dy) + "A";
-    reset_cursor_position += "\x1B[" + std::to_string(dy) + "B";
-  }
 }
 
-[[gnu::const]]
-Closure ScreenInteractive::ExitLoopClosure() noexcept {
-  return [this] {
-    quit_ = true;
-    task_sender_.reset();
-  };
+/// @brief Return a function to exit the main loop.
+Closure ScreenInteractive::ExitLoopClosure() {
+  return [this] { Exit(); };
 }
 
-void ScreenInteractive::SigStop() noexcept {
-#if defined(_WIN32)
-  // Windows do no support SIGTSTP.
-#else
-  Post([&] {
-    Uninstall();
-    std::cout << reset_cursor_position;
-    reset_cursor_position = "";
-    std::cout << ResetPosition(/*clear=*/true);
-    dimx_ = 0;
-    dimy_ = 0;
-    Flush();
-    std::raise(SIGTSTP);
-    Install();
-  });
+/// @brief Exit the main loop.
+void ScreenInteractive::Exit() {
+  Post([this] { ExitNow(); });
+}
+
+// private:
+void ScreenInteractive::ExitNow() {
+  quit_ = true;
+}
+
+// private:
+void ScreenInteractive::Signal(int signal) {
+  if (signal == SIGABRT) {
+    Exit();
+    return;
+  }
+
+// Windows do no support SIGTSTP / SIGWINCH
+#if !defined(_WIN32)
+  if (signal == SIGTSTP) {
+    Post([&] {
+      ResetCursorPosition();
+      std::cout << ResetPosition(/*clear*/ true);  // Cursor to the beginning
+      Uninstall();
+      dimx_ = 0;
+      dimy_ = 0;
+      Flush();
+      std::ignore = std::raise(SIGTSTP);
+      Install();
+    });
+    return;
+  }
+
+  if (signal == SIGWINCH) {
+    Post(Event::Special({0}));
+    return;
+  }
 #endif
 }
 
-}  // namespace ftxui.
+void ScreenInteractive::FetchTerminalEvents() {
+#if defined(_WIN32)
+  auto get_input_records = [&]() -> std::vector<INPUT_RECORD> {
+    // Check if there is input in the console.
+    auto console = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD number_of_events = 0;
+    if (!GetNumberOfConsoleInputEvents(console, &number_of_events)) {
+      return std::vector<INPUT_RECORD>();
+    }
+    if (number_of_events <= 0) {
+      // No input, return.
+      return std::vector<INPUT_RECORD>();
+    }
+    // Read the input events.
+    std::vector<INPUT_RECORD> records(number_of_events);
+    DWORD number_of_events_read = 0;
+    if (!ReadConsoleInput(console, records.data(), (DWORD)records.size(),
+                          &number_of_events_read)) {
+      return std::vector<INPUT_RECORD>();
+    }
+    records.resize(number_of_events_read);
+    return records;
+  };
 
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
+  auto records = get_input_records();
+  if (records.size() == 0) {
+    const auto timeout =
+        std::chrono::steady_clock::now() - internal_->last_char_time;
+    const size_t timeout_microseconds =
+        std::chrono::duration_cast<std::chrono::microseconds>(timeout).count();
+    internal_->terminal_input_parser.Timeout(timeout_microseconds);
+    return;
+  }
+  internal_->last_char_time = std::chrono::steady_clock::now();
+
+  // Convert the input events to FTXUI events.
+  // For each event, we call the terminal input parser to convert it to
+  // Event.
+  for (const auto& r : records) {
+    switch (r.EventType) {
+      case KEY_EVENT: {
+        auto key_event = r.Event.KeyEvent;
+        // ignore UP key events
+        if (key_event.bKeyDown == FALSE) {
+          continue;
+        }
+        std::wstring wstring;
+        wstring += key_event.uChar.UnicodeChar;
+        for (auto it : to_string(wstring)) {
+          internal_->terminal_input_parser.Add(it);
+        }
+      } break;
+      case WINDOW_BUFFER_SIZE_EVENT:
+        Post(Event::Special({0}));
+        break;
+      case MENU_EVENT:
+      case FOCUS_EVENT:
+      case MOUSE_EVENT:
+        // TODO(mauve): Implement later.
+        break;
+    }
+  }
+#elif defined(__EMSCRIPTEN__)
+  // Read chars from the terminal.
+  // We configured it to be non blocking.
+  std::array<char, 128> out{};
+  size_t l = read(STDIN_FILENO, out.data(), out.size());
+  if (l == 0) {
+    const auto timeout =
+        std::chrono::steady_clock::now() - internal_->last_char_time;
+    const size_t timeout_microseconds =
+        std::chrono::duration_cast<std::chrono::microseconds>(timeout).count();
+    internal_->terminal_input_parser.Timeout(timeout_microseconds);
+    return;
+  }
+  internal_->last_char_time = std::chrono::steady_clock::now();
+
+  // Convert the chars to events.
+  for (size_t i = 0; i < l; ++i) {
+    internal_->terminal_input_parser.Add(out[i]);
+  }
+#else  // POSIX (Linux & Mac)
+  if (!CheckStdinReady()) {
+    const auto timeout =
+        std::chrono::steady_clock::now() - internal_->last_char_time;
+    const size_t timeout_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count();
+    internal_->terminal_input_parser.Timeout(timeout_ms);
+    return;
+  }
+  internal_->last_char_time = std::chrono::steady_clock::now();
+
+  // Read chars from the terminal.
+  std::array<char, 128> out{};
+  size_t l = read(fileno(stdin), out.data(), out.size());
+
+  // Convert the chars to events.
+  for (size_t i = 0; i < l; ++i) {
+    internal_->terminal_input_parser.Add(out[i]);
+  }
+#endif
+}
+
+void ScreenInteractive::PostAnimationTask() {
+  Post(AnimationTask());
+
+  // Repeat the animation task every 15ms. This correspond to a frame rate
+  // of around 66fps.
+  internal_->task_runner.PostDelayedTask([this] { PostAnimationTask(); },
+                                         std::chrono::milliseconds(15));
+}
+
+bool ScreenInteractive::SelectionData::operator==(
+    const ScreenInteractive::SelectionData& other) const {
+  if (empty && other.empty) {
+    return true;
+  }
+  if (empty || other.empty) {
+    return false;
+  }
+  return start_x == other.start_x && start_y == other.start_y &&
+         end_x == other.end_x && end_y == other.end_y;
+}
+
+bool ScreenInteractive::SelectionData::operator!=(
+    const ScreenInteractive::SelectionData& other) const {
+  return !(*this == other);
+}
+
+}  // namespace ftxui.

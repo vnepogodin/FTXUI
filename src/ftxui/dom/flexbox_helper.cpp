@@ -1,34 +1,20 @@
-#include <cstddef>    // for size_t
-#include <memory>     // for allocator_traits<>::value_type
-#include <utility>  // for swap, move
+// Copyright 2021 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include "ftxui/dom/flexbox_helper.hpp"
 
-#include <ftxui/dom/flexbox_helper.hpp>
-#include <ftxui/dom/box_helper.hpp>  // for Element, Compute
+#include <algorithm>                     // for max, min
+#include <cstddef>                       // for size_t
+#include <ftxui/dom/flexbox_config.hpp>  // for FlexboxConfig, FlexboxConfig::Direction, FlexboxConfig::AlignContent, FlexboxConfig::JustifyContent, FlexboxConfig::Wrap, FlexboxConfig::Direction::RowInversed, FlexboxConfig::AlignItems, FlexboxConfig::Direction::Row, FlexboxConfig::Direction::Column, FlexboxConfig::Direction::ColumnInversed, FlexboxConfig::Wrap::WrapInversed, FlexboxConfig::AlignContent::Stretch, FlexboxConfig::JustifyContent::Stretch, FlexboxConfig::Wrap::Wrap, FlexboxConfig::AlignContent::Center, FlexboxConfig::AlignContent::FlexEnd, FlexboxConfig::AlignContent::FlexStart, FlexboxConfig::AlignContent::SpaceAround, FlexboxConfig::AlignContent::SpaceBetween, FlexboxConfig::AlignContent::SpaceEvenly, FlexboxConfig::AlignItems::Center, FlexboxConfig::AlignItems::FlexEnd, FlexboxConfig::AlignItems::FlexStart, FlexboxConfig::AlignItems::Stretch, FlexboxConfig::JustifyContent::Center, FlexboxConfig::JustifyContent::FlexEnd, FlexboxConfig::JustifyContent::FlexStart, FlexboxConfig::JustifyContent::SpaceAround, FlexboxConfig::JustifyContent::SpaceBetween, FlexboxConfig::JustifyContent::SpaceEvenly, FlexboxConfig::Wrap::NoWrap
+#include <utility>                       // for swap, move
+#include <vector>
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#pragma clang diagnostic ignored "-Wdeprecated"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wdeprecated"
-#endif
-
-#include <range/v3/algorithm/max.hpp>
-#include <range/v3/algorithm/min.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include "ftxui/dom/box_helper.hpp"  // for Element, Compute
 
 namespace ftxui::flexbox_helper {
 
 namespace {
-void SymmetryXY(FlexboxConfig& c) noexcept {
+void SymmetryXY(FlexboxConfig& c) {
   std::swap(c.gap_x, c.gap_y);
   switch (c.direction) {
     case FlexboxConfig::Direction::Row:
@@ -46,7 +32,7 @@ void SymmetryXY(FlexboxConfig& c) noexcept {
   }
 }
 
-void SymmetryX(FlexboxConfig& c) noexcept {
+void SymmetryX(FlexboxConfig& c) {
   switch (c.direction) {
     case FlexboxConfig::Direction::Row:
       c.direction = FlexboxConfig::Direction::RowInversed;
@@ -59,7 +45,7 @@ void SymmetryX(FlexboxConfig& c) noexcept {
   }
 }
 
-void SymmetryY(FlexboxConfig& c) noexcept {
+void SymmetryY(FlexboxConfig& c) {
   switch (c.wrap) {
     case FlexboxConfig::Wrap::NoWrap:
       break;
@@ -72,7 +58,7 @@ void SymmetryY(FlexboxConfig& c) noexcept {
   }
 }
 
-void SymmetryXY(Global& g) noexcept {
+void SymmetryXY(Global& g) {
   SymmetryXY(g.config);
   std::swap(g.size_x, g.size_y);
   for (auto& b : g.blocks) {
@@ -82,30 +68,37 @@ void SymmetryXY(Global& g) noexcept {
     std::swap(b.x, b.y);
     std::swap(b.dim_x, b.dim_y);
   }
+  for (auto& l : g.lines) {
+    std::swap(l.x, l.y);
+    std::swap(l.dim_x, l.dim_y);
+  }
 }
 
-void SymmetryX(Global& g) noexcept {
+void SymmetryX(Global& g) {
   SymmetryX(g.config);
   for (auto& b : g.blocks) {
     b.x = g.size_x - b.x - b.dim_x;
   }
+  for (auto& l : g.lines) {
+    l.x = g.size_x - l.x - l.dim_x;
+  }
 }
 
-void SymmetryY(Global& g) noexcept {
+void SymmetryY(Global& g) {
   SymmetryY(g.config);
   for (auto& b : g.blocks) {
     b.y = g.size_y - b.y - b.dim_y;
   }
+  for (auto& l : g.lines) {
+    l.y = g.size_y - l.y - l.dim_y;
+  }
 }
 
-struct Line {
-  std::vector<Block*> blocks;
-};
-
-void SetX(Global& global, std::vector<Line> lines) noexcept {
-  for (auto& line : lines) {
+void SetX(Global& global) {
+  for (auto& line : global.lines) {
     std::vector<box_helper::Element> elements;
-    for (auto&& block : line.blocks) {
+    elements.reserve(line.blocks.size());
+    for (auto* block : line.blocks) {
       box_helper::Element element;
       element.min_size = block->min_size_x;
       element.flex_grow =
@@ -123,26 +116,31 @@ void SetX(Global& global, std::vector<Line> lines) noexcept {
 
     int x = 0;
     for (size_t i = 0; i < line.blocks.size(); ++i) {
-      line.blocks[i]->dim_x = elements[i].size;
       line.blocks[i]->x = x;
+      line.blocks[i]->dim_x = elements[i].size;
       x += elements[i].size;
       x += global.config.gap_x;
     }
   }
+
+  for (auto& line : global.lines) {
+    line.x = 0;
+    line.dim_x = global.size_x;
+  }
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-void SetY(Global& g, std::vector<Line> lines) noexcept {
+void SetY(Global& g) {
   std::vector<box_helper::Element> elements;
-  for (auto& line : lines) {
+  elements.reserve(g.lines.size());
+  for (auto& line : g.lines) {
     box_helper::Element element;
     element.flex_shrink = line.blocks.front()->flex_shrink_y;
     element.flex_grow = line.blocks.front()->flex_grow_y;
     for (auto* block : line.blocks) {
-      element.min_size = ranges::max(element.min_size, block->min_size_y);
-      element.flex_shrink =
-          ranges::min(element.flex_shrink, block->flex_shrink_y);
-      element.flex_grow = ranges::min(element.flex_grow, block->flex_grow_y);
+      element.min_size = std::max(element.min_size, block->min_size_y);
+      element.flex_shrink = std::min(element.flex_shrink, block->flex_shrink_y);
+      element.flex_grow = std::min(element.flex_grow, block->flex_grow_y);
     }
     elements.push_back(element);
   }
@@ -158,24 +156,28 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
     y += elements[i].size;
     y += g.config.gap_y;
   }
-  int remaining_space = ranges::max(0, g.size_y - y);
+  int remaining_space = std::max(0, g.size_y - y);
   switch (g.config.align_content) {
     case FlexboxConfig::AlignContent::FlexStart: {
       break;
     }
 
     case FlexboxConfig::AlignContent::FlexEnd: {
-      for (auto& elem : ys)
-        elem += remaining_space;
-    } break;
+      for (size_t i = 0; i < ys.size(); ++i) {  // NOLINT
+        ys[i] += remaining_space;
+      }
+      break;
+    }
 
     case FlexboxConfig::AlignContent::Center: {
-      for (auto& elem : ys)
-        elem += remaining_space / 2;
-    } break;
+      for (size_t i = 0; i < ys.size(); ++i) {  // NOLINT
+        ys[i] += remaining_space / 2;
+      }
+      break;
+    }
 
     case FlexboxConfig::AlignContent::Stretch: {
-      for (int i = ys.size() - 1; i >= 0; --i) {
+      for (int i = static_cast<int>(ys.size()) - 1; i >= 0; --i) {  // NOLINT
         const int shifted = remaining_space * (i + 0) / (i + 1);
         ys[i] += shifted;
         const int consumed = remaining_space - shifted;
@@ -186,7 +188,7 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
     }
 
     case FlexboxConfig::AlignContent::SpaceBetween: {
-      for (int i = ys.size() - 1; i >= 1; --i) {  // NOLINT
+      for (int i = static_cast<int>(ys.size()) - 1; i >= 1; --i) {  // NOLINT
         ys[i] += remaining_space;
         remaining_space = remaining_space * (i - 1) / i;
       }
@@ -194,7 +196,7 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
     }
 
     case FlexboxConfig::AlignContent::SpaceAround: {
-      for (int i = ys.size() - 1; i >= 0; --i) {  // NOLINT
+      for (int i = static_cast<int>(ys.size()) - 1; i >= 0; --i) {  // NOLINT
         ys[i] += remaining_space * (2 * i + 1) / (2 * i + 2);
         remaining_space = remaining_space * (2 * i) / (2 * i + 2);
       }
@@ -202,7 +204,7 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
     }
 
     case FlexboxConfig::AlignContent::SpaceEvenly: {
-      for (int i = ys.size() - 1; i >= 0; --i) {  // NOLINT
+      for (int i = static_cast<int>(ys.size()) - 1; i >= 0; --i) {  // NOLINT
         ys[i] += remaining_space * (i + 1) / (i + 2);
         remaining_space = remaining_space * (i + 1) / (i + 2);
       }
@@ -211,14 +213,14 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
   }
 
   // [Align items]
-  for (size_t i = 0; i < lines.size(); ++i) {
+  for (size_t i = 0; i < g.lines.size(); ++i) {
     auto& element = elements[i];
-    for (auto* block : lines[i].blocks) {
-      bool stretch =
+    for (auto* block : g.lines[i].blocks) {
+      const bool stretch =
           block->flex_grow_y != 0 ||
           g.config.align_content == FlexboxConfig::AlignContent::Stretch;
-      int size =
-          stretch ? element.size : ranges::min(element.size, block->min_size_y);
+      const int size =
+          stretch ? element.size : std::min(element.size, block->min_size_y);
       switch (g.config.align_items) {
         case FlexboxConfig::AlignItems::FlexStart: {
           block->y = ys[i];
@@ -246,10 +248,16 @@ void SetY(Global& g, std::vector<Line> lines) noexcept {
       }
     }
   }
+
+  ys.push_back(g.size_y);
+  for (size_t i = 0; i < g.lines.size(); ++i) {
+    g.lines[i].y = ys[i];
+    g.lines[i].dim_y = ys[i + 1] - ys[i];
+  }
 }
 
-void JustifyContent(Global& g, std::vector<Line> lines) noexcept {
-  for (auto& line : lines) {
+void JustifyContent(Global& g) {
+  for (auto& line : g.lines) {
     Block* last = line.blocks.back();
     int remaining_space = g.size_x - last->x - last->dim_x;
     switch (g.config.justify_content) {
@@ -272,7 +280,7 @@ void JustifyContent(Global& g, std::vector<Line> lines) noexcept {
       }
 
       case FlexboxConfig::JustifyContent::SpaceBetween: {
-        for (int i = static_cast<int>(line.blocks.size()) - 1; i >= 1; --i) {
+        for (int i = (int)line.blocks.size() - 1; i >= 1; --i) {
           line.blocks[i]->x += remaining_space;
           remaining_space = remaining_space * (i - 1) / i;
         }
@@ -280,7 +288,7 @@ void JustifyContent(Global& g, std::vector<Line> lines) noexcept {
       }
 
       case FlexboxConfig::JustifyContent::SpaceAround: {
-        for (int i = static_cast<int>(line.blocks.size()) - 1; i >= 0; --i) {
+        for (int i = (int)line.blocks.size() - 1; i >= 0; --i) {
           line.blocks[i]->x += remaining_space * (2 * i + 1) / (2 * i + 2);
           remaining_space = remaining_space * (2 * i) / (2 * i + 2);
         }
@@ -288,7 +296,7 @@ void JustifyContent(Global& g, std::vector<Line> lines) noexcept {
       }
 
       case FlexboxConfig::JustifyContent::SpaceEvenly: {
-        for (int i = static_cast<int>(line.blocks.size()) - 1; i >= 0; --i) {
+        for (int i = (int)line.blocks.size() - 1; i >= 0; --i) {
           line.blocks[i]->x += remaining_space * (i + 1) / (i + 2);
           remaining_space = remaining_space * (i + 1) / (i + 2);
         }
@@ -297,9 +305,6 @@ void JustifyContent(Global& g, std::vector<Line> lines) noexcept {
     }
   }
 }
-}  // namespace
-
-namespace {
 
 void Compute1(Global& global);
 void Compute2(Global& global);
@@ -327,7 +332,6 @@ void Compute2(Global& global) {
 
 void Compute3(Global& global) {
   // Step 1: Lay out every elements into rows:
-  std::vector<Line> lines;
   {
     Line line;
     int x = 0;
@@ -337,32 +341,32 @@ void Compute3(Global& global) {
       if (x + block.min_size_x > global.size_x) {
         x = 0;
         if (!line.blocks.empty()) {
-          lines.push_back(std::move(line));
+          global.lines.push_back(std::move(line));
         }
         line = Line();
       }
 
-      block.line = static_cast<int>(lines.size());
+      block.line = static_cast<int>(global.lines.size());
       block.line_position = static_cast<int>(line.blocks.size());
       line.blocks.push_back(&block);
       x += block.min_size_x + global.config.gap_x;
     }
     if (!line.blocks.empty()) {
-      lines.push_back(std::move(line));
+      global.lines.push_back(std::move(line));
     }
   }
 
   // Step 2: Set positions on the X axis.
-  SetX(global, lines);
-  JustifyContent(global, lines);  // Distribute remaining space.
+  SetX(global);
+  JustifyContent(global);  // Distribute remaining space.
 
   // Step 3: Set positions on the Y axis.
-  SetY(global, lines);
+  SetY(global);
 }
 
 }  // namespace
 
-void Compute(Global& global) noexcept {
+void Compute(Global& global) {
   if (global.config.direction == FlexboxConfig::Direction::Column ||
       global.config.direction == FlexboxConfig::Direction::ColumnInversed) {
     SymmetryXY(global);
@@ -374,7 +378,3 @@ void Compute(Global& global) noexcept {
 }
 
 }  // namespace ftxui::flexbox_helper
-
-// Copyright 2021 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

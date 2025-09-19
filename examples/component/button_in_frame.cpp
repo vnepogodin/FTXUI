@@ -1,3 +1,6 @@
+// Copyright 2022 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <memory>  // for allocator, __shared_ptr_access, shared_ptr
 #include <string>  // for to_string, operator+
 
@@ -11,17 +14,16 @@
 
 using namespace ftxui;
 
-int main(int argc, const char* argv[]) {
+int main() {
   int counter = 0;
   auto on_click = [&] { counter++; };
 
-  auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
-                                             Color::Default, Color::White);
+  auto style = ButtonOption::Animated(Color::Default, Color::GrayDark,
+                                      Color::Default, Color::White);
 
   auto container = Container::Vertical({});
   for (int i = 0; i < 30; ++i) {
-    auto button =
-        Button("Button " + std::to_string(i), on_click, &button_style);
+    auto button = Button("Button " + std::to_string(i), on_click, style);
     container->Add(button);
   }
 
@@ -43,7 +45,3 @@ int main(int argc, const char* argv[]) {
 
   return 0;
 }
-
-// Copyright 2022 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

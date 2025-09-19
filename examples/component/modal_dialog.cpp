@@ -1,8 +1,11 @@
+// Copyright 2022 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <ftxui/component/component_options.hpp>  // for ButtonOption
+#include <ftxui/component/mouse.hpp>              // for ftxui
 #include <functional>                             // for function
 #include <memory>                                 // for allocator, shared_ptr
 
-#include "ftxui/component/captured_mouse.hpp"  // for ftxui
 #include "ftxui/component/component.hpp"  // for Button, operator|=, Renderer, Vertical, Modal
 #include "ftxui/component/screen_interactive.hpp"  // for ScreenInteractive, Component
 #include "ftxui/dom/elements.hpp"  // for operator|, separator, text, size, Element, vbox, border, GREATER_THAN, WIDTH, center, HEIGHT
@@ -77,7 +80,3 @@ int main(int argc, const char* argv[]) {
   screen.Loop(main_component);
   return 0;
 }
-
-// Copyright 2022 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,3 +1,6 @@
+// Copyright 2022 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <ftxui/component/event.hpp>  // for Event
 #include <ftxui/dom/elements.hpp>  // for operator|, Element, center, clear_under, dbox
 #include <memory>                  // for __shared_ptr_access, shared_ptr
@@ -12,19 +15,18 @@ namespace ftxui {
 // top of the other when |show_modal| is true.
 /// @ingroup component
 // NOLINTNEXTLINE
-Component Modal(const Component& main, const Component& modal, const bool* show_modal) noexcept {
+Component Modal(Component main, Component modal, const bool* show_modal) {
   class Impl : public ComponentBase {
    public:
     explicit Impl(Component main, Component modal, const bool* show_modal)
         : main_(std::move(main)),
           modal_(std::move(modal)),
-          show_modal_(show_modal),
-          selector_(*show_modal_) {
+          show_modal_(show_modal) {
       Add(Container::Tab({main_, modal_}, &selector_));
     }
 
    private:
-    Element Render() noexcept override {
+    Element OnRender() override {
       selector_ = *show_modal_;
       auto document = main_->Render();
       if (*show_modal_) {
@@ -36,7 +38,7 @@ Component Modal(const Component& main, const Component& modal, const bool* show_
       return document;
     }
 
-    bool OnEvent(const Event& event) noexcept override {
+    bool OnEvent(Event event) override {
       selector_ = *show_modal_;
       return ComponentBase::OnEvent(event);
     }
@@ -44,23 +46,19 @@ Component Modal(const Component& main, const Component& modal, const bool* show_
     Component main_;
     Component modal_;
     const bool* show_modal_;
-    int selector_ = 0;
+    int selector_ = *show_modal_;
   };
-  return std::make_unique<Impl>(main, modal, show_modal);
+  return Make<Impl>(main, modal, show_modal);
 }
 
 // Decorate a component. Add a |modal| window on top of it. It is shown one on
 // the top of the other when |show_modal| is true.
 /// @ingroup component
 // NOLINTNEXTLINE
-ComponentDecorator Modal(const Component& modal, const bool* show_modal) noexcept {
-  return [modal, show_modal](auto&& main) {
-    return Modal(main, modal, show_modal);
+ComponentDecorator Modal(Component modal, const bool* show_modal) {
+  return [modal, show_modal](Component main) {
+    return Modal(std::move(main), modal, show_modal);
   };
 }
 
 }  // namespace ftxui
-
-// Copyright 2022 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

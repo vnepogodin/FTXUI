@@ -1,10 +1,12 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+
 #include <functional>  // for function
-#include <memory>      // for shared_ptr
 #include <utility>     // for move
 
 #include "ftxui/component/animation.hpp"  // for Animator, Params (ptr only)
-#include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse
-#include "ftxui/component/component.hpp"       // for Make, Button
+#include "ftxui/component/component.hpp"  // for Make, Button
 #include "ftxui/component/component_base.hpp"  // for ComponentBase
 #include "ftxui/component/component_options.hpp"  // for ButtonOption, AnimatedColorOption, AnimatedColorsOption, EntryState
 #include "ftxui/component/event.hpp"  // for Event, Event::Return
@@ -19,7 +21,7 @@ namespace ftxui {
 
 namespace {
 
-Element DefaultTransform(const EntryState& params) noexcept {  // NOLINT
+Element DefaultTransform(EntryState params) {  // NOLINT
   auto element = text(params.label) | border;
   if (params.active) {
     element |= bold;
@@ -30,7 +32,149 @@ Element DefaultTransform(const EntryState& params) noexcept {  // NOLINT
   return element;
 }
 
+class ButtonBase : public ComponentBase, public ButtonOption {
+ public:
+  explicit ButtonBase(ButtonOption option) : ButtonOption(std::move(option)) {}
+
+  // Component implementation:
+  Element OnRender() override {
+    const bool active = Active();
+    const bool focused = Focused();
+    const bool focused_or_hover = focused || mouse_hover_;
+
+    float target = focused_or_hover ? 1.f : 0.f;  // NOLINT
+    if (target != animator_background_.to()) {
+      SetAnimationTarget(target);
+    }
+
+    const EntryState state{
+        *label, false, active, focused_or_hover, Index(),
+    };
+
+    auto element = (transform ? transform : DefaultTransform)  //
+        (state);
+    element |= AnimatedColorStyle();
+    element |= focus;
+    element |= reflect(box_);
+    return element;
+  }
+
+  Decorator AnimatedColorStyle() {
+    Decorator style = nothing;
+    if (animated_colors.background.enabled) {
+      style = style |
+              bgcolor(Color::Interpolate(animation_foreground_,  //
+                                         animated_colors.background.inactive,
+                                         animated_colors.background.active));
+    }
+    if (animated_colors.foreground.enabled) {
+      style =
+          style | color(Color::Interpolate(animation_foreground_,  //
+                                           animated_colors.foreground.inactive,
+                                           animated_colors.foreground.active));
+    }
+    return style;
+  }
+
+  void SetAnimationTarget(float target) {
+    if (animated_colors.foreground.enabled) {
+      animator_foreground_ = animation::Animator(
+          &animation_foreground_, target, animated_colors.foreground.duration,
+          animated_colors.foreground.function);
+    }
+    if (animated_colors.background.enabled) {
+      animator_background_ = animation::Animator(
+          &animation_background_, target, animated_colors.background.duration,
+          animated_colors.background.function);
+    }
+  }
+
+  void OnAnimation(animation::Params& p) override {
+    animator_background_.OnAnimation(p);
+    animator_foreground_.OnAnimation(p);
+  }
+
+  void OnClick() {
+    animation_background_ = 0.5F;  // NOLINT
+    animation_foreground_ = 0.5F;  // NOLINT
+    SetAnimationTarget(1.F);       // NOLINT
+
+    // TODO(arthursonzogni): Consider posting the task to the main loop, instead
+    // of invoking it immediately.
+    on_click();  // May delete this.
+  }
+
+  bool OnEvent(Event event) override {
+    if (event.is_mouse()) {
+      return OnMouseEvent(event);
+    }
+
+    if (event == Event::Return) {
+      OnClick();  // May delete this.
+      return true;
+    }
+    return false;
+  }
+
+  bool OnMouseEvent(Event event) {
+    mouse_hover_ =
+        box_.Contain(event.mouse().x, event.mouse().y) && CaptureMouse(event);
+
+    if (!mouse_hover_) {
+      return false;
+    }
+
+    if (event.mouse().button == Mouse::Left &&
+        event.mouse().motion == Mouse::Pressed) {
+      TakeFocus();
+      OnClick();  // May delete this.
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Focusable() const final { return true; }
+
+ private:
+  bool mouse_hover_ = false;
+  Box box_;
+  float animation_background_ = 0;
+  float animation_foreground_ = 0;
+  animation::Animator animator_background_ =
+      animation::Animator(&animation_background_);
+  animation::Animator animator_foreground_ =
+      animation::Animator(&animation_foreground_);
+};
+
 }  // namespace
+
+/// @brief Draw a button. Execute a function when clicked.
+/// @param option Additional optional parameters.
+/// @ingroup component
+/// @see ButtonBase
+///
+/// ### Example
+///
+/// ```cpp
+/// auto screen = ScreenInteractive::FitComponent();
+/// Component button = Button({
+///   .label = "Click to quit",
+///   .on_click = screen.ExitLoopClosure(),
+/// });
+/// screen.Loop(button)
+/// ```
+///
+/// ### Output
+///
+/// ```bash
+/// ┌─────────────┐
+/// │Click to quit│
+/// └─────────────┘
+/// ```
+Component Button(ButtonOption option) {
+  return Make<ButtonBase>(std::move(option));
+}
 
 /// @brief Draw a button. Execute a function when clicked.
 /// @param label The label of the button.
@@ -55,139 +199,13 @@ Element DefaultTransform(const EntryState& params) noexcept {  // NOLINT
 /// │Click to quit│
 /// └─────────────┘
 /// ```
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
-Component Button(const ConstStringRef& label,
-                 const std::function<void()>& on_click,
-                 const Ref<ButtonOption>& option) noexcept {
-  class Impl : public ComponentBase {
-   public:
-    Impl(ConstStringRef label,
-         std::function<void()> on_click,
-         const Ref<ButtonOption>& option)
-        : label_(std::move(label)),
-          option_(option),
-          on_click_(std::move(on_click)) {}
-
-    // Component implementation:
-    Element Render() noexcept override {
-      const bool active = Active();
-      const bool focused = Focused();
-      const bool focused_or_hover = focused || mouse_hover_;
-
-      const float target = focused_or_hover ? 1.F : 0.F;  // NOLINT
-      if (target != animator_background_.to()) {
-        SetAnimationTarget(target);
-      }
-
-      const auto focus_management = focused ? focus : active ? select : nothing;
-      const EntryState state = {
-          false,
-          active,
-          focused_or_hover,
-          *label_,
-      };
-
-      const auto element =
-          (option_->transform ? option_->transform : DefaultTransform)  //
-          (state);
-      return element | AnimatedColorStyle() | focus_management | reflect(box_);
-    }
-
-    Decorator AnimatedColorStyle() noexcept {
-      Decorator style = nothing;
-      if (option_->animated_colors.background.enabled) {
-        style = style | bgcolor(Color::Interpolate(
-                            animation_foreground_,  //
-                            option_->animated_colors.background.inactive,
-                            option_->animated_colors.background.active));
-      }
-      if (option_->animated_colors.foreground.enabled) {
-        style = style | color(Color::Interpolate(
-                            animation_foreground_,  //
-                            option_->animated_colors.foreground.inactive,
-                            option_->animated_colors.foreground.active));
-      }
-      return style;
-    }
-
-    void SetAnimationTarget(float target) {
-      if (option_->animated_colors.foreground.enabled) {
-        animator_foreground_ =
-            animation::Animator(&animation_foreground_, target,
-                                option_->animated_colors.foreground.duration,
-                                option_->animated_colors.foreground.function);
-      }
-      if (option_->animated_colors.background.enabled) {
-        animator_background_ =
-            animation::Animator(&animation_background_, target,
-                                option_->animated_colors.background.duration,
-                                option_->animated_colors.background.function);
-      }
-    }
-
-    void OnAnimation(animation::Params& p) noexcept override {
-      animator_background_.OnAnimation(p);
-      animator_foreground_.OnAnimation(p);
-    }
-
-    void OnClick() noexcept {
-      on_click_();
-      animation_background_ = 0.5F;  // NOLINT
-      animation_foreground_ = 0.5F;  // NOLINT
-      SetAnimationTarget(1.F);       // NOLINT
-    }
-
-    bool OnEvent(const Event& event) noexcept override {
-      if (event.is_mouse()) {
-        return OnMouseEvent(event);
-      }
-
-      if (event == Event::Return) {
-        OnClick();
-        return true;
-      }
-      return false;
-    }
-
-    bool OnMouseEvent(const Event& event) noexcept {
-      mouse_hover_ =
-          box_.Contain(event.mouse().x, event.mouse().y) && CaptureMouse(event);
-
-      if (!mouse_hover_) {
-        return false;
-      }
-
-      if (event.mouse().button == Mouse::Button::Left &&
-          event.mouse().motion == Mouse::Motion::Pressed) {
-        TakeFocus();
-        OnClick();
-        return true;
-      }
-
-      return false;
-    }
-
-    [[nodiscard]] bool Focusable() const noexcept final { return true; }
-
-   private:
-    bool mouse_hover_ = false;
-    float animation_background_{};
-    float animation_foreground_{};
-    ConstStringRef label_;
-    Box box_{};
-    Ref<ButtonOption> option_;
-    std::function<void()> on_click_;
-    animation::Animator animator_background_ =
-        animation::Animator(&animation_background_);
-    animation::Animator animator_foreground_ =
-        animation::Animator(&animation_foreground_);
-  };
-
-  return std::make_unique<Impl>(label, on_click, option);
+// NOLINTNEXTLINE
+Component Button(ConstStringRef label,
+                 std::function<void()> on_click,
+                 ButtonOption option) {
+  option.label = std::move(label);
+  option.on_click = std::move(on_click);
+  return Make<ButtonBase>(std::move(option));
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

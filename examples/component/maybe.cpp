@@ -1,17 +1,19 @@
-#include <memory>  // for shared_ptr
-#include <string>  // for string, basic_string, allocator
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <string>  // for string, allocator, basic_string
 #include <vector>  // for vector
 
 #include "ftxui/component/captured_mouse.hpp"  // for ftxui
 #include "ftxui/component/component.hpp"  // for operator|, Maybe, Checkbox, Radiobox, Renderer, Vertical
 #include "ftxui/component/component_base.hpp"      // for Component
 #include "ftxui/component/screen_interactive.hpp"  // for ScreenInteractive
-#include "ftxui/dom/elements.hpp"  // for border, color, operator|, text, Element
+#include "ftxui/dom/elements.hpp"  // for Element, border, color, operator|, text
 #include "ftxui/screen/color.hpp"  // for Color, Color::Red
 
 using namespace ftxui;
 
-int main(int argc, const char* argv[]) {
+int main() {
   std::vector<std::string> entries = {
       "entry 1",
       "entry 2",
@@ -37,7 +39,3 @@ int main(int argc, const char* argv[]) {
   auto screen = ScreenInteractive::TerminalOutput();
   screen.Loop(layout);
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,17 +1,17 @@
-#include <gtest/gtest-message.h>  // for Message
-#include <gtest/gtest-test-part.h>  // for SuiteApiResolver, TestFactoryImpl, TestPartResult
-#include <stddef.h>                 // for size_t
-#include <string>                   // for string, allocator
-#include <vector>                   // for vector
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <gtest/gtest.h>  // for Test, TestInfo (ptr only), EXPECT_EQ, Message, TEST, TestPartResult
+#include <cstddef>  // for size_t
+#include <string>   // for allocator, basic_string, string
+#include <vector>   // for vector
 
-#include "ftxui/dom/elements.hpp"  // for text, operator|, hbox, Element, flex_grow, flex_shrink
+#include "ftxui/dom/elements.hpp"  // for text, operator|, Element, flex_grow, flex_shrink, hbox
 #include "ftxui/dom/node.hpp"       // for Render
-#include "ftxui/screen/color.hpp"   // for ftxui
 #include "ftxui/screen/screen.hpp"  // for Screen
-#include "gtest/gtest_pred_impl.h"  // for Test, EXPECT_EQ, TEST
 
-using namespace ftxui;
-using namespace ftxui;
+// NOLINTBEGIN
+namespace ftxui {
 
 TEST(HBoxTest, NoFlex_NoFlex_NoFlex) {
   auto root = hbox({
@@ -358,6 +358,5 @@ TEST(HBoxTest, FlexGrow_NoFlex_FlewShrink) {
   }
 }
 
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
+}  // namespace ftxui
+// NOLINTEND

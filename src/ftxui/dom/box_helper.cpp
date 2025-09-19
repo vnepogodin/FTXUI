@@ -1,23 +1,10 @@
-#include <ftxui/dom/box_helper.hpp>
+// Copyright 2021 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include "ftxui/dom/box_helper.hpp"
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#pragma clang diagnostic ignored "-Wdeprecated"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wdeprecated"
-#endif
-
-#include <range/v3/algorithm/max.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include <algorithm>  // for max
+#include <vector>     // for vector
 
 namespace ftxui::box_helper {
 
@@ -27,10 +14,10 @@ namespace {
 // proportions.
 void ComputeGrow(std::vector<Element>* elements,
                  int extra_space,
-                 int flex_grow_sum) noexcept {
+                 int flex_grow_sum) {
   for (Element& element : *elements) {
     const int added_space =
-        extra_space * element.flex_grow / ranges::max(flex_grow_sum, 1);
+        extra_space * element.flex_grow / std::max(flex_grow_sum, 1);
     extra_space -= added_space;
     flex_grow_sum -= element.flex_grow;
     element.size = element.min_size + added_space;
@@ -38,15 +25,14 @@ void ComputeGrow(std::vector<Element>* elements,
 }
 
 // Called when the size allowed is lower than the requested size, and the
-// shrinkable element can absorb the (negative) extra_space. This distribute
+// shrinkable element can absorbe the (negative) extra_space. This distribute
 // the extra_space toward those.
 void ComputeShrinkEasy(std::vector<Element>* elements,
                        int extra_space,
-                       int flex_shrink_sum) noexcept {
+                       int flex_shrink_sum) {
   for (Element& element : *elements) {
     const int added_space = extra_space * element.min_size *
-                            element.flex_shrink /
-                            ranges::max(flex_shrink_sum, 1);
+                            element.flex_shrink / std::max(flex_shrink_sum, 1);
     extra_space -= added_space;
     flex_shrink_sum -= element.flex_shrink * element.min_size;
     element.size = element.min_size + added_space;
@@ -54,20 +40,19 @@ void ComputeShrinkEasy(std::vector<Element>* elements,
 }
 
 // Called when the size allowed is lower than the requested size, and the
-// shrinkable element can not absorb the (negative) extra_space. This assign
+// shrinkable element can not absorbe the (negative) extra_space. This assign
 // zero to shrinkable elements and distribute the remaining (negative)
 // extra_space toward the other non shrinkable elements.
 void ComputeShrinkHard(std::vector<Element>* elements,
                        int extra_space,
-                       int size) noexcept {
+                       int size) {
   for (Element& element : *elements) {
     if (element.flex_shrink != 0) {
       element.size = 0;
       continue;
     }
 
-    const int added_space =
-        extra_space * element.min_size / ranges::max(1, size);
+    const int added_space = extra_space * element.min_size / std::max(1, size);
     extra_space -= added_space;
     size -= element.min_size;
 
@@ -77,13 +62,13 @@ void ComputeShrinkHard(std::vector<Element>* elements,
 
 }  // namespace
 
-void Compute(std::vector<Element>* elements, int target_size) noexcept {
+void Compute(std::vector<Element>* elements, int target_size) {
   int size = 0;
   int flex_grow_sum = 0;
   int flex_shrink_sum = 0;
   int flex_shrink_size = 0;
 
-  for (auto&& element : *elements) {
+  for (auto& element : *elements) {
     flex_grow_sum += element.flex_grow;
     flex_shrink_sum += element.min_size * element.flex_shrink;
     if (element.flex_shrink != 0) {
@@ -105,7 +90,3 @@ void Compute(std::vector<Element>* elements, int target_size) noexcept {
 }
 
 }  // namespace ftxui::box_helper
-
-// Copyright 2021 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

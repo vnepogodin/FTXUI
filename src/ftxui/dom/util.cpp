@@ -1,46 +1,31 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <algorithm>   // for min
 #include <functional>  // for function
 #include <memory>      // for __shared_ptr_access, make_unique
-#include <utility>  // for move
-#include <vector>   // for vector
-#include <algorithm> // for transform
+#include <utility>     // for move
 
-#include <ftxui/dom/elements.hpp>     // for Element, Decorator, Elements, operator|, Fit, emptyElement, nothing, operator|=
-#include <ftxui/dom/node.hpp>         // for Node, Node::Status
-#include <ftxui/dom/requirement.hpp>  // for Requirement
-#include <ftxui/screen/box.hpp>       // for Box
-#include <ftxui/screen/screen.hpp>    // for Full
-#include <ftxui/screen/terminal.hpp>  // for Dimensions
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-#include <range/v3/algorithm/min.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include "ftxui/dom/elements.hpp"  // for Element, Decorator, Elements, operator|, Fit, emptyElement, nothing, operator|=
+#include "ftxui/dom/node.hpp"      // for Node, Node::Status
+#include "ftxui/dom/requirement.hpp"  // for Requirement
+#include "ftxui/screen/box.hpp"       // for Box
+#include "ftxui/screen/screen.hpp"    // for Full
+#include "ftxui/screen/terminal.hpp"  // for Dimensions
 
 namespace ftxui {
 
 namespace {
-Decorator compose(const Decorator& a, const Decorator& b) noexcept {
-  return [a, b](auto&& element) {
-    return b(a(element));
+Decorator compose(Decorator a, Decorator b) {
+  return [a = std::move(a), b = std::move(b)](Element element) {
+    return b(a(std::move(element)));
   };
 }
 }  // namespace
 
 /// @brief A decoration doing absolutely nothing.
 /// @ingroup dom
-Element nothing(const Element& element) noexcept {
+Element nothing(Element element) {
   return element;
 }
 
@@ -52,17 +37,20 @@ Element nothing(const Element& element) noexcept {
 /// ```cpp
 /// auto decorator = bold | blink;
 /// ```
-Decorator operator|(const Decorator& a, const Decorator& b) noexcept {
-  return compose(a, b);
+Decorator operator|(Decorator a, Decorator b) {
+  return compose(std::move(a),  //
+                 std::move(b));
 }
 
 /// @brief From a set of element, apply a decorator to every elements.
 /// @return the set of decorated element.
 /// @ingroup dom
-Elements operator|(const Elements& elements, const Decorator& decorator) noexcept {  // NOLINT
+Elements operator|(Elements elements, Decorator decorator) {  // NOLINT
   Elements output;
-  std::transform(elements.begin(), elements.end(), std::back_inserter(output),
-                [&decorator](auto&& elem) { return elem | decorator; });
+  output.reserve(elements.size());
+  for (auto& it : elements) {
+    output.push_back(std::move(it) | decorator);
+  }
   return output;
 }
 
@@ -79,8 +67,8 @@ Elements operator|(const Elements& elements, const Decorator& decorator) noexcep
 /// ```cpp
 /// text("Hello") | bold;
 /// ```
-Element operator|(const Element& element, const Decorator& decorator) noexcept {  // NOLINT
-  return decorator(element);
+Element operator|(Element element, Decorator decorator) {  // NOLINT
+  return decorator(std::move(element));
 }
 
 /// @brief Apply a decorator to an element.
@@ -94,16 +82,16 @@ Element operator|(const Element& element, const Decorator& decorator) noexcept {
 /// auto element = text("Hello");
 /// element |= bold;
 /// ```
-Element& operator|=(Element& e, const Decorator& d) noexcept {
-  e = e | d;
+Element& operator|=(Element& e, Decorator d) {
+  e = e | std::move(d);
   return e;
 }
 
 /// The minimal dimension that will fit the given element.
 /// @see Fixed
 /// @see Full
-Dimensions Dimension::Fit(Element& e) noexcept {
-  const auto fullsize = Dimension::Full();
+Dimensions Dimension::Fit(Element& e, bool extend_beyond_screen) {
+  const Dimensions fullsize = Dimension::Full();
   Box box;
   box.x_min = 0;
   box.y_min = 0;
@@ -117,8 +105,11 @@ Dimensions Dimension::Fit(Element& e) noexcept {
     e->ComputeRequirement();
 
     // Don't give the element more space than it needs:
-    box.x_max = ranges::min(box.x_max, e->requirement().min_x);
-    box.y_max = ranges::min(box.y_max, e->requirement().min_y);
+    box.x_max = std::min(box.x_max, e->requirement().min_x);
+    box.y_max = e->requirement().min_y;
+    if (!extend_beyond_screen) {
+      box.y_max = std::min(box.y_max, fullsize.dimy);
+    }
 
     e->SetBox(box);
     status.need_iteration = false;
@@ -128,10 +119,14 @@ Dimensions Dimension::Fit(Element& e) noexcept {
     if (!status.need_iteration) {
       break;
     }
-    // Increase the size of the box until it fits, but not more than the with of
-    // the terminal emulator:
-    box.x_max = ranges::min(e->requirement().min_x, fullsize.dimx);
-    box.y_max = ranges::min(e->requirement().min_y, fullsize.dimy);
+    // Increase the size of the box until it fits...
+    box.x_max = std::min(e->requirement().min_x, fullsize.dimx);
+    box.y_max = e->requirement().min_y;
+
+    // ... but don't go beyond the screen size:
+    if (!extend_beyond_screen) {
+      box.y_max = std::min(box.y_max, fullsize.dimy);
+    }
   }
 
   return {
@@ -142,18 +137,14 @@ Dimensions Dimension::Fit(Element& e) noexcept {
 
 /// An element of size 0x0 drawing nothing.
 /// @ingroup dom
-Element emptyElement() noexcept {
+Element emptyElement() {
   class Impl : public Node {
     void ComputeRequirement() noexcept override {
       requirement_.min_x = 0;
-      requirement_.min_x = 0;
+      requirement_.min_y = 0;
     }
   };
   return std::make_unique<Impl>();
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

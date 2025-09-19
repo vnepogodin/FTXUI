@@ -18,75 +18,48 @@
 
 using namespace ftxui;
 
-std::string Stringify(Event event) {
-  std::string out;
-  for (auto& it : event.input())
-    out += " " + std::to_string(static_cast<unsigned int>(it));
-
-  out = "(" + out + " ) -> ";
-  if (event.is_character()) {
-    out += "character(" + event.character() + ")";
-  } else if (event.is_mouse()) {
-    out += "mouse";
-    switch (event.mouse().button) {
-      case Mouse::Button::Left:
-        out += "_left";
-        break;
-      case Mouse::Button::Middle:
-        out += "_middle";
-        break;
-      case Mouse::Button::Right:
-        out += "_right";
-        break;
-      case Mouse::Button::None:
-        out += "_none";
-        break;
-      case Mouse::Button::WheelUp:
-        out += "_wheel_up";
-        break;
-      case Mouse::Button::WheelDown:
-        out += "_wheel_down";
-        break;
-    }
-    switch (event.mouse().motion) {
-      case Mouse::Motion::Pressed:
-        out += "_pressed";
-        break;
-      case Mouse::Motion::Released:
-        out += "_released";
-        break;
-    }
-    if (event.mouse().control)
-      out += "_control";
-    if (event.mouse().shift)
-      out += "_shift";
-    if (event.mouse().meta)
-      out += "_meta";
-
-    out += "(" +  //
-           std::to_string(event.mouse().x) + "," +
-           std::to_string(event.mouse().y) + ")";
-  } else {
-    out += "(special)";
+std::string Code(Event event) {
+  std::string codes;
+  for (auto& it : event.input()) {
+    codes += " " + std::to_string((unsigned int)it);
   }
-  return out;
+  return codes;
 }
 
-int main(int argc, const char* argv[]) {
+int main() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<Event> keys;
 
-  auto component = Renderer([&] {
-    Elements children;
-    for (size_t i = std::max(0, static_cast<int>(keys.size()) - 20); i < keys.size(); ++i)
-      children.push_back(text(Stringify(keys[i])));
-    return window(text("keys"), vbox(std::move(children)));
+  auto left_column = Renderer([&] {
+    Elements children = {
+        text("Codes"),
+        separator(),
+    };
+    for (size_t i = std::max(0, (int)keys.size() - 20); i < keys.size(); ++i) {
+      children.push_back(text(Code(keys[i])));
+    }
+    return vbox(children);
   });
+
+  auto right_column = Renderer([&] {
+    Elements children = {
+        text("Event"),
+        separator(),
+    };
+    for (size_t i = std::max(0, (int)keys.size() - 20); i < keys.size(); ++i) {
+      children.push_back(text(keys[i].DebugString()));
+    }
+    return vbox(children);
+  });
+
+  int split_size = 40;
+  auto component = ResizableSplitLeft(left_column, right_column, &split_size);
+  component |= border;
 
   component |= CatchEvent([&](Event event) {
     keys.push_back(event);
-    return true;
+    return false;
   });
 
   screen.Loop(component);

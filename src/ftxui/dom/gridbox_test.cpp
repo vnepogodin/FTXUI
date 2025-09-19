@@ -1,16 +1,17 @@
-#include <gtest/gtest-message.h>  // for Message
-#include <gtest/gtest-test-part.h>  // for SuiteApiResolver, TestFactoryImpl, TestPartResult
-#include <stddef.h>                 // for size_t
-#include <algorithm>                // for remove
-#include <memory>                   // for shared_ptr
-#include <string>                   // for allocator, basic_string, string
-#include <vector>                   // for vector
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <gtest/gtest.h>
+#include <algorithm>  // for remove
+#include <cstddef>    // for size_t
+#include <string>     // for allocator, basic_string, string
+#include <vector>     // for vector
 
-#include "ftxui/dom/elements.hpp"  // for text, operator|, Element, flex, Elements, flex_grow, flex_shrink, vtext, gridbox, vbox, focus, operator|=, border, frame
+#include "ftxui/dom/elements.hpp"  // for text, operator|, Element, flex, Elements, flex_grow, flex_shrink, vtext, gridbox, vbox, select, operator|=, border, frame
 #include "ftxui/dom/node.hpp"      // for Render
 #include "ftxui/screen/screen.hpp"  // for Screen
-#include "gtest/gtest_pred_impl.h"  // for Test, TEST, EXPECT_EQ
 
+// NOLINTBEGIN
 namespace ftxui {
 
 namespace {
@@ -617,7 +618,4 @@ TEST(GridboxTest, Focus) {
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
+// NOLINTEND

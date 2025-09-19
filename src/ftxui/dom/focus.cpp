@@ -1,4 +1,7 @@
-#include <memory>   // for make_unique
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <memory>   // for make_shared
 #include <utility>  // for move
 
 #include "ftxui/dom/elements.hpp"  // for Decorator, Element, focusPosition, focusPositionRelative
@@ -25,22 +28,20 @@ namespace ftxui {
 ///   | focusPositionRelative(0.f, 1.f)
 ///   | frame;
 /// ```
-[[gnu::const]]
-Decorator focusPositionRelative(float x, float y) noexcept {
+Decorator focusPositionRelative(float x, float y) {
   class Impl : public NodeDecorator {
    public:
-    Impl(const Element& child, float x, float y)
-        : NodeDecorator(child), x_(x), y_(y) {}
+    Impl(Element child, float x, float y)
+        : NodeDecorator(std::move(child)), x_(x), y_(y) {}
 
     void ComputeRequirement() noexcept override {
       NodeDecorator::ComputeRequirement();
-      requirement_.selection = Requirement::Selection::NORMAL;
-
-      Box& box = requirement_.selected_box;
-      box.x_min = static_cast<int32_t>(static_cast<float>(requirement_.min_x) * x_);
-      box.y_min = static_cast<int32_t>(static_cast<float>(requirement_.min_y) * y_);
-      box.x_max = static_cast<int32_t>(static_cast<float>(requirement_.min_x) * x_);
-      box.y_max = static_cast<int32_t>(static_cast<float>(requirement_.min_y) * y_);
+      requirement_.focused.enabled = true;
+      requirement_.focused.node = this;
+      requirement_.focused.box.x_min = int(float(requirement_.min_x) * x_);
+      requirement_.focused.box.y_min = int(float(requirement_.min_y) * y_);
+      requirement_.focused.box.x_max = int(float(requirement_.min_x) * x_);
+      requirement_.focused.box.y_max = int(float(requirement_.min_y) * y_);
     }
 
    private:
@@ -48,8 +49,8 @@ Decorator focusPositionRelative(float x, float y) noexcept {
     const float y_;
   };
 
-  return [x, y](auto&& child) {
-    return std::make_unique<Impl>(child, x, y);
+  return [x, y](Element child) {
+    return std::make_shared<Impl>(std::move(child), x, y);
   };
 }
 
@@ -65,18 +66,17 @@ Decorator focusPositionRelative(float x, float y) noexcept {
 ///   | focusPosition(10, 10)
 ///   | frame;
 /// ```
-[[gnu::const]]
-Decorator focusPosition(int x, int y) noexcept {
+Decorator focusPosition(int x, int y) {
   class Impl : public NodeDecorator {
    public:
-    Impl(const Element& child, int x, int y)
-        : NodeDecorator(child), x_(x), y_(y) {}
+    Impl(Element child, int x, int y)
+        : NodeDecorator(std::move(child)), x_(x), y_(y) {}
 
     void ComputeRequirement() noexcept override {
       NodeDecorator::ComputeRequirement();
-      requirement_.selection = Requirement::Selection::NORMAL;
+      requirement_.focused.enabled = false;
 
-      Box& box = requirement_.selected_box;
+      Box& box = requirement_.focused.box;
       box.x_min = x_;
       box.y_min = y_;
       box.x_max = x_;
@@ -88,13 +88,9 @@ Decorator focusPosition(int x, int y) noexcept {
     const int y_;
   };
 
-  return [x, y](auto&& child) {
-    return std::make_unique<Impl>(child, x, y);
+  return [x, y](Element child) {
+    return std::make_shared<Impl>(std::move(child), x, y);
   };
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

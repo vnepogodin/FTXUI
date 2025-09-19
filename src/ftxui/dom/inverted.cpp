@@ -1,4 +1,8 @@
-#include <memory>   // for make_unique
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <memory>   // for make_shared
+#include <utility>  // for move
 
 #include "ftxui/dom/elements.hpp"        // for Element, inverted
 #include "ftxui/dom/node.hpp"            // for Node
@@ -8,11 +12,12 @@
 
 namespace ftxui {
 
+namespace {
 class Inverted : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) noexcept override {
+  void Render(Screen& screen) override {
     Node::Render(screen);
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -21,16 +26,13 @@ class Inverted : public NodeDecorator {
     }
   }
 };
+}  // namespace
 
 /// @brief Add a filter that will invert the foreground and the background
 /// colors.
 /// @ingroup dom
-Element inverted(const Element& child) noexcept {
-  return std::make_unique<Inverted>(child);
+Element inverted(Element child) {
+  return std::make_shared<Inverted>(std::move(child));
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

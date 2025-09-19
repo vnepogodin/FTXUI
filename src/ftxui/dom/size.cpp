@@ -1,40 +1,25 @@
-#include <cstddef>    // for size_t
-#include <memory>     // for make_unique, __shared_ptr_access
-#include <utility>  // for move
-#include <vector>   // for __alloc_traits<>::value_type
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <algorithm>  // for min, max
+#include <memory>     // for make_shared, __shared_ptr_access
+#include <utility>    // for move
 
-#include <ftxui/dom/elements.hpp>  // for Constraint, Direction, EQUAL, GREATER_THAN, LESS_THAN, WIDTH, unpack, Decorator, Element, size
-#include <ftxui/dom/node.hpp>      // for Node, Elements
-#include <ftxui/dom/requirement.hpp>  // for Requirement
-#include <ftxui/screen/box.hpp>       // for Box
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-#include <range/v3/algorithm/max.hpp>
-#include <range/v3/algorithm/min.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include "ftxui/dom/elements.hpp"  // for Constraint, WidthOrHeight, EQUAL, GREATER_THAN, LESS_THAN, WIDTH, unpack, Decorator, Element, size
+#include "ftxui/dom/node.hpp"      // for Node, Elements
+#include "ftxui/dom/requirement.hpp"  // for Requirement
+#include "ftxui/screen/box.hpp"       // for Box
 
 namespace ftxui {
 
+namespace {
 class Size : public Node {
  public:
-  Size(const Element& child, Direction direction, Constraint constraint, int value)
-      : Node(unpack(child)),
-        value_(value),
+  Size(Element child, WidthOrHeight direction, Constraint constraint, int value)
+      : Node(unpack(std::move(child))),
         direction_(direction),
-        constraint_(constraint) {}
+        constraint_(constraint),
+        value_(std::max(0, value)) {}
 
   void ComputeRequirement() noexcept override {
     Node::ComputeRequirement();
@@ -44,13 +29,13 @@ class Size : public Node {
 
     switch (constraint_) {
       case LESS_THAN:
-        value = ranges::min(value, value_);
+        value = std::min(value, value_);
         break;
       case EQUAL:
         value = value_;
         break;
       case GREATER_THAN:
-        value = ranges::max(value, value_);
+        value = std::max(value, value_);
         break;
     }
 
@@ -63,15 +48,14 @@ class Size : public Node {
     }
   }
 
-  void SetBox(const Box& box) noexcept override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
 
-    Box tmp = box;
     if (direction_ == WIDTH) {
       switch (constraint_) {
         case LESS_THAN:
         case EQUAL:
-          tmp.x_max = ranges::min(box.x_min + value_ + 1, box.x_max);
+          box.x_max = std::min(box.x_min + value_ + 1, box.x_max);
           break;
         case GREATER_THAN:
           break;
@@ -80,36 +64,32 @@ class Size : public Node {
       switch (constraint_) {
         case LESS_THAN:
         case EQUAL:
-          tmp.y_max = ranges::min(box.y_min + value_ + 1, box.y_max);
+          box.y_max = std::min(box.y_min + value_ + 1, box.y_max);
           break;
         case GREATER_THAN:
           break;
       }
     }
-    children_[0]->SetBox(tmp);
+    children_[0]->SetBox(box);
   }
 
  private:
-  int value_{};
-  Direction direction_;
+  WidthOrHeight direction_;
   Constraint constraint_;
+  int value_;
 };
+}  // namespace
 
 /// @brief Apply a constraint on the size of an element.
-/// @param direction Whether the WIDTH of the HEIGHT of the element must be
+/// @param direction Whether the WIDTH or the HEIGHT of the element must be
 ///                  constrained.
-/// @param constraint The type of constraint.
+/// @param constraint The type of constaint.
 /// @param value The value.
 /// @ingroup dom
-[[gnu::const]]
-Decorator size(Direction direction, Constraint constraint, int value) noexcept {
-  return [=](auto&& e) {
-    return std::make_unique<Size>(e, direction, constraint, value);
+Decorator size(WidthOrHeight direction, Constraint constraint, int value) {
+  return [=](Element e) {
+    return std::make_shared<Size>(std::move(e), direction, constraint, value);
   };
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

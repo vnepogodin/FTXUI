@@ -1,6 +1,9 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <chrono>  // for operator""ms, literals
-#include <memory>  // for shared_ptr, __shared_ptr_access, allocator
-#include <string>  // for string, basic_string, operator+, to_string
+#include <memory>  // for allocator, shared_ptr, __shared_ptr_access
+#include <string>  // for string, operator+, to_string, basic_string
 #include <vector>  // for vector
 
 #include "ftxui/component/animation.hpp"       // for BackOut, Duration
@@ -17,8 +20,9 @@ using namespace ftxui;
 Component DummyComponent(int id) {
   return Renderer([id](bool focused) {
     auto t = text("component " + std::to_string(id));
-    if (focused)
+    if (focused) {
       t = t | inverted;
+    }
     return t;
   });
 }
@@ -27,7 +31,7 @@ Component Text(const std::string& t) {
   return Renderer([t] { return text(t) | borderEmpty; });
 }
 
-int main(int argc, const char* argv[]) {
+int main() {
   using namespace std::literals;
   std::vector<std::string> tab_values{
       "Tab 1", "Tab 2", "Tab 3", "A very very long tab", "탭",
@@ -88,7 +92,3 @@ int main(int argc, const char* argv[]) {
   auto screen = ScreenInteractive::TerminalOutput();
   screen.Loop(container);
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

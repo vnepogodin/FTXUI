@@ -1,5 +1,7 @@
+// Copyright 2021 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <functional>  // for function
-#include <memory>      // for shared_ptr, allocator
 #include <utility>     // for move
 
 #include "ftxui/component/component.hpp"  // for Checkbox, Maybe, Make, Vertical, Collapsible
@@ -10,11 +12,11 @@
 
 namespace ftxui {
 
-/// @brief A collapsible component. It display a checkbox with an arrow. Once
-/// activated, the children is displayed.
-/// @params label The label of the checkbox.
-/// @params child The children to display.
-/// @params show Hold the state about whether the children is displayed or not.
+/// @brief A collapsible component. It displays a checkbox with an arrow. Once
+/// activated, the child is displayed.
+/// @param label The label of the checkbox.
+/// @param child The child to display.
+/// @param show Hold the state about whether the child is displayed or not.
 ///
 /// ### Example
 /// ```cpp
@@ -26,17 +28,15 @@ namespace ftxui {
 ///
 /// ▼ Show details
 /// <details component>
-/// ```
-Component Collapsible(const ConstStringRef& label,
-                      const Component& child,
-                      Ref<bool> show) noexcept {
+/// ```
+// NOLINTNEXTLINE
+Component Collapsible(ConstStringRef label, Component child, Ref<bool> show) {
   class Impl : public ComponentBase {
    public:
-    Impl(const ConstStringRef& label, const Component& child, Ref<bool> show)
-        : show_(show) {
+    Impl(ConstStringRef label, Component child, Ref<bool> show) : show_(show) {
       CheckboxOption opt;
-      opt.transform = [](auto&& s) {
-        auto prefix = text(s.state ? "▼ " : "▶ ");
+      opt.transform = [](EntryState s) {            // NOLINT
+        auto prefix = text(s.state ? "▼ " : "▶ ");  // NOLINT
         auto t = text(s.label);
         if (s.active) {
           t |= bold;
@@ -47,18 +47,14 @@ Component Collapsible(const ConstStringRef& label,
         return hbox({prefix, t});
       };
       Add(Container::Vertical({
-          Checkbox(label, show_.operator->(), opt),
-          Maybe(child, show_.operator->()),
+          Checkbox(std::move(label), show_.operator->(), opt),
+          Maybe(std::move(child), show_.operator->()),
       }));
     }
     Ref<bool> show_;
   };
 
-  return Make<Impl>(label, child, show);
+  return Make<Impl>(std::move(label), std::move(child), show);
 }
 
 }  // namespace ftxui
-
-// Copyright 2021 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

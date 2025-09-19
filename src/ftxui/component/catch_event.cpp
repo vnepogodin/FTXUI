@@ -1,9 +1,11 @@
+// Copyright 2021 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <functional>  // for function
-#include <memory>  // for __shared_ptr_access, __shared_ptr_access<>::element_type, shared_ptr
-#include <utility>  // for move
+#include <utility>     // for move
 
-#include "ftxui/component/component.hpp"  // for Component, Make, CatchEvent
-#include "ftxui/component/component_base.hpp"  // for ComponentBase
+#include "ftxui/component/component.hpp"  // for Make, CatchEvent, ComponentDecorator
+#include "ftxui/component/component_base.hpp"  // for Component, ComponentBase
 #include "ftxui/component/event.hpp"           // for Event
 
 namespace ftxui {
@@ -11,18 +13,20 @@ namespace ftxui {
 class CatchEventBase : public ComponentBase {
  public:
   // Constructor.
-  explicit CatchEventBase(std::function<bool(const Event&)> on_event)
+  explicit CatchEventBase(std::function<bool(Event)> on_event)
       : on_event_(std::move(on_event)) {}
 
   // Component implementation.
-  [[nodiscard]] bool OnEvent(const Event& event) noexcept override {
-    if (on_event_(event))
+  bool OnEvent(Event event) override {
+    if (on_event_(event)) {
       return true;
-    return ComponentBase::OnEvent(event);
+    } else {
+      return ComponentBase::OnEvent(event);
+    }
   }
 
  protected:
-  std::function<bool(const Event&)> on_event_;
+  std::function<bool(Event)> on_event_;
 };
 
 /// @brief Return a component, using |on_event| to catch events. This function
@@ -47,11 +51,10 @@ class CatchEventBase : public ComponentBase {
 /// });
 /// screen.Loop(component);
 /// ```
-Component CatchEvent(
-    const Component& child,
-    const std::function<bool(const Event& event)>& on_event) noexcept {
-  auto&& out = Make<CatchEventBase>(on_event);
-  out->Add(child);
+Component CatchEvent(Component child,
+                     std::function<bool(Event event)> on_event) {
+  auto out = Make<CatchEventBase>(std::move(on_event));
+  out->Add(std::move(child));
   return out;
 }
 
@@ -74,16 +77,12 @@ Component CatchEvent(
 /// });
 /// screen.Loop(renderer);
 /// ```
-ComponentDecorator CatchEvent(
-    const std::function<bool(const Event&)>& on_event) noexcept {
-  return [on_event](auto&& child) {
-    return CatchEvent(child,
-                      [on_event](auto&& event) { return on_event(event); });
+ComponentDecorator CatchEvent(std::function<bool(Event)> on_event) {
+  return [on_event = std::move(on_event)](Component child) {
+    return CatchEvent(std::move(child), [on_event = on_event](Event event) {
+      return on_event(std::move(event));
+    });
   };
 }
 
 }  // namespace ftxui
-
-// Copyright 2021 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

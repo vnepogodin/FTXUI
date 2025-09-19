@@ -1,11 +1,11 @@
-#include <gtest/gtest-message.h>  // for Message
-#include <gtest/gtest-test-part.h>  // for TestPartResult, SuiteApiResolver, TestFactoryImpl
-#include <memory>  // for __shared_ptr_access, shared_ptr, allocator
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 
 #include "ftxui/component/component.hpp"  // for Horizontal, Vertical, Button, Tab
 #include "ftxui/component/component_base.hpp"  // for ComponentBase, Component
 #include "ftxui/component/event.hpp"  // for Event, Event::Tab, Event::TabReverse, Event::ArrowDown, Event::ArrowLeft, Event::ArrowRight, Event::ArrowUp
-#include "gtest/gtest_pred_impl.h"  // for AssertionResult, EXPECT_EQ, EXPECT_FALSE, EXPECT_TRUE, Test, TEST
+#include "gtest/gtest.h"  // for AssertionResult, Message, TestPartResult, EXPECT_EQ, EXPECT_FALSE, Test, EXPECT_TRUE, TEST
 
 namespace ftxui {
 
@@ -335,7 +335,3 @@ TEST(ContainerTest, TabFocusable) {
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

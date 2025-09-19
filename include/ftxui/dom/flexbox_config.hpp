@@ -1,3 +1,6 @@
+// Copyright 2021 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #ifndef FTXUI_DOM_FLEXBOX_CONFIG_HPP
 #define FTXUI_DOM_FLEXBOX_CONFIG_HPP
 
@@ -9,6 +12,18 @@
 
 namespace ftxui {
 
+/// @brief FlexboxConfig is a configuration structure that defines the layout
+/// properties for a flexbox container.
+//
+/// It allows you to specify the direction of the flex items, whether they
+/// should wrap, how they should be justified along the main axis, and how
+/// they should be aligned along the cross axis.
+/// It also includes properties for gaps between flex items in both the
+/// main and cross axes.
+/// This structure is used to configure the layout behavior of flexbox
+/// containers in a terminal user interface.
+///
+/// @ingroup dom
 struct FlexboxConfig {
   /// This establishes the main-axis, thus defining the direction flex items are
   /// placed in the flex container. Flexbox is (aside wrapping) single-direction
@@ -98,43 +113,14 @@ struct FlexboxConfig {
   //    .Set(FlexboxConfig::Direction::Row)
   //    .Set(FlexboxConfig::Wrap::Wrap);
   // ```
-
-  constexpr FlexboxConfig& Set(FlexboxConfig::Direction d) {
-    this->direction = d;
-    return *this;
-  }
-
-  constexpr FlexboxConfig& Set(FlexboxConfig::Wrap w) {
-    this->wrap = w;
-    return *this;
-  }
-
-  constexpr FlexboxConfig& Set(FlexboxConfig::JustifyContent j) {
-    this->justify_content = j;
-    return *this;
-  }
-
-  constexpr FlexboxConfig& Set(FlexboxConfig::AlignItems a) {
-    this->align_items = a;
-    return *this;
-  }
-
-  constexpr FlexboxConfig& Set(FlexboxConfig::AlignContent a) {
-    this->align_content = a;
-    return *this;
-  }
-
-  constexpr FlexboxConfig& SetGap(int x, int y) {
-    this->gap_x = x;
-    this->gap_y = y;
-    return *this;
-  }
+  FlexboxConfig& Set(FlexboxConfig::Direction);
+  FlexboxConfig& Set(FlexboxConfig::Wrap);
+  FlexboxConfig& Set(FlexboxConfig::JustifyContent);
+  FlexboxConfig& Set(FlexboxConfig::AlignItems);
+  FlexboxConfig& Set(FlexboxConfig::AlignContent);
+  FlexboxConfig& SetGap(int gap_x, int gap_y);
 };
 
 }  // namespace ftxui
 
 #endif  // FTXUI_DOM_FLEXBOX_CONFIG_HPP
-
-// Copyright 2021 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,16 +1,17 @@
-#include <gtest/gtest-message.h>  // for Message
-#include <gtest/gtest-test-part.h>  // for TestPartResult, SuiteApiResolver, TestFactoryImpl
-#include <memory>  // for shared_ptr, __shared_ptr_access, allocator, __shared_ptr_access<>::element_type, make_unique
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <memory>  // for shared_ptr, __shared_ptr_access, allocator, __shared_ptr_access<>::element_type, make_shared
 
 #include "ftxui/component/component.hpp"       // for Make
 #include "ftxui/component/component_base.hpp"  // for ComponentBase, Component
-#include "gtest/gtest_pred_impl.h"  // for EXPECT_EQ, Test, AssertionResult, TEST, EXPECT_FALSE
+#include "gtest/gtest.h"  // for Message, TestPartResult, EXPECT_EQ, Test, AssertionResult, TEST, EXPECT_FALSE
 
 namespace ftxui {
 
 namespace {
 Component Make() {
-  return std::make_unique<ComponentBase>();
+  return std::make_shared<ComponentBase>();
 }
 }  // namespace
 
@@ -172,7 +173,3 @@ TEST(ComponentTest, NonFocusableAreNotFocused) {
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

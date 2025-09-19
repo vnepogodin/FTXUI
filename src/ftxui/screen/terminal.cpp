@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <cstdlib>  // for getenv
 #include <string>   // for string, allocator
 
@@ -10,7 +13,7 @@
 #define NOMINMAX
 #endif
 
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <sys/ioctl.h>  // for winsize, ioctl, TIOCGWINSZ
 #include <unistd.h>     // for STDOUT_FILENO
@@ -38,7 +41,10 @@ Dimensions& FallbackSize() {
   constexpr int fallback_width = 80;
   constexpr int fallback_height = 24;
 #endif
-  static Dimensions g_fallback_size{fallback_width, fallback_height};
+  static Dimensions g_fallback_size{
+      fallback_width,
+      fallback_height,
+  };
   return g_fallback_size;
 }
 
@@ -66,11 +72,11 @@ Terminal::Color ComputeColorSupport() {
   }
 
 #if defined(FTXUI_MICROSOFT_TERMINAL_FALLBACK)
-  // Microsoft terminals do not properly declare themselve supporting true
+  // Microsoft terminals do not properly declare themselves supporting true
   // colors: https://github.com/microsoft/terminal/issues/1040
   // As a fallback, assume microsoft terminal are the ones not setting those
   // variables, and enable true colors.
-  if (TERM == "" && COLORTERM == "") {
+  if (TERM.empty() && COLORTERM.empty()) {
     return Terminal::Color::TrueColor;
   }
 #endif
@@ -81,6 +87,10 @@ Terminal::Color ComputeColorSupport() {
 }  // namespace
 
 namespace Terminal {
+
+/// @brief Get the terminal size.
+/// @return The terminal size.
+/// @ingroup screen
 Dimensions Size() {
 #if defined(__EMSCRIPTEN__)
   // This dimension was chosen arbitrarily to be able to display:
@@ -115,6 +125,8 @@ void SetFallbackSize(const Dimensions& fallbackSize) {
   FallbackSize() = fallbackSize;
 }
 
+/// @brief Get the color support of the terminal.
+/// @ingroup screen
 Color ColorSupport() {
   if (!g_cached) {
     g_cached = true;
@@ -123,6 +135,8 @@ Color ColorSupport() {
   return g_cached_supported_color;
 }
 
+/// @brief Override terminal color support in case auto-detection fails
+/// @ingroup dom
 void SetColorSupport(Color color) {
   g_cached = true;
   g_cached_supported_color = color;
@@ -130,7 +144,3 @@ void SetColorSupport(Color color) {
 
 }  // namespace Terminal
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

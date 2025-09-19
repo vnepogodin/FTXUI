@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <functional>  // for function
 #include <iostream>  // for basic_ostream::operator<<, operator<<, endl, basic_ostream, basic_ostream<>::__ostream_type, cout, ostream
 #include <memory>    // for allocator, shared_ptr, __shared_ptr_access
@@ -19,16 +22,18 @@ MenuEntryOption Colored(ftxui::Color c) {
   option.transform = [c](EntryState state) {
     state.label = (state.active ? "> " : "  ") + state.label;
     Element e = text(state.label) | color(c);
-    if (state.focused)
+    if (state.focused) {
       e = e | inverted;
-    if (state.active)
+    }
+    if (state.active) {
       e = e | bold;
+    }
     return e;
   };
   return option;
 }
 
-int main(int argc, const char* argv[]) {
+int main() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   int selected = 0;
@@ -76,7 +81,3 @@ int main(int argc, const char* argv[]) {
 
   std::cout << "Selected element = " << selected << std::endl;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

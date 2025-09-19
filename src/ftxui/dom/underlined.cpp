@@ -1,4 +1,8 @@
-#include <memory>   // for make_unique
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <memory>   // for make_shared
+#include <utility>  // for move
 
 #include "ftxui/dom/elements.hpp"        // for Element, underlined
 #include "ftxui/dom/node.hpp"            // for Node
@@ -8,11 +12,12 @@
 
 namespace ftxui {
 
+namespace {
 class Underlined : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) noexcept override {
+  void Render(Screen& screen) override {
     Node::Render(screen);
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -21,15 +26,12 @@ class Underlined : public NodeDecorator {
     }
   }
 };
+}  // namespace
 
-/// @brief Make the underlined element to be underlined.
+/// @brief Underline the given element.
 /// @ingroup dom
-Element underlined(const Element& child) noexcept {
-  return std::make_unique<Underlined>(child);
+Element underlined(Element child) {
+  return std::make_shared<Underlined>(std::move(child));
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,22 +1,101 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include "ftxui/component/terminal_input_parser.hpp"
 
 #include <cstdint>                    // for uint32_t
 #include <ftxui/component/mouse.hpp>  // for Mouse, Mouse::Button, Mouse::Motion
-#include <ftxui/component/receiver.hpp>  // for SenderImpl, Sender
-#include <memory>                        // for unique_ptr, allocator
-#include <utility>                       // for move
-
+#include <functional>                 // for std::function
+#include <map>
+#include <memory>   // for unique_ptr, allocator
+#include <utility>  // for move
+#include <vector>
 #include "ftxui/component/event.hpp"  // for Event
 #include "ftxui/component/task.hpp"   // for Task
 
 namespace ftxui {
 
-TerminalInputParser::TerminalInputParser(Sender<Task> out)
+// NOLINTNEXTLINE
+const std::map<std::string, std::string> g_uniformize = {
+    // Microsoft's terminal uses a different new line character for the return
+    // key. This also happens with linux with the `bind` command:
+    // See https://github.com/ArthurSonzogni/FTXUI/issues/337
+    // Here, we uniformize the new line character to `\n`.
+    {"\r", "\n"},
+
+    // See: https://github.com/ArthurSonzogni/FTXUI/issues/508
+    {std::string({8}), std::string({127})},
+
+    // See: https://github.com/ArthurSonzogni/FTXUI/issues/626
+    //
+    // Depending on the Cursor Key Mode (DECCKM), the terminal sends different
+    // escape sequences:
+    //
+    //   Key     Normal    Application
+    //   -----   --------  -----------
+    //   Up      ESC [ A   ESC O A
+    //   Down    ESC [ B   ESC O B
+    //   Right   ESC [ C   ESC O C
+    //   Left    ESC [ D   ESC O D
+    //   Home    ESC [ H   ESC O H
+    //   End     ESC [ F   ESC O F
+    //
+    {"\x1BOA", "\x1B[A"},  // UP
+    {"\x1BOB", "\x1B[B"},  // DOWN
+    {"\x1BOC", "\x1B[C"},  // RIGHT
+    {"\x1BOD", "\x1B[D"},  // LEFT
+    {"\x1BOH", "\x1B[H"},  // HOME
+    {"\x1BOF", "\x1B[F"},  // END
+
+    // Variations around the FN keys.
+    // Internally, we are using:
+    // vt220, xterm-vt200, xterm-xf86-v44, xterm-new, mgt, screen
+    // See: https://invisible-island.net/xterm/xterm-function-keys.html
+
+    // For linux OS console (CTRL+ALT+FN), who do not belong to any
+    // real standard.
+    // See: https://github.com/ArthurSonzogni/FTXUI/issues/685
+    {"\x1B[[A", "\x1BOP"},    // F1
+    {"\x1B[[B", "\x1BOQ"},    // F2
+    {"\x1B[[C", "\x1BOR"},    // F3
+    {"\x1B[[D", "\x1BOS"},    // F4
+    {"\x1B[[E", "\x1B[15~"},  // F5
+
+    // xterm-r5, xterm-r6, rxvt
+    {"\x1B[11~", "\x1BOP"},  // F1
+    {"\x1B[12~", "\x1BOQ"},  // F2
+    {"\x1B[13~", "\x1BOR"},  // F3
+    {"\x1B[14~", "\x1BOS"},  // F4
+
+    // vt100
+    {"\x1BOt", "\x1B[15~"},  // F5
+    {"\x1BOu", "\x1B[17~"},  // F6
+    {"\x1BOv", "\x1B[18~"},  // F7
+    {"\x1BOl", "\x1B[19~"},  // F8
+    {"\x1BOw", "\x1B[20~"},  // F9
+    {"\x1BOx", "\x1B[21~"},  // F10
+
+    // scoansi
+    {"\x1B[M", "\x1BOP"},    // F1
+    {"\x1B[N", "\x1BOQ"},    // F2
+    {"\x1B[O", "\x1BOR"},    // F3
+    {"\x1B[P", "\x1BOS"},    // F4
+    {"\x1B[Q", "\x1B[15~"},  // F5
+    {"\x1B[R", "\x1B[17~"},  // F6
+    {"\x1B[S", "\x1B[18~"},  // F7
+    {"\x1B[T", "\x1B[19~"},  // F8
+    {"\x1B[U", "\x1B[20~"},  // F9
+    {"\x1B[V", "\x1B[21~"},  // F10
+    {"\x1B[W", "\x1B[23~"},  // F11
+    {"\x1B[X", "\x1B[24~"},  // F12
+};
+
+TerminalInputParser::TerminalInputParser(std::function<void(Event)> out)
     : out_(std::move(out)) {}
 
 void TerminalInputParser::Timeout(int time) {
   timeout_ += time;
-  static constexpr int timeout_threshold = 50;
+  const int timeout_threshold = 50;
   if (timeout_ < timeout_threshold) {
     return;
   }
@@ -33,7 +112,7 @@ void TerminalInputParser::Add(char c) {
   Send(Parse());
 }
 
-[[gnu::pure]] unsigned char TerminalInputParser::Current() {
+unsigned char TerminalInputParser::Current() {
   return pending_[position_];
 }
 
@@ -52,32 +131,34 @@ void TerminalInputParser::Send(TerminalInputParser::Output output) {
       return;
 
     case CHARACTER:
-      out_->Send(Event::Character(pending_));
+      out_(Event::Character(std::move(pending_)));
       pending_.clear();
       return;
 
-    case SPECIAL:
-      // Microsoft's terminal uses a different new line character for the return
-      // key. This also happens with linux with the `bind` command:
-      // See https://github.com/ArthurSonzogni/FTXUI/issues/337
-      // Here, we uniformize the new line character to `\n`.
-      if (pending_ == "\r") {
-        out_->Send(Event::Special("\n"));
-      } else {
-        out_->Send(Event::Special(pending_));
+    case SPECIAL: {
+      auto it = g_uniformize.find(pending_);
+      if (it != g_uniformize.end()) {
+        pending_ = it->second;
       }
+      out_(Event::Special(std::move(pending_)));
       pending_.clear();
+    }
       return;
 
     case MOUSE:
-      out_->Send(Event::Mouse(pending_, output.mouse));  // NOLINT
+      out_(Event::Mouse(std::move(pending_), output.mouse));  // NOLINT
       pending_.clear();
       return;
 
-    case CURSOR_REPORTING:
-      out_->Send(Event::CursorReporting(pending_,          // NOLINT
-                                        output.cursor.x,   // NOLINT
-                                        output.cursor.y)); // NOLINT
+    case CURSOR_POSITION:
+      out_(Event::CursorPosition(std::move(pending_),  // NOLINT
+                                 output.cursor.x,      // NOLINT
+                                 output.cursor.y));    // NOLINT
+      pending_.clear();
+      return;
+
+    case CURSOR_SHAPE:
+      out_(Event::CursorShape(std::move(pending_), output.cursor_shape));
       pending_.clear();
       return;
   }
@@ -89,15 +170,8 @@ TerminalInputParser::Output TerminalInputParser::Parse() {
     return UNCOMPLETED;
   }
 
-  switch (Current()) {
-    case 24:  // CAN NOLINT
-    case 26:  // SUB NOLINT
-      return DROP;
-
-    case '\x1B':
-      return ParseESC();
-    default:
-      break;
+  if (Current() == '\x1B') {
+    return ParseESC();
   }
 
   if (Current() < 32) {  // C0 NOLINT
@@ -149,7 +223,7 @@ TerminalInputParser::Output TerminalInputParser::ParseUTF8() {
   auto value = uint32_t(head & ~mask);  // NOLINT
 
   // Invalid UTF8, with more than 5 bytes.
-  static constexpr unsigned int max_utf8_bytes = 5;
+  const unsigned int max_utf8_bytes = 5;
   if (first_zero == 1 || first_zero >= max_utf8_bytes) {
     return DROP;
   }
@@ -201,15 +275,29 @@ TerminalInputParser::Output TerminalInputParser::ParseESC() {
       return ParseCSI();
     case ']':
       return ParseOSC();
-    default:
+
+    // Expecting 2 characters.
+    case ' ':
+    case '#':
+    case '%':
+    case '(':
+    case ')':
+    case '*':
+    case '+':
+    case 'O':
+    case 'N': {
       if (!Eat()) {
         return UNCOMPLETED;
-      } else {
-        return SPECIAL;
       }
+      return SPECIAL;
+    }
+    // Expecting 1 character:
+    default:
+      return SPECIAL;
   }
 }
 
+// ESC P ... ESC BACKSLASH
 TerminalInputParser::Output TerminalInputParser::ParseDCS() {
   // Parse until the string terminator ST.
   while (true) {
@@ -227,6 +315,16 @@ TerminalInputParser::Output TerminalInputParser::ParseDCS() {
 
     if (Current() != '\\') {
       continue;
+    }
+
+    if (pending_.size() == 10 &&  //
+        pending_[2] == '1' &&     //
+        pending_[3] == '$' &&     //
+        pending_[4] == 'r' &&     //
+        true) {
+      Output output(CURSOR_SHAPE);
+      output.cursor_shape = pending_[5] - '0';
+      return output;
     }
 
     return SPECIAL;
@@ -259,16 +357,23 @@ TerminalInputParser::Output TerminalInputParser::ParseCSI() {
       continue;
     }
 
-    if (Current() >= ' ' && Current() <= '~' && Current() != '<') {
+    // CSI is terminated by a character in the range 0x40–0x7E
+    // (ASCII @A–Z[\]^_`a–z{|}~),
+    if (Current() >= '@' && Current() <= '~' &&
+        // Note: I don't remember why we exclude '<'
+        Current() != '<' &&
+        // To handle F1-F4, we exclude '['.
+        Current() != '[') {
       arguments.push_back(argument);
       argument = 0;  // NOLINT
+
       switch (Current()) {
         case 'M':
           return ParseMouse(altered, true, std::move(arguments));
         case 'm':
           return ParseMouse(altered, false, std::move(arguments));
         case 'R':
-          return ParseCursorReporting(std::move(arguments));
+          return ParseCursorPosition(std::move(arguments));
         default:
           return SPECIAL;
       }
@@ -300,7 +405,7 @@ TerminalInputParser::Output TerminalInputParser::ParseOSC() {
   }
 }
 
-[[gnu::pure]] TerminalInputParser::Output TerminalInputParser::ParseMouse(  // NOLINT
+TerminalInputParser::Output TerminalInputParser::ParseMouse(  // NOLINT
     bool altered,
     bool pressed,
     std::vector<int> arguments) {
@@ -311,30 +416,49 @@ TerminalInputParser::Output TerminalInputParser::ParseOSC() {
   (void)altered;
 
   Output output(MOUSE);
-  output.mouse.button = Mouse::Button((arguments[0] & 3) +          // NOLINT
-                                      ((arguments[0] & 64) >> 4));  // NOLINT
-  output.mouse.motion = Mouse::Motion(pressed);                     // NOLINT
-  output.mouse.shift = bool(arguments[0] & 4);                      // NOLINT
-  output.mouse.meta = bool(arguments[0] & 8);                       // NOLINT
-  output.mouse.x = arguments[1];                                    // NOLINT
-  output.mouse.y = arguments[2];                                    // NOLINT
+  output.mouse.motion = Mouse::Motion(pressed);  // NOLINT
+
+  // Bits value Modifer  Comment
+  // ---- ----- ------- ---------
+  // 0 1  1 2   button   0 = Left, 1 = Middle, 2 = Right, 3 = Release
+  // 2    4     Shift
+  // 3    8     Meta
+  // 4    16    Control
+  // 5    32    Move
+  // 6    64    Wheel
+
+  // clang-format off
+  const int button      = arguments[0] & (1 + 2); // NOLINT
+  const bool is_shift   = arguments[0] & 4;       // NOLINT
+  const bool is_meta    = arguments[0] & 8;       // NOLINT
+  const bool is_control = arguments[0] & 16;      // NOLINT
+  const bool is_move    = arguments[0] & 32;      // NOLINT
+  const bool is_wheel   = arguments[0] & 64;      // NOLINT
+  // clang-format on
+
+  output.mouse.motion = is_move ? Mouse::Moved : Mouse::Motion(pressed);
+  output.mouse.button = is_wheel ? Mouse::Button(Mouse::WheelUp + button)  //
+                                 : Mouse::Button(button);
+  output.mouse.shift = is_shift;
+  output.mouse.meta = is_meta;
+  output.mouse.control = is_control;
+  output.mouse.x = arguments[1];  // NOLINT
+  output.mouse.y = arguments[2];  // NOLINT
+
+  // Motion event.
   return output;
 }
 
 // NOLINTNEXTLINE
-[[gnu::pure]] TerminalInputParser::Output TerminalInputParser::ParseCursorReporting(
+TerminalInputParser::Output TerminalInputParser::ParseCursorPosition(
     std::vector<int> arguments) {
   if (arguments.size() != 2) {
     return SPECIAL;
   }
-  Output output(CURSOR_REPORTING);
+  Output output(CURSOR_POSITION);
   output.cursor.y = arguments[0];  // NOLINT
   output.cursor.x = arguments[1];  // NOLINT
   return output;
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

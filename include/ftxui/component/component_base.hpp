@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #ifndef FTXUI_COMPONENT_BASE_HPP
 #define FTXUI_COMPONENT_BASE_HPP
 
@@ -9,6 +12,7 @@
 
 namespace ftxui {
 
+class Delegate;
 class Focus;
 struct Event;
 
@@ -25,28 +29,40 @@ using Components = std::vector<Component>;
 /// @ingroup component
 class ComponentBase {
  public:
-  // virtual Destructor.
-  virtual ~ComponentBase() noexcept;
+  explicit ComponentBase(Components children)
+      : children_(std::move(children)) {}
+  virtual ~ComponentBase();
+  ComponentBase() = default;
+
+  // A component is not copyable/movable.
+  ComponentBase(const ComponentBase&) = delete;
+  ComponentBase(ComponentBase&&) = delete;
+  ComponentBase& operator=(const ComponentBase&) = delete;
+  ComponentBase& operator=(ComponentBase&&) = delete;
 
   // Component hierarchy:
-  [[nodiscard]] ComponentBase* Parent() const noexcept;
-  Component& ChildAt(size_t i) noexcept;
-  [[nodiscard]] std::size_t ChildCount() const noexcept;
-  void Add(const Component& children) noexcept;
-  void Detach() noexcept;
-  void DetachAllChildren() noexcept;
+  ComponentBase* Parent() const;
+  Component& ChildAt(size_t i);
+  size_t ChildCount() const;
+  int Index() const;
+  void Add(Component children);
+  void Detach();
+  void DetachAllChildren();
 
   // Renders the component.
-  virtual Element Render() noexcept;
+  Element Render();
+
+  // Override this function modify how `Render` works.
+  virtual Element OnRender();
 
   // Handles an event.
   // By default, reduce on children with a lazy OR.
   //
   // Returns whether the event was handled or not.
-  virtual bool OnEvent(const Event&) noexcept;
+  virtual bool OnEvent(Event);
 
   // Handle an animation step.
-  virtual void OnAnimation(animation::Params& params) noexcept;
+  virtual void OnAnimation(animation::Params& params);
 
   // Focus management ----------------------------------------------------------
   //
@@ -55,38 +71,35 @@ class ComponentBase {
   //
   // We say an element has the focus if the chain of ActiveChild() from the
   // root component contains this object.
-  virtual Component ActiveChild() noexcept;
+  virtual Component ActiveChild();
 
   // Return true when the component contains focusable elements.
   // The non focusable Component will be skipped when navigating using the
   // keyboard.
-  [[nodiscard]] virtual bool Focusable() const noexcept;
+  virtual bool Focusable() const;
 
   // Whether this is the active child of its parent.
-  [[nodiscard]] bool Active() const noexcept;
+  bool Active() const;
   // Whether all the ancestors are active.
-  [[nodiscard]] bool Focused() const noexcept;
+  bool Focused() const;
 
   // Make the |child| to be the "active" one.
-  virtual void SetActiveChild(const ComponentBase* child) noexcept;
-  void SetActiveChild(const Component& child) noexcept;
+  virtual void SetActiveChild(ComponentBase* child);
+  void SetActiveChild(Component child);
 
   // Configure all the ancestors to give focus to this component.
-  void TakeFocus() noexcept;
+  void TakeFocus();
 
  protected:
-  static CapturedMouse CaptureMouse(const Event& event) noexcept;
+  CapturedMouse CaptureMouse(const Event& event);
 
   Components children_;
 
  private:
   ComponentBase* parent_ = nullptr;
+  bool in_render = false;
 };
 
 }  // namespace ftxui
 
 #endif /* end of include guard: FTXUI_COMPONENT_BASE_HPP */
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

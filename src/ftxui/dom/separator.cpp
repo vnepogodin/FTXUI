@@ -1,5 +1,8 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <array>    // for array, array<>::value_type
-#include <memory>   // for make_unique, allocator
+#include <memory>   // for make_shared, allocator
 #include <string>   // for basic_string, string
 #include <utility>  // for move
 
@@ -8,23 +11,23 @@
 #include "ftxui/dom/requirement.hpp"  // for Requirement
 #include "ftxui/screen/box.hpp"       // for Box
 #include "ftxui/screen/color.hpp"     // for Color
+#include "ftxui/screen/pixel.hpp"     // for Pixel
 #include "ftxui/screen/screen.hpp"    // for Pixel, Screen
 
 namespace ftxui {
 
 namespace {
 using Charset = std::array<std::string, 2>;  // NOLINT
-using Charsets = std::array<Charset, 5>;     // NOLINT
+using Charsets = std::array<Charset, 6>;     // NOLINT
 // NOLINTNEXTLINE
 const Charsets charsets = {
-    Charset{"│", "─"},  //
-    Charset{"┃", "━"},  //
-    Charset{"║", "═"},  //
-    Charset{"│", "─"},  //
-    Charset{" ", " "},  //
+    Charset{"│", "─"},  // LIGHT
+    Charset{"╏", "╍"},  // DASHED
+    Charset{"┃", "━"},  // HEAVY
+    Charset{"║", "═"},  // DOUBLE
+    Charset{"│", "─"},  // ROUNDED
+    Charset{" ", " "},  // EMPTY
 };
-
-}  // namespace
 
 class Separator : public Node {
  public:
@@ -35,7 +38,7 @@ class Separator : public Node {
     requirement_.min_y = 1;
   }
 
-  void Render(Screen& screen) noexcept override {
+  void Render(Screen& screen) override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         Pixel& pixel = screen.PixelAt(x, y);
@@ -57,11 +60,12 @@ class SeparatorAuto : public Node {
     requirement_.min_y = 1;
   }
 
-  void Render(Screen& screen) noexcept override {
-    bool is_column = (box_.x_max == box_.x_min);
-    bool is_line = (box_.y_min == box_.y_max);
+  void Render(Screen& screen) override {
+    const bool is_column = (box_.x_max == box_.x_min);
+    const bool is_line = (box_.y_min == box_.y_max);
 
-    const std::string c = charsets[style_][int(is_line && !is_column)];
+    const std::string c =
+        charsets[style_][int(is_line && !is_column)];  // NOLINT
 
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -81,7 +85,7 @@ class SeparatorWithPixel : public SeparatorAuto {
       : SeparatorAuto(LIGHT), pixel_(std::move(pixel)) {
     pixel_.automerge = true;
   }
-  void Render(Screen& screen) noexcept override {
+  void Render(Screen& screen) override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, y) = pixel_;
@@ -90,14 +94,16 @@ class SeparatorWithPixel : public SeparatorAuto {
   }
 
  private:
-  Pixel pixel_{};
+  Pixel pixel_;
 };
+}  // namespace
 
 /// @brief Draw a vertical or horizontal separation in between two other
 /// elements.
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorDouble
 /// @see separatorHeavy
 /// @see separatorEmpty
@@ -125,8 +131,8 @@ class SeparatorWithPixel : public SeparatorAuto {
 /// ────
 /// down
 /// ```
-Element separator() noexcept {
-  return std::make_unique<SeparatorAuto>(LIGHT);
+Element separator() {
+  return std::make_shared<SeparatorAuto>(LIGHT);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -135,6 +141,7 @@ Element separator() noexcept {
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorDouble
 /// @see separatorHeavy
 /// @see separatorEmpty
@@ -162,8 +169,8 @@ Element separator() noexcept {
 /// ════
 /// down
 /// ```
-Element separatorStyled(BorderStyle style) noexcept {
-  return std::make_unique<SeparatorAuto>(style);
+Element separatorStyled(BorderStyle style) {
+  return std::make_shared<SeparatorAuto>(style);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -171,6 +178,7 @@ Element separatorStyled(BorderStyle style) noexcept {
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorDouble
 /// @see separatorHeavy
 /// @see separatorEmpty
@@ -198,8 +206,45 @@ Element separatorStyled(BorderStyle style) noexcept {
 /// ────
 /// down
 /// ```
-Element separatorLight() noexcept {
-  return std::make_unique<SeparatorAuto>(LIGHT);
+Element separatorLight() {
+  return std::make_shared<SeparatorAuto>(LIGHT);
+}
+
+/// @brief Draw a vertical or horizontal separation in between two other
+/// elements, using the DASHED style.
+/// @ingroup dom
+/// @see separator
+/// @see separatorLight
+/// @see separatorDashed
+/// @see separatorDouble
+/// @see separatorHeavy
+/// @see separatorEmpty
+/// @see separatorRounded
+/// @see separatorStyled
+/// @see separatorCharacter
+///
+/// Add a visual separation in between two elements.
+///
+/// ### Example
+///
+/// ```cpp
+/// // Use 'border' as a function...
+/// Element document = vbox({
+///   text("up"),
+///   separatorLight(),
+///   text("down"),
+/// });
+/// ```
+///
+/// ### Output
+///
+/// ```bash
+/// up
+/// ╍╍╍╍
+/// down
+/// ```
+Element separatorDashed() {
+  return std::make_shared<SeparatorAuto>(DASHED);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -207,6 +252,7 @@ Element separatorLight() noexcept {
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorDouble
 /// @see separatorHeavy
 /// @see separatorEmpty
@@ -234,8 +280,8 @@ Element separatorLight() noexcept {
 /// ━━━━
 /// down
 /// ```
-Element separatorHeavy() noexcept {
-  return std::make_unique<SeparatorAuto>(HEAVY);
+Element separatorHeavy() {
+  return std::make_shared<SeparatorAuto>(HEAVY);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -243,6 +289,7 @@ Element separatorHeavy() noexcept {
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorDouble
 /// @see separatorHeavy
 /// @see separatorEmpty
@@ -270,8 +317,8 @@ Element separatorHeavy() noexcept {
 /// ════
 /// down
 /// ```
-Element separatorDouble() noexcept {
-  return std::make_unique<SeparatorAuto>(DOUBLE);
+Element separatorDouble() {
+  return std::make_shared<SeparatorAuto>(DOUBLE);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -279,6 +326,7 @@ Element separatorDouble() noexcept {
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorDouble
 /// @see separatorHeavy
 /// @see separatorEmpty
@@ -306,8 +354,8 @@ Element separatorDouble() noexcept {
 ///
 /// down
 /// ```
-Element separatorEmpty() noexcept {
-  return std::make_unique<SeparatorAuto>(EMPTY);
+Element separatorEmpty() {
+  return std::make_shared<SeparatorAuto>(EMPTY);
 }
 
 /// @brief Draw a vertical or horizontal separation in between two other
@@ -316,6 +364,7 @@ Element separatorEmpty() noexcept {
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorDouble
 /// @see separatorHeavy
 /// @see separatorEmpty
@@ -343,14 +392,15 @@ Element separatorEmpty() noexcept {
 /// ────
 /// down
 /// ```
-Element separatorCharacter(const std::string& value) noexcept {
-  return std::make_unique<Separator>(value);
+Element separatorCharacter(std::string value) {
+  return std::make_shared<Separator>(std::move(value));
 }
 
 /// @brief Draw a separator in between two element filled with a given pixel.
 /// @ingroup dom
 /// @see separator
 /// @see separatorLight
+/// @see separatorDashed
 /// @see separatorHeavy
 /// @see separatorDouble
 /// @see separatorStyled
@@ -373,11 +423,11 @@ Element separatorCharacter(const std::string& value) noexcept {
 ///
 /// Down
 /// ```
-Element separator(const Pixel& pixel) noexcept {
-  return std::make_unique<SeparatorWithPixel>(pixel);
+Element separator(Pixel pixel) {
+  return std::make_shared<SeparatorWithPixel>(std::move(pixel));
 }
 
-/// @brief Draw an horizontal bar, with the area in between left/right colored
+/// @brief Draw a horizontal bar, with the area in between left/right colored
 /// differently.
 /// @param left the left limit of the active area.
 /// @param right the right limit of the active area.
@@ -392,7 +442,7 @@ Element separator(const Pixel& pixel) noexcept {
 Element separatorHSelector(float left,
                            float right,
                            Color unselected_color,
-                           Color selected_color) noexcept {
+                           Color selected_color) {
   class Impl : public Node {
    public:
     Impl(float left, float right, Color selected_color, Color unselected_color)
@@ -405,14 +455,14 @@ Element separatorHSelector(float left,
       requirement_.min_y = 1;
     }
 
-    void Render(Screen& screen) noexcept override {
+    void Render(Screen& screen) override {
       if (box_.y_max < box_.y_min) {
         return;
       }
 
       // This are the two location with an empty demi-cell.
-      const int demi_cell_left = static_cast<int>(left_ * 2 - 1);    // NOLINT
-      const int demi_cell_right = static_cast<int>(right_ * 2 + 2);  // NOLINT
+      int demi_cell_left = int(left_ * 2.F - 1.F);    // NOLINT
+      int demi_cell_right = int(right_ * 2.F + 2.F);  // NOLINT
 
       const int y = box_.y_min;
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
@@ -439,15 +489,15 @@ Element separatorHSelector(float left,
       }
     }
 
-    float left_{};
-    float right_{};
-    Color unselected_color_{};
-    Color selected_color_{};
+    float left_;
+    float right_;
+    Color unselected_color_;
+    Color selected_color_;
   };
-  return std::make_unique<Impl>(left, right, unselected_color, selected_color);
+  return std::make_shared<Impl>(left, right, unselected_color, selected_color);
 }
 
-/// @brief Draw an vertical bar, with the area in between up/down colored
+/// @brief Draw an vertical bar, with the area in between up/downcolored
 /// differently.
 /// @param up the left limit of the active area.
 /// @param down the right limit of the active area.
@@ -462,7 +512,7 @@ Element separatorHSelector(float left,
 Element separatorVSelector(float up,
                            float down,
                            Color unselected_color,
-                           Color selected_color) noexcept {
+                           Color selected_color) {
   class Impl : public Node {
    public:
     Impl(float up, float down, Color unselected_color, Color selected_color)
@@ -475,14 +525,14 @@ Element separatorVSelector(float up,
       requirement_.min_y = 1;
     }
 
-    void Render(Screen& screen) noexcept override {
+    void Render(Screen& screen) override {
       if (box_.x_max < box_.x_min) {
         return;
       }
 
       // This are the two location with an empty demi-cell.
-      const int demi_cell_up = static_cast<int32_t>(up_ * 2 - 1);
-      const int demi_cell_down = static_cast<int32_t>(down_ * 2 + 2);
+      const int demi_cell_up = int(up_ * 2 - 1);
+      const int demi_cell_down = int(down_ * 2 + 2);
 
       const int x = box_.x_min;
       for (int y = box_.y_min; y <= box_.y_max; ++y) {
@@ -509,16 +559,12 @@ Element separatorVSelector(float up,
       }
     }
 
-    float up_{};
-    float down_{};
-    Color unselected_color_{};
-    Color selected_color_{};
+    float up_;
+    float down_;
+    Color unselected_color_;
+    Color selected_color_;
   };
-  return std::make_unique<Impl>(up, down, unselected_color, selected_color);
+  return std::make_shared<Impl>(up, down, unselected_color, selected_color);
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

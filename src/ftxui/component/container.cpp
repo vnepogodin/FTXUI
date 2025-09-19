@@ -1,48 +1,31 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <algorithm>  // for max, min
 #include <cstddef>    // for size_t
-#include <memory>  // for make_unique, __shared_ptr_access, allocator, shared_ptr, allocator_traits<>::value_type
-#include <string_view>  // for std::string_view
-#include <utility>      // for move
-#include <vector>       // for vector, __alloc_traits<>::value_type
-#include <algorithm> // for transform
+#include <memory>  // for make_shared, __shared_ptr_access, allocator, shared_ptr, allocator_traits<>::value_type
+#include <utility>  // for move
 
-#include <ftxui/component/component.hpp>  // for Horizontal, Vertical, Tab
-#include <ftxui/component/component_base.hpp>  // for Components, Component, ComponentBase
-#include <ftxui/component/event.hpp>  // for Event, Event::Tab, Event::TabReverse, Event::ArrowDown, Event::ArrowLeft, Event::ArrowRight, Event::ArrowUp, Event::End, Event::Home, Event::PageDown, Event::PageUp
-#include <ftxui/component/mouse.hpp>  // for Mouse, Mouse::WheelDown, Mouse::WheelUp
-#include <ftxui/dom/elements.hpp>  // for text, Elements, operator|, reflect, Element, hbox, vbox
-#include <ftxui/screen/box.hpp>  // for Box
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-#include <range/v3/algorithm/max.hpp>
-#include <range/v3/algorithm/min.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include "ftxui/component/component.hpp"  // for Horizontal, Vertical, Tab
+#include "ftxui/component/component_base.hpp"  // for Components, Component, ComponentBase
+#include "ftxui/component/event.hpp"  // for Event, Event::Tab, Event::TabReverse, Event::ArrowDown, Event::ArrowLeft, Event::ArrowRight, Event::ArrowUp, Event::End, Event::Home, Event::PageDown, Event::PageUp
+#include "ftxui/component/mouse.hpp"  // for Mouse, Mouse::WheelDown, Mouse::WheelUp
+#include "ftxui/dom/elements.hpp"  // for text, Elements, operator|, reflect, Element, hbox, vbox
+#include "ftxui/screen/box.hpp"  // for Box
 
 namespace ftxui {
 
 class ContainerBase : public ComponentBase {
  public:
-  ContainerBase(const Components& children, int* selector)
+  ContainerBase(Components children, int* selector)
       : selector_(selector ? selector : &selected_) {
-    for (const auto& child : children) {
-      Add(child);
+    for (Component& child : children) {
+      Add(std::move(child));
     }
   }
 
   // Component override.
-  bool OnEvent(const Event& event) noexcept override {
+  bool OnEvent(Event event) override {
     if (event.is_mouse()) {
       return OnMouseEvent(event);
     }
@@ -58,18 +41,18 @@ class ContainerBase : public ComponentBase {
     return EventHandler(event);
   }
 
-  Component ActiveChild() noexcept override {
+  Component ActiveChild() override {
     if (children_.empty()) {
       return nullptr;
     }
 
-    return children_[*selector_ % children_.size()];
+    return children_[static_cast<size_t>(*selector_) % children_.size()];
   }
 
-  void SetActiveChild(const ComponentBase* child) noexcept override {
+  void SetActiveChild(ComponentBase* child) override {
     for (size_t i = 0; i < children_.size(); ++i) {
       if (children_[i].get() == child) {
-        *selector_ = static_cast<int32_t>(i);
+        *selector_ = static_cast<int>(i);
         return;
       }
     }
@@ -77,33 +60,34 @@ class ContainerBase : public ComponentBase {
 
  protected:
   // Handlers
-  virtual bool EventHandler(const Event& /*unused*/) noexcept { return false; }
+  virtual bool EventHandler(Event /*unused*/) { return false; }  // NOLINT
 
-  virtual bool OnMouseEvent(const Event& event) noexcept {
-    return ComponentBase::OnEvent(event);
+  virtual bool OnMouseEvent(Event event) {
+    return ComponentBase::OnEvent(std::move(event));
   }
 
   int selected_ = 0;
   int* selector_ = nullptr;
 
-  void MoveSelector(int dir) noexcept {
-    for (int i = *selector_ + dir;
-         i >= 0 && i < static_cast<int>(children_.size()); i += dir) {
+  void MoveSelector(int dir) {
+    for (int i = *selector_ + dir; i >= 0 && i < int(children_.size());
+         i += dir) {
       if (children_[i]->Focusable()) {
         *selector_ = i;
         return;
       }
     }
   }
-  void MoveSelectorWrap(int dir) noexcept {
+
+  void MoveSelectorWrap(int dir) {
     if (children_.empty()) {
       return;
     }
     for (size_t offset = 1; offset < children_.size(); ++offset) {
-      const auto i =
+      const size_t i =
           (*selector_ + offset * dir + children_.size()) % children_.size();
       if (children_[i]->Focusable()) {
-        *selector_ = static_cast<int32_t>(i);
+        *selector_ = int(i);
         return;
       }
     }
@@ -114,17 +98,19 @@ class VerticalContainer : public ContainerBase {
  public:
   using ContainerBase::ContainerBase;
 
-  Element Render() noexcept override {
+  Element OnRender() override {
     Elements elements;
-    std::transform(children_.begin(), children_.end(), std::back_inserter(elements),
-                    [](auto&& it) { return it->Render(); });
+    elements.reserve(children_.size());
+    for (auto& it : children_) {
+      elements.push_back(it->Render());
+    }
     if (elements.empty()) {
       return text("Empty container") | reflect(box_);
     }
-    return vbox(elements) | reflect(box_);
+    return vbox(std::move(elements)) | reflect(box_);
   }
 
-  bool EventHandler(const Event& event) noexcept override {
+  bool EventHandler(Event event) override {
     const int old_selected = *selector_;
     if (event == Event::ArrowUp || event == Event::Character('k')) {
       MoveSelector(-1);
@@ -159,18 +145,17 @@ class VerticalContainer : public ContainerBase {
       MoveSelectorWrap(-1);
     }
 
-    *selector_ = ranges::max(
-        0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
+    *selector_ = std::max(0, std::min(int(children_.size()) - 1, *selector_));
     return old_selected != *selector_;
   }
 
-  bool OnMouseEvent(const Event& event) noexcept override {
+  bool OnMouseEvent(Event event) override {
     if (ContainerBase::OnMouseEvent(event)) {
       return true;
     }
 
-    if (event.mouse().button != Mouse::Button::WheelUp &&
-        event.mouse().button != Mouse::Button::WheelDown) {
+    if (event.mouse().button != Mouse::WheelUp &&
+        event.mouse().button != Mouse::WheelDown) {
       return false;
     }
 
@@ -178,16 +163,16 @@ class VerticalContainer : public ContainerBase {
       return false;
     }
 
-    if (event.mouse().button == Mouse::Button::WheelUp) {
+    const int old_selected = *selector_;
+    if (event.mouse().button == Mouse::WheelUp) {
       MoveSelector(-1);
     }
-    if (event.mouse().button == Mouse::Button::WheelDown) {
+    if (event.mouse().button == Mouse::WheelDown) {
       MoveSelector(+1);
     }
-    *selector_ = ranges::max(
-        0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
+    *selector_ = std::max(0, std::min(int(children_.size()) - 1, *selector_));
 
-    return true;
+    return old_selected != *selector_;
   }
 
   Box box_;
@@ -197,18 +182,20 @@ class HorizontalContainer : public ContainerBase {
  public:
   using ContainerBase::ContainerBase;
 
-  Element Render() noexcept override {
+  Element OnRender() override {
     Elements elements;
-    std::transform(children_.begin(), children_.end(), std::back_inserter(elements),
-                    [](auto&& it) { return it->Render(); });
+    elements.reserve(children_.size());
+    for (auto& it : children_) {
+      elements.push_back(it->Render());
+    }
     if (elements.empty()) {
       return text("Empty container");
     }
-    return hbox(elements);
+    return hbox(std::move(elements));
   }
 
-  bool EventHandler(const Event& event) noexcept override {
-    int old_selected = *selector_;
+  bool EventHandler(Event event) override {
+    const int old_selected = *selector_;
     if (event == Event::ArrowLeft || event == Event::Character('h')) {
       MoveSelector(-1);
     }
@@ -222,8 +209,7 @@ class HorizontalContainer : public ContainerBase {
       MoveSelectorWrap(-1);
     }
 
-    *selector_ = ranges::max(
-        0, ranges::min(static_cast<int>(children_.size()) - 1, *selector_));
+    *selector_ = std::max(0, std::min(int(children_.size()) - 1, *selector_));
     return old_selected != *selector_;
   }
 };
@@ -232,23 +218,81 @@ class TabContainer : public ContainerBase {
  public:
   using ContainerBase::ContainerBase;
 
-  Element Render() noexcept override {
-    Component active_child = ActiveChild();
+  Element OnRender() override {
+    const Component active_child = ActiveChild();
     if (active_child) {
       return active_child->Render();
     }
     return text("Empty container");
   }
 
-  [[nodiscard]] bool Focusable() const noexcept override {
+  bool Focusable() const override {
     if (children_.empty()) {
       return false;
     }
-    return children_[*selector_ % children_.size()]->Focusable();
+    return children_[size_t(*selector_) % children_.size()]->Focusable();
   }
 
-  bool OnMouseEvent(const Event& event) noexcept override {
-    return ActiveChild()->OnEvent(event);
+  bool OnMouseEvent(Event event) override {
+    return ActiveChild() && ActiveChild()->OnEvent(event);
+  }
+};
+
+class StackedContainer : public ContainerBase {
+ public:
+  explicit StackedContainer(Components children)
+      : ContainerBase(std::move(children), nullptr) {}
+
+ private:
+  Element OnRender() final {
+    Elements elements;
+    for (auto& child : children_) {
+      elements.push_back(child->Render());
+    }
+    // Reverse the order of the elements.
+    std::reverse(elements.begin(), elements.end());
+    return dbox(std::move(elements));
+  }
+
+  bool Focusable() const final {
+    for (const auto& child : children_) {
+      if (child->Focusable()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Component ActiveChild() final {
+    if (children_.empty()) {
+      return nullptr;
+    }
+    return children_[0];
+  }
+
+  void SetActiveChild(ComponentBase* child) final {
+    if (children_.empty()) {
+      return;
+    }
+
+    // Find `child` and put it at the beginning without change the order of the
+    // other children.
+    auto it =
+        std::find_if(children_.begin(), children_.end(),
+                     [child](const Component& c) { return c.get() == child; });
+    if (it == children_.end()) {
+      return;
+    }
+    std::rotate(children_.begin(), it, it + 1);
+  }
+
+  bool OnEvent(Event event) final {
+    for (auto& child : children_) {
+      if (child->OnEvent(event)) {
+        return true;
+      }
+    }
+    return false;
   }
 };
 
@@ -270,8 +314,8 @@ namespace Container {
 ///   children_4,
 /// });
 /// ```
-Component Vertical(const Components& children) noexcept {
-  return Vertical(children, nullptr);
+Component Vertical(Components children) {
+  return Vertical(std::move(children), nullptr);
 }
 
 /// @brief A list of components, drawn one by one vertically and navigated
@@ -290,10 +334,10 @@ Component Vertical(const Components& children) noexcept {
 ///   children_2,
 ///   children_3,
 ///   children_4,
-/// });
+/// }, &selected_children);
 /// ```
-Component Vertical(const Components& children, int* selector) noexcept {
-  return std::make_unique<VerticalContainer>(children, selector);
+Component Vertical(Components children, int* selector) {
+  return std::make_shared<VerticalContainer>(std::move(children), selector);
 }
 
 /// @brief A list of components, drawn one by one horizontally and navigated
@@ -311,10 +355,10 @@ Component Vertical(const Components& children, int* selector) noexcept {
 ///   children_2,
 ///   children_3,
 ///   children_4,
-/// }, &selected_children);
+/// });
 /// ```
-Component Horizontal(const Components& children) noexcept {
-  return Horizontal(children, nullptr);
+Component Horizontal(Components children) {
+  return Horizontal(std::move(children), nullptr);
 }
 
 /// @brief A list of components, drawn one by one horizontally and navigated
@@ -335,8 +379,8 @@ Component Horizontal(const Components& children) noexcept {
 ///   children_4,
 /// }, selected_children);
 /// ```
-Component Horizontal(const Components& children, int* selector) noexcept {
-  return std::make_unique<HorizontalContainer>(children, selector);
+Component Horizontal(Components children, int* selector) {
+  return std::make_shared<HorizontalContainer>(std::move(children), selector);
 }
 
 /// @brief A list of components, where only one is drawn and interacted with at
@@ -358,14 +402,37 @@ Component Horizontal(const Components& children, int* selector) noexcept {
 ///   children_4,
 /// }, &tab_drawn);
 /// ```
-Component Tab(const Components& children, int* selector) noexcept {
-  return std::make_unique<TabContainer>(children, selector);
+Component Tab(Components children, int* selector) {
+  return std::make_shared<TabContainer>(std::move(children), selector);
+}
+
+/// @brief A list of components to be stacked on top of each other.
+/// Events are propagated to the first component, then the second if not
+/// handled, etc.
+/// The components are drawn in the reverse order they are given.
+/// When a component take focus, it is put at the front, without changing the
+/// relative order of the other elements.
+///
+/// This should be used with the `Window` component.
+///
+/// @param children The list of components.
+/// @ingroup component
+/// @see Window
+///
+/// ### Example
+///
+/// ```cpp
+/// auto container = Container::Stacked({
+///   children_1,
+///   children_2,
+///   children_3,
+///   children_4,
+/// });
+/// ```
+Component Stacked(Components children) {
+  return std::make_shared<StackedContainer>(std::move(children));
 }
 
 }  // namespace Container
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <memory>  // for shared_ptr, __shared_ptr_access
 #include <string>  // for string, basic_string, operator+, to_string
 #include <vector>  // for vector
@@ -10,12 +13,13 @@
 
 using namespace ftxui;
 
-int main(int argc, const char* argv[]) {
+int main() {
   std::vector<std::string> entries;
   int selected = 0;
 
-  for (int i = 0; i < 30; ++i)
+  for (int i = 0; i < 30; ++i) {
     entries.push_back("Entry " + std::to_string(i));
+  }
   auto radiobox = Menu(&entries, &selected);
   auto renderer = Renderer(radiobox, [&] {
     return radiobox->Render() | vscroll_indicator | frame |
@@ -27,7 +31,3 @@ int main(int argc, const char* argv[]) {
 
   return 0;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,8 +1,11 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <chrono>                  // for operator""s, chrono_literals
 #include <ftxui/dom/elements.hpp>  // for operator|, text, Element, hbox, bold, color, filler, separator, vbox, window, gauge, Fit, size, dim, EQUAL, WIDTH
 #include <ftxui/screen/screen.hpp>  // for Full, Screen
 #include <iostream>                 // for cout, endl, ostream
-#include <list>  // for list, operator!=, _List_iterator, _List_iterator<>::_Self
+#include <list>  // for list, operator==, _List_iterator, _List_iterator<>::_Self
 #include <memory>   // for allocator, shared_ptr, allocator_traits<>::value_type
 #include <string>   // for string, operator<<, to_string
 #include <thread>   // for sleep_for
@@ -12,7 +15,7 @@
 #include "ftxui/dom/node.hpp"  // for Render
 #include "ftxui/screen/color.hpp"  // for Color, Color::Green, Color::Red, Color::RedLight, ftxui
 
-int main(int argc, const char* argv[]) {
+int main() {
   using namespace ftxui;
 
   struct Task {
@@ -83,8 +86,9 @@ int main(int argc, const char* argv[]) {
 
   auto render = [&]() {
     std::vector<Element> entries;
-    for (auto& task : displayed_task)
+    for (auto& task : displayed_task) {
       entries.push_back(renderTask(task));
+    }
 
     return vbox({
         // List of tasks.
@@ -135,15 +139,12 @@ int main(int argc, const char* argv[]) {
     std::this_thread::sleep_for(0.01s);
 
     // Exit
-    if (nb_active + nb_queued == 0)
+    if (nb_active + nb_queued == 0) {
       break;
+    }
 
     // Update the model for the next frame.
     updateModel();
   }
   std::cout << std::endl;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

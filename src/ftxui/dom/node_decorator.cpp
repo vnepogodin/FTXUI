@@ -1,6 +1,7 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <ftxui/dom/node.hpp>  // for Node, Elements
-#include <memory>              // for __shared_ptr_access
-#include <vector>              // for __alloc_traits<>::value_type
 
 #include "ftxui/dom/node_decorator.hpp"
 #include "ftxui/dom/requirement.hpp"  // for Requirement
@@ -13,13 +14,9 @@ void NodeDecorator::ComputeRequirement() noexcept {
   requirement_ = children_[0]->requirement();
 }
 
-void NodeDecorator::SetBox(const Box& box) noexcept {
+void NodeDecorator::SetBox(Box box) noexcept {
   Node::SetBox(box);
   children_[0]->SetBox(box);
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

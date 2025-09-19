@@ -1,4 +1,7 @@
-#include <memory>   // for make_unique
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <memory>   // for make_shared
 #include <utility>  // for move
 
 #include "ftxui/dom/elements.hpp"        // for Element, bold
@@ -9,11 +12,12 @@
 
 namespace ftxui {
 
+namespace {
 class Bold : public NodeDecorator {
  public:
   using NodeDecorator::NodeDecorator;
 
-  void Render(Screen& screen) noexcept override {
+  void Render(Screen& screen) override {
     for (int y = box_.y_min; y <= box_.y_max; ++y) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, y).bold = true;
@@ -22,15 +26,12 @@ class Bold : public NodeDecorator {
     Node::Render(screen);
   }
 };
+}  // namespace
 
 /// @brief Use a bold font, for elements with more emphasis.
 /// @ingroup dom
-Element bold(const Element& child) noexcept {
-  return std::make_unique<Bold>(child);
+Element bold(Element child) {
+  return std::make_shared<Bold>(std::move(child));
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <chrono>                  // for operator""s, chrono_literals
 #include <cmath>                   // for sin
 #include <ftxui/dom/elements.hpp>  // for graph, operator|, separator, color, Element, vbox, flex, inverted, operator|=, Fit, hbox, size, border, GREATER_THAN, HEIGHT
@@ -7,6 +10,7 @@
 #include <memory>                   // for shared_ptr
 #include <string>                   // for operator<<, string
 #include <thread>                   // for sleep_for
+#include <utility>                  // for ignore
 #include <vector>                   // for vector
 
 #include "ftxui/dom/node.hpp"  // for Render
@@ -46,6 +50,7 @@ int main() {
 
   std::string reset_position;
   for (int i = 0;; ++i) {
+    std::ignore = i;
     auto document = hbox({
         vbox({
             graph(std::ref(my_graph)),
@@ -80,7 +85,3 @@ int main() {
 
   return 0;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

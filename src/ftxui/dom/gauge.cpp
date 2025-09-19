@@ -1,14 +1,19 @@
-#include <memory>  // for allocator, make_unique
-#include <string>  // for string
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <ftxui/dom/direction.hpp>  // for Direction, Direction::Down, Direction::Left, Direction::Right, Direction::Up
+#include <memory>                   // for allocator, make_shared
+#include <string>                   // for string
 
-#include "ftxui/dom/elements.hpp"  // for GaugeDirection, Element, GaugeDirection::Down, GaugeDirection::Left, GaugeDirection::Right, GaugeDirection::Up, gauge, gaugeDirection, gaugeDown, gaugeLeft, gaugeRight, gaugeUp
-#include "ftxui/dom/node.hpp"      // for Node
+#include "ftxui/dom/elements.hpp"  // for Element, gauge, gaugeDirection, gaugeDown, gaugeLeft, gaugeRight, gaugeUp
+#include "ftxui/dom/node.hpp"         // for Node
 #include "ftxui/dom/requirement.hpp"  // for Requirement
 #include "ftxui/screen/box.hpp"       // for Box
 #include "ftxui/screen/screen.hpp"    // for Screen, Pixel
 
 namespace ftxui {
 
+namespace {
 // NOLINTNEXTLINE
 static const std::string charset_horizontal[11] = {
 #if defined(FTXUI_MICROSOFT_TERMINAL_FALLBACK)
@@ -40,7 +45,7 @@ static const std::string charset_vertical[10] = {
 
 class Gauge : public Node {
  public:
-  Gauge(float progress, GaugeDirection direction)
+  Gauge(float progress, Direction direction)
       : progress_(progress), direction_(direction) {
     // This handle NAN correctly:
     if (!(progress_ > 0.F)) {
@@ -53,15 +58,15 @@ class Gauge : public Node {
 
   void ComputeRequirement() noexcept override {
     switch (direction_) {
-      case GaugeDirection::Right:
-      case GaugeDirection::Left:
+      case Direction::Right:
+      case Direction::Left:
         requirement_.flex_grow_x = 1;
         requirement_.flex_grow_y = 0;
         requirement_.flex_shrink_x = 1;
         requirement_.flex_shrink_y = 0;
         break;
-      case GaugeDirection::Up:
-      case GaugeDirection::Down:
+      case Direction::Up:
+      case Direction::Down:
         requirement_.flex_grow_x = 0;
         requirement_.flex_grow_y = 1;
         requirement_.flex_shrink_x = 0;
@@ -72,37 +77,40 @@ class Gauge : public Node {
     requirement_.min_y = 1;
   }
 
-  void Render(Screen& screen) noexcept override {
+  void Render(Screen& screen) override {
     switch (direction_) {
-      case GaugeDirection::Right:
+      case Direction::Right:
         RenderHorizontal(screen, /*invert=*/false);
         break;
-      case GaugeDirection::Up:
+      case Direction::Up:
         RenderVertical(screen, /*invert=*/false);
         break;
-      case GaugeDirection::Left:
+      case Direction::Left:
         RenderHorizontal(screen, /*invert=*/true);
         break;
-      case GaugeDirection::Down:
+      case Direction::Down:
         RenderVertical(screen, /*invert=*/true);
         break;
     }
   }
 
-  void RenderHorizontal(Screen& screen, bool invert) noexcept {
-    const int32_t y = box_.y_min;
+  void RenderHorizontal(Screen& screen, bool invert) {
+    const int y = box_.y_min;
     if (y > box_.y_max) {
       return;
     }
 
     // Draw the progress bar horizontally.
     {
-      const float progress = invert ? 1.f - progress_ : progress_;
-      const float limit = static_cast<float>(box_.x_min) + progress * static_cast<float>(box_.x_max - box_.x_min + 1);
-      const int32_t limit_int = static_cast<int32_t>(limit);
-      int32_t x = box_.x_min;
-      while (x < limit_int)
-        screen.at(x++, y) = charset_horizontal[9];
+      const float progress = invert ? 1.F - progress_ : progress_;
+      const auto limit =
+          float(box_.x_min) + progress * float(box_.x_max - box_.x_min + 1);
+      const int limit_int = static_cast<int>(limit);
+      int x = box_.x_min;
+      while (x < limit_int) {
+        screen.at(x++, y) = charset_horizontal[9];  // NOLINT
+      }
+      // NOLINTNEXTLINE
       screen.at(x++, y) = charset_horizontal[int(9 * (limit - limit_int))];
       while (x <= box_.x_max) {
         screen.at(x++, y) = charset_horizontal[0];
@@ -116,7 +124,7 @@ class Gauge : public Node {
     }
   }
 
-  void RenderVertical(Screen& screen, bool invert) noexcept {
+  void RenderVertical(Screen& screen, bool invert) {
     const int x = box_.x_min;
     if (x > box_.x_max) {
       return;
@@ -124,13 +132,16 @@ class Gauge : public Node {
 
     // Draw the progress bar vertically:
     {
-      const float progress = invert ? progress_ : 1.f - progress_;
-      const float limit = static_cast<float>(box_.y_min) + progress * static_cast<float>(box_.y_max - box_.y_min + 1);
-      const int limit_int = static_cast<int32_t>(limit);
+      const float progress = invert ? progress_ : 1.F - progress_;
+      const float limit =
+          float(box_.y_min) + progress * float(box_.y_max - box_.y_min + 1);
+      const int limit_int = static_cast<int>(limit);
       int y = box_.y_min;
-      while (y < limit_int)
-        screen.at(x, y++) = charset_vertical[8];
-      screen.at(x, y++) = charset_vertical[int(8 * (limit - static_cast<float>(limit_int)))];
+      while (y < limit_int) {
+        screen.at(x, y++) = charset_vertical[8];  // NOLINT
+      }
+      // NOLINTNEXTLINE
+      screen.at(x, y++) = charset_vertical[int(8 * (limit - limit_int))];
       while (y <= box_.y_max) {
         screen.at(x, y++) = charset_vertical[0];
       }
@@ -144,17 +155,19 @@ class Gauge : public Node {
   }
 
  private:
-  float progress_{};
-  GaugeDirection direction_;
+  float progress_;
+  Direction direction_;
 };
+
+}  // namespace
 
 /// @brief Draw a high definition progress bar progressing in specified
 /// direction.
 /// @param progress The proportion of the area to be filled. Belong to [0,1].
-//  @param direction Direction of progress bars progression.
+/// @param direction Direction of progress bars progression.
 /// @ingroup dom
-Element gaugeDirection(float progress, GaugeDirection direction) noexcept {
-  return std::make_unique<Gauge>(progress, direction);
+Element gaugeDirection(float progress, Direction direction) {
+  return std::make_shared<Gauge>(progress, direction);
 }
 
 /// @brief Draw a high definition progress bar progressing from left to right.
@@ -175,8 +188,8 @@ Element gaugeDirection(float progress, GaugeDirection direction) noexcept {
 /// │█████████████████████████████████████                                     │
 /// └──────────────────────────────────────────────────────────────────────────┘
 /// ~~~
-Element gaugeRight(float progress) noexcept {
-  return gaugeDirection(progress, GaugeDirection::Right);
+Element gaugeRight(float progress) {
+  return gaugeDirection(progress, Direction::Right);
 }
 
 /// @brief Draw a high definition progress bar progressing from right to left.
@@ -197,8 +210,8 @@ Element gaugeRight(float progress) noexcept {
 /// │                                     █████████████████████████████████████│
 /// └──────────────────────────────────────────────────────────────────────────┘
 /// ~~~
-Element gaugeLeft(float progress) noexcept {
-  return gaugeDirection(progress, GaugeDirection::Left);
+Element gaugeLeft(float progress) {
+  return gaugeDirection(progress, Direction::Left);
 }
 
 /// @brief Draw a high definition progress bar progressing from bottom to top.
@@ -226,8 +239,8 @@ Element gaugeLeft(float progress) noexcept {
 ///  │█│
 ///  └─┘
 /// ~~~
-Element gaugeUp(float progress) noexcept {
-  return gaugeDirection(progress, GaugeDirection::Up);
+Element gaugeUp(float progress) {
+  return gaugeDirection(progress, Direction::Up);
 }
 
 /// @brief Draw a high definition progress bar progressing from top to bottom.
@@ -255,8 +268,8 @@ Element gaugeUp(float progress) noexcept {
 ///  │ │
 ///  └─┘
 /// ~~~
-Element gaugeDown(float progress) noexcept {
-  return gaugeDirection(progress, GaugeDirection::Down);
+Element gaugeDown(float progress) {
+  return gaugeDirection(progress, Direction::Down);
 }
 
 /// @brief Draw a high definition progress bar.
@@ -277,12 +290,8 @@ Element gaugeDown(float progress) noexcept {
 /// │█████████████████████████████████████                                     │
 /// └──────────────────────────────────────────────────────────────────────────┘
 /// ~~~
-Element gauge(float progress) noexcept {
+Element gauge(float progress) {
   return gaugeRight(progress);
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

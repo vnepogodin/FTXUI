@@ -1,81 +1,33 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #ifndef FTXUI_SCREEN_BOX_HPP
 #define FTXUI_SCREEN_BOX_HPP
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#pragma clang diagnostic ignored "-Wdeprecated"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wdeprecated"
-#endif
-
-#include <range/v3/algorithm/max.hpp>
-#include <range/v3/algorithm/min.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
 namespace ftxui {
 
+/// @brief Box is a structure that represents a rectangular area in a 2D space.
+///
+/// It is defined by its minimum and maximum coordinates along the x and y axes.
+/// Note that the coordinates are inclusive, meaning that the box includes both
+/// the minimum and maximum values.
+///
+/// @ingroup screen
 struct Box {
   int x_min = 0;
   int x_max = 0;
   int y_min = 0;
   int y_max = 0;
 
-  /// @return the biggest Box contained in both |a| and |b|.
-  /// @ingroup screen
-  // static
-  static constexpr inline Box Intersection(Box a, Box b) noexcept {
-    return Box{
-        ranges::max(a.x_min, b.x_min),
-        ranges::min(a.x_max, b.x_max),
-        ranges::max(a.y_min, b.y_min),
-        ranges::min(a.y_max, b.y_max),
-    };
-  }
-  static constexpr inline Box Union(Box a, Box b) noexcept {
-    return Box{
-        ranges::min(a.x_min, b.x_min),
-        ranges::max(a.x_max, b.x_max),
-        ranges::min(a.y_min, b.y_min),
-        ranges::max(a.y_max, b.y_max),
-    };
-  }
-
-  /// @return whether (x,y) is contained inside the box.
-  /// @ingroup screen
-  [[nodiscard]] constexpr inline bool Contain(int x, int y) const noexcept {
-    return x_min <= x &&  //
-           x_max >= x &&  //
-           y_min <= y &&  //
-           y_max >= y;
-  }
-
-  /// @return whether |other| is the same as |this|
-  /// @ingroup screen
-  constexpr inline bool operator==(const Box& other) const noexcept {
-    return (x_min == other.x_min) && (x_max == other.x_max) &&
-           (y_min == other.y_min) && (y_max == other.y_max);
-  }
-
-  /// @return whether |other| and |this| are different.
-  /// @ingroup screen
-  constexpr inline bool operator!=(const Box& other) const noexcept {
-    return !operator==(other);
-  }
+  static auto Intersection(Box a, Box b) -> Box;
+  static auto Union(Box a, Box b) -> Box;
+  void Shift(int x, int y);
+  bool Contain(int x, int y) const;
+  bool IsEmpty() const;
+  bool operator==(const Box& other) const;
+  bool operator!=(const Box& other) const;
 };
 
 }  // namespace ftxui
 
 #endif  // FTXUI_SCREEN_BOX_HPP
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

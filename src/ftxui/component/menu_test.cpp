@@ -1,20 +1,21 @@
-#include <gtest/gtest-message.h>  // for Message
-#include <gtest/gtest-test-part.h>  // for TestPartResult, SuiteApiResolver, TestFactoryImpl
-#include <chrono>                   // for operator""s, chrono_literals
-#include <memory>  // for __shared_ptr_access, shared_ptr, allocator
-#include <string>  // for string
-#include <vector>  // for vector
+// Copyright 2022 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <gtest/gtest.h>  // for Test, EXPECT_EQ, Message, TestPartResult, TestInfo (ptr only), TEST
+#include <ftxui/dom/direction.hpp>  // for Direction, Direction::Down, Direction::Left, Direction::Right, Direction::Up
+#include <string>                   // for string, basic_string
+#include <vector>                   // for vector
 
 #include "ftxui/component/animation.hpp"          // for Duration, Params
 #include "ftxui/component/component.hpp"          // for Menu
 #include "ftxui/component/component_base.hpp"     // for ComponentBase
-#include "ftxui/component/component_options.hpp"  // for MenuOption, MenuOption::Down, MenuOption::Left, MenuOption::Right, MenuOption::Up
+#include "ftxui/component/component_options.hpp"  // for MenuOption
 #include "ftxui/component/event.hpp"  // for Event, Event::ArrowDown, Event::ArrowLeft, Event::ArrowRight, Event::ArrowUp, Event::Return
 #include "ftxui/dom/node.hpp"         // for Render
 #include "ftxui/screen/screen.hpp"    // for Screen
 #include "ftxui/util/ref.hpp"         // for Ref
-#include "gtest/gtest_pred_impl.h"    // for EXPECT_EQ, Test, TEST
 
+// NOLINTBEGIN
 namespace ftxui {
 
 using namespace std::chrono_literals;
@@ -23,9 +24,11 @@ TEST(MenuTest, RemoveEntries) {
   int focused_entry = 0;
   int selected = 0;
   std::vector<std::string> entries = {"1", "2", "3"};
-  MenuOption option;
-  option.focused_entry = &focused_entry;
-  auto menu = Menu(&entries, &selected, option);
+  auto menu = Menu({
+      .entries = &entries,
+      .selected = &selected,
+      .focused_entry = &focused_entry,
+  });
 
   EXPECT_EQ(selected, 0);
   EXPECT_EQ(focused_entry, 0);
@@ -52,10 +55,8 @@ TEST(MenuTest, DirectionDown) {
   int selected = 0;
   std::vector<std::string> entries = {"1", "2", "3"};
   MenuOption option;
-  auto menu = Menu(&entries, &selected, &option);
+  auto menu = Menu(&entries, &selected, {.direction = Direction::Down});
 
-  selected = 0;
-  option.direction = MenuOption::Down;
   Screen screen(4, 3);
   Render(screen, menu->Render());
   EXPECT_EQ(screen.ToString(),
@@ -80,9 +81,7 @@ TEST(MenuTest, DirectionDown) {
 TEST(MenuTest, DirectionsUp) {
   int selected = 0;
   std::vector<std::string> entries = {"1", "2", "3"};
-  MenuOption option;
-  auto menu = Menu(&entries, &selected, &option);
-  option.direction = MenuOption::Up;
+  auto menu = Menu(&entries, &selected, {.direction = Direction::Up});
   Screen screen(4, 3);
   Render(screen, menu->Render());
   EXPECT_EQ(screen.ToString(),
@@ -106,9 +105,7 @@ TEST(MenuTest, DirectionsUp) {
 TEST(MenuTest, DirectionsRight) {
   int selected = 0;
   std::vector<std::string> entries = {"1", "2", "3"};
-  MenuOption option;
-  auto menu = Menu(&entries, &selected, &option);
-  option.direction = MenuOption::Right;
+  auto menu = Menu(&entries, &selected, {.direction = Direction::Right});
   Screen screen(10, 1);
   Render(screen, menu->Render());
   EXPECT_EQ(screen.ToString(),
@@ -132,9 +129,7 @@ TEST(MenuTest, DirectionsRight) {
 TEST(MenuTest, DirectionsLeft) {
   int selected = 0;
   std::vector<std::string> entries = {"1", "2", "3"};
-  MenuOption option;
-  auto menu = Menu(&entries, &selected, &option);
-  option.direction = MenuOption::Left;
+  auto menu = Menu(&entries, &selected, {.direction = Direction::Left});
   Screen screen(10, 1);
   Render(screen, menu->Render());
   EXPECT_EQ(screen.ToString(),
@@ -158,8 +153,7 @@ TEST(MenuTest, DirectionsLeft) {
 TEST(MenuTest, AnimationsHorizontal) {
   int selected = 0;
   std::vector<std::string> entries = {"1", "2", "3"};
-  auto option = MenuOption::HorizontalAnimated();
-  auto menu = Menu(&entries, &selected, &option);
+  auto menu = Menu(&entries, &selected, MenuOption::HorizontalAnimated());
   {
     Screen screen(4, 3);
     Render(screen, menu->Render());
@@ -195,8 +189,7 @@ TEST(MenuTest, AnimationsHorizontal) {
 TEST(MenuTest, AnimationsVertical) {
   int selected = 0;
   std::vector<std::string> entries = {"1", "2", "3"};
-  auto option = MenuOption::VerticalAnimated();
-  auto menu = Menu(&entries, &selected, &option);
+  auto menu = Menu(&entries, &selected, MenuOption::VerticalAnimated());
   {
     Screen screen(10, 3);
     Render(screen, menu->Render());
@@ -233,8 +226,50 @@ TEST(MenuTest, AnimationsVertical) {
   }
 }
 
-}  // namespace ftxui
+TEST(MenuTest, EntryIndex) {
+  int selected = 0;
+  std::vector<std::string> entries = {"0", "1", "2"};
 
-// Copyright 2022 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
+  auto option = MenuOption::Vertical();
+  option.entries = &entries;
+  option.selected = &selected;
+  option.entries_option.transform = [&](const EntryState& state) {
+    int curidx = std::stoi(state.label);
+    EXPECT_EQ(state.index, curidx);
+    return text(state.label);
+  };
+  auto menu = Menu(option);
+  menu->OnEvent(Event::ArrowDown);
+  menu->OnEvent(Event::ArrowDown);
+  menu->OnEvent(Event::Return);
+  entries.resize(2);
+  (void)menu->Render();
+}
+
+TEST(MenuTest, MenuEntryIndex) {
+  int selected = 0;
+
+  MenuEntryOption option;
+  option.transform = [&](const EntryState& state) {
+    int curidx = std::stoi(state.label);
+    EXPECT_EQ(state.index, curidx);
+    return text(state.label);
+  };
+  auto menu = Container::Vertical(
+      {
+          MenuEntry("0", option),
+          MenuEntry("1", option),
+          MenuEntry("2", option),
+      },
+      &selected);
+
+  menu->OnEvent(Event::ArrowDown);
+  menu->OnEvent(Event::ArrowDown);
+  menu->OnEvent(Event::Return);
+  for (size_t index = 0; index < menu->ChildCount(); index++) {
+    EXPECT_EQ(menu->ChildAt(index)->Index(), index);
+  }
+}
+
+}  // namespace ftxui
+// NOLINTEND

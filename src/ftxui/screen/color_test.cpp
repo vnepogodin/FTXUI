@@ -1,8 +1,9 @@
+// Copyright 2022 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include "ftxui/screen/color.hpp"
-#include <gtest/gtest-message.h>  // for Message
-#include <gtest/gtest-test-part.h>  // for TestPartResult, SuiteApiResolver, TestFactoryImpl
+#include <gtest/gtest.h>
 #include "ftxui/screen/terminal.hpp"
-#include "gtest/gtest_pred_impl.h"  // for EXPECT_EQ, Test, TEST
 
 namespace ftxui {
 
@@ -59,22 +60,22 @@ TEST(ColorTest, Interpolate) {
                                Color::RGB(1, 2, 3),        //
                                Color::RGB(244, 244, 123))  //
                 .Print(false),
-            "38;2;73;74;39");
+            "38;2;141;141;71");
   EXPECT_EQ(Color::Interpolate(0.7f,                       //
                                Color::RGB(1, 2, 3),        //
                                Color::RGB(244, 244, 123))  //
                 .Print(false),
-            "38;2;171;171;87");
+            "38;2;207;207;104");
   EXPECT_EQ(Color::Interpolate(0.7f,                       //
                                Color(Color::Red),          //
                                Color::RGB(244, 244, 123))  //
                 .Print(false),
-            "38;2;209;170;86");
+            "38;2;216;207;104");
   EXPECT_EQ(Color::Interpolate(0.7f,                       //
                                Color::RGB(244, 244, 123),  //
                                Color(Color::Plum1))        //
                 .Print(false),
-            "38;2;251;195;215");
+            "38;2;251;198;225");
 }
 
 TEST(ColorTest, HSV) {
@@ -83,7 +84,3 @@ TEST(ColorTest, HSV) {
 }
 
 }  // namespace ftxui
-
-// Copyright 2022 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

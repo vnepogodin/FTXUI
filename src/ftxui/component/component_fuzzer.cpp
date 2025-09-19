@@ -1,5 +1,8 @@
+// Copyright 2021 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <cassert>
-#include <iostream>
+#include <ftxui/component/event.hpp>
 #include <vector>
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/terminal_input_parser.hpp"
@@ -8,8 +11,9 @@ using namespace ftxui;
 namespace {
 
 bool GeneratorBool(const char*& data, size_t& size) {
-  if (size == 0)
+  if (size == 0) {
     return false;
+  }
 
   auto out = bool(data[0] % 2);
   data++;
@@ -19,8 +23,9 @@ bool GeneratorBool(const char*& data, size_t& size) {
 
 std::string GeneratorString(const char*& data, size_t& size) {
   int index = 0;
-  while (index < size && data[index])
+  while (index < size && data[index]) {
     ++index;
+  }
 
   auto out = std::string(data, data + index);
   data += index;
@@ -36,8 +41,9 @@ std::string GeneratorString(const char*& data, size_t& size) {
 }
 
 int GeneratorInt(const char* data, size_t size) {
-  if (size == 0)
+  if (size == 0) {
     return 0;
+  }
   auto out = int(data[0]);
   data++;
   size--;
@@ -95,9 +101,8 @@ MenuEntryOption GeneratorMenuEntryOption(const char* data, size_t size) {
 MenuOption GeneratorMenuOption(const char* data, size_t size) {
   MenuOption option;
   option.underline = GeneratorUnderlineOption(data, size);
-  option.entries = GeneratorMenuEntryOption(data, size);
-  option.direction =
-      static_cast<MenuOption::Direction>(GeneratorInt(data, size) % 4);
+  option.entries_option = GeneratorMenuEntryOption(data, size);
+  option.direction = static_cast<Direction>(GeneratorInt(data, size) % 4);
   return option;
 }
 
@@ -110,8 +115,9 @@ Components GeneratorComponents(const char*& data, size_t& size, int depth);
 Component GeneratorComponent(const char*& data, size_t& size, int depth) {
   depth--;
   int value = GeneratorInt(data, size);
-  if (depth <= 0)
+  if (depth <= 0) {
     return Button(GeneratorString(data, size), [] {});
+  }
 
   constexpr int value_max = 19;
   value = (value % value_max + value_max) % value_max;
@@ -210,22 +216,19 @@ extern "C" int LLVMFuzzerTestOneInput(const char* data, size_t size) {
   auto screen =
       Screen::Create(Dimension::Fixed(width), Dimension::Fixed(height));
 
-  auto event_receiver = MakeReceiver<Task>();
-  {
-    auto parser = TerminalInputParser(event_receiver->MakeSender());
-    for (size_t i = 0; i < size; ++i)
-      parser.Add(data[i]);
+  // Generate some events.
+  std::vector<Event> events;
+  auto parser =
+      TerminalInputParser([&](const Event& event) { events.push_back(event); });
+
+  for (size_t i = 0; i < size; ++i) {
+    parser.Add(data[i]);
   }
 
-  Task event;
-  while (event_receiver->Receive(&event)) {
-    component->OnEvent(std::get<Event>(event));
+  for (const auto& event : events) {
+    component->OnEvent(event);
     auto document = component->Render();
     Render(screen, document);
   }
   return 0;  // Non-zero return values are reserved for future use.
 }
-
-// Copyright 2021 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

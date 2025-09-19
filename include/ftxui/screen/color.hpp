@@ -1,8 +1,11 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #ifndef FTXUI_SCREEN_COLOR_HPP
 #define FTXUI_SCREEN_COLOR_HPP
 
 #include <cstdint>  // for uint8_t
-#include <string>   // for wstring
+#include <string>   // for string
 
 #ifdef RGB
 // Workaround for wingdi.h (via Windows.h) defining macros that break things.
@@ -12,7 +15,9 @@
 
 namespace ftxui {
 
-/// @brief A class representing terminal colors.
+/// @brief Color is a class that represents a color in the terminal user
+/// interface.
+///
 /// @ingroup screen
 class Color {
  public:
@@ -20,24 +25,22 @@ class Color {
   enum Palette16 : uint8_t;
   enum Palette256 : uint8_t;
 
-  /// @brief Build a transparent color.
-  /// @ingroup screen
-  constexpr Color() = default;
-
-  /// @brief Build a transparent color.
-  /// @ingroup screen
-  constexpr Color(Palette1) : type_(ColorType::Palette1) {}
-
-  /// @brief Build a transparent using Palette16 colors.
-  /// @ingroup screen
-  constexpr Color(Palette16 index)
-      : type_(ColorType::Palette16), red_(index) {}
-
-  Color(Palette256 index);
-  Color(uint8_t red, uint8_t green, uint8_t blue);
+  // NOLINTBEGIN
+  Color();                  // Transparent.
+  Color(Palette1 index);    // Transparent.
+  Color(Palette16 index);   // Implicit conversion from index to Color.
+  Color(Palette256 index);  // Implicit conversion from index to Color.
+  // NOLINTEND
+  Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255);
   static Color RGB(uint8_t red, uint8_t green, uint8_t blue);
   static Color HSV(uint8_t hue, uint8_t saturation, uint8_t value);
+  static Color RGBA(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha);
+  static Color HSVA(uint8_t hue,
+                    uint8_t saturation,
+                    uint8_t value,
+                    uint8_t alpha);
   static Color Interpolate(float t, const Color& a, const Color& b);
+  static Color Blend(const Color& lhs, const Color& rhs);
 
   //---------------------------
   // List of colors:
@@ -311,14 +314,11 @@ class Color {
   // clang-format on
 
   // --- Operators ------
-  constexpr inline bool operator==(const Color& rhs) const {
-    return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ &&
-           type_ == rhs.type_;
-  }
+  bool operator==(const Color& rhs) const;
+  bool operator!=(const Color& rhs) const;
 
-  constexpr inline bool operator!=(const Color& rhs) const { return !operator==(rhs); }
-
-  [[nodiscard]] std::string Print(bool is_background_color) const;
+  std::string Print(bool is_background_color) const;
+  bool IsOpaque() const { return alpha_ == 255; }
 
  private:
   enum class ColorType : uint8_t {
@@ -327,25 +327,21 @@ class Color {
     Palette256,
     TrueColor,
   };
-
-  ColorType type_{ColorType::Palette1};
+  ColorType type_ = ColorType::Palette1;
   uint8_t red_ = 0;
   uint8_t green_ = 0;
   uint8_t blue_ = 0;
+  uint8_t alpha_ = 0;
 };
 
 inline namespace literals {
 
 /// @brief Creates a color from a combined hex RGB representation,
 /// e.g. 0x808000_rgb
-ftxui::Color operator""_rgb(unsigned long long int combined);
+Color operator""_rgb(unsigned long long int combined);
 
 }  // namespace literals
 
 }  // namespace ftxui
 
 #endif  // FTXUI_SCREEN_COLOR_HPP
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

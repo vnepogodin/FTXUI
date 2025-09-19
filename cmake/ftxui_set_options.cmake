@@ -1,15 +1,16 @@
-find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" )
-if(NOT CLANG_TIDY_EXE)
-  message(STATUS "clang-tidy not found.")
-else()
-  message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-endif()
-
+find_program(CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" )
 
 function(ftxui_set_options library)
-  set_target_properties(${library} PROPERTIES OUTPUT_NAME "ftxui-${library}")
+  set_target_properties(${library} PROPERTIES VERSION ${PROJECT_VERSION})
+  if (NOT ${library} MATCHES "ftxui-*")
+    set_target_properties(${library} PROPERTIES OUTPUT_NAME "ftxui-${library}")
+  endif()
 
-  if(CLANG_TIDY_EXE AND FTXUI_CLANG_TIDY)
+  if (FTXUI_CLANG_TIDY)
+    if (NOT CLANG_TIDY_EXE)
+      message(FATAL_ERROR "clang-tidy requested but executable not found")
+    endif()
+
     set_target_properties(${library}
       PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-warnings-as-errors=*"
     )
@@ -40,20 +41,27 @@ function(ftxui_set_options library)
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   )
 
-  # C++20 is used. We require fold expression at least.
   target_compile_features(${library} PUBLIC cxx_std_20)
 
   # Force Microsoft Visual Studio to decode sources files in UTF-8. This applies
   # to the library and the library users.
-  if (MSVC)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${library} PUBLIC "/utf-8")
   endif()
+
+  # CMake does automatically add -fPIC when linking a shared library, but it
+  # does not add it when linking a static library. This is a problem when the
+  # static library is later linked into a shared library.
+  # Doing it helps some users.
+  set_property(TARGET ${library} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
   # Add as many warning as possible:
   if (WIN32)
     if (MSVC)
-      target_compile_options(${library} PRIVATE "/W3")
-      target_compile_options(${library} PRIVATE "/WX")
+      if(FTXUI_DEV_WARNINGS)
+        target_compile_options(${library} PRIVATE "/W3")
+        target_compile_options(${library} PRIVATE "/WX")
+      endif()
       target_compile_options(${library} PRIVATE "/wd4244")
       target_compile_options(${library} PRIVATE "/wd4267")
       target_compile_options(${library} PRIVATE "/D_CRT_SECURE_NO_WARNINGS")
@@ -61,44 +69,29 @@ function(ftxui_set_options library)
     # Force Win32 to UNICODE
     target_compile_definitions(${library} PRIVATE UNICODE _UNICODE)
   else()
-    target_compile_options(${library} PRIVATE "-Wall")
-    target_compile_options(${library} PRIVATE "-Wextra")
-    target_compile_options(${library} PRIVATE "-Wpedantic")
-    target_compile_options(${library} PRIVATE "-Werror")
-    target_compile_options(${library} PRIVATE "-Wmissing-declarations")
-    target_compile_options(${library} PRIVATE "-Wdeprecated")
-    target_compile_options(${library} PRIVATE "-Wshadow")
+    if(FTXUI_DEV_WARNINGS)
+      target_compile_options(${library} PRIVATE "-Wall")
+      target_compile_options(${library} PRIVATE "-Werror")
+      target_compile_options(${library} PRIVATE "-Wextra")
 
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-      target_compile_options(${library} PRIVATE "-Wnon-virtual-dtor")
-      target_compile_options(${library} PRIVATE "-Wold-style-cast")
       target_compile_options(${library} PRIVATE "-Wcast-align")
-      target_compile_options(${library} PRIVATE "-Wunused")
-      target_compile_options(${library} PRIVATE "-Woverloaded-virtual")
+      target_compile_options(${library} PRIVATE "-Wdeprecated")
+      target_compile_options(${library} PRIVATE "-Wmissing-declarations")
+      target_compile_options(${library} PRIVATE "-Wnon-virtual-dtor")
       target_compile_options(${library} PRIVATE "-Wnull-dereference")
-      target_compile_options(${library} PRIVATE "-Wdouble-promotion")
-      target_compile_options(${library} PRIVATE "-Wformat=2")
-      target_compile_options(${library} PRIVATE "-Wimplicit-fallthrough")
-      target_compile_options(${library} PRIVATE "-Wmisleading-indentation")
-      target_compile_options(${library} PRIVATE "-Wduplicated-cond")
-      target_compile_options(${library} PRIVATE "-Wduplicated-branches")
-      target_compile_options(${library} PRIVATE "-Wlogical-op")
-      target_compile_options(${library} PRIVATE "-Wuseless-cast")
-
-      target_compile_options(${library} PRIVATE "-Wsuggest-attribute=cold")
-      target_compile_options(${library} PRIVATE "-Wsuggest-attribute=malloc")
-      target_compile_options(${library} PRIVATE "-Wsuggest-attribute=noreturn")
-      target_compile_options(${library} PRIVATE "-Wsuggest-attribute=pure")
-      target_compile_options(${library} PRIVATE "-Wsuggest-attribute=const")
-      target_compile_options(${library} PRIVATE "-Wsuggest-final-methods")
-      target_compile_options(${library} PRIVATE "-Wsuggest-final-types")
-      target_compile_options(${library} PRIVATE "-Wdiv-by-zero")
-      target_compile_options(${library} PRIVATE "-Wanalyzer-double-fclose")
-      target_compile_options(${library} PRIVATE "-Wanalyzer-double-free")
-      target_compile_options(${library} PRIVATE "-Wanalyzer-malloc-leak")
-      target_compile_options(${library} PRIVATE "-Wanalyzer-use-after-free")
+      target_compile_options(${library} PRIVATE "-Woverloaded-virtual")
+      target_compile_options(${library} PRIVATE "-Wpedantic")
+      target_compile_options(${library} PRIVATE "-Wshadow")
+      target_compile_options(${library} PRIVATE "-Wunused")
     endif()
   endif()
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if(FTXUI_DEV_WARNINGS)
+      target_compile_options(${library} PRIVATE "-Wdocumentation")
+    endif()
+  endif()
+
 
   if (FTXUI_MICROSOFT_TERMINAL_FALLBACK)
     target_compile_definitions(${library}
@@ -107,9 +100,6 @@ function(ftxui_set_options library)
 endfunction()
 
 if (EMSCRIPTEN)
-  #string(APPEND CMAKE_CXX_FLAGS " -s ASSERTIONS=1")
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -s ASYNCIFY")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " -s PROXY_TO_PTHREAD")
 endif()
-

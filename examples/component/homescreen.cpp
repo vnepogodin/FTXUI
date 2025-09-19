@@ -1,17 +1,22 @@
-#include <stddef.h>    // for size_t
-#include <array>       // for array
-#include <chrono>      // for operator""s, chrono_literals
-#include <cmath>       // for sin
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <stddef.h>  // for size_t
+#include <array>     // for array
+#include <atomic>    // for atomic
+#include <chrono>    // for operator""s, chrono_literals
+#include <cmath>     // for sin
+#include <ftxui/component/loop.hpp>
 #include <functional>  // for ref, reference_wrapper, function
 #include <memory>      // for allocator, shared_ptr, __shared_ptr_access
-#include <string>  // for string, basic_string, operator+, to_string, char_traits
+#include <string>  // for string, basic_string, char_traits, operator+, to_string
 #include <thread>   // for sleep_for, thread
 #include <utility>  // for move
 #include <vector>   // for vector
 
 #include "../dom/color_info_sorted_2d.ipp"  // for ColorInfoSorted2D
 #include "ftxui/component/component.hpp"  // for Checkbox, Renderer, Horizontal, Vertical, Input, Menu, Radiobox, ResizableSplitLeft, Tab
-#include "ftxui/component/component_base.hpp"     // for ComponentBase
+#include "ftxui/component/component_base.hpp"  // for ComponentBase, Component
 #include "ftxui/component/component_options.hpp"  // for MenuOption, InputOption
 #include "ftxui/component/event.hpp"              // for Event, Event::Custom
 #include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
@@ -23,7 +28,7 @@
 
 using namespace ftxui;
 
-int main(int argc, const char* argv[]) {
+int main() {
   auto screen = ScreenInteractive::Fullscreen();
 
   // ---------------------------------------------------------------------------
@@ -260,12 +265,12 @@ int main(int argc, const char* argv[]) {
   });
 
   // ---------------------------------------------------------------------------
-  // Spiner
+  // Spinner
   // ---------------------------------------------------------------------------
   auto spinner_tab_renderer = Renderer([&] {
     Elements entries;
     for (int i = 0; i < 22; ++i) {
-      entries.push_back(spinner(i, shift / 2) | bold |
+      entries.push_back(spinner(i, shift / 5) | bold |
                         size(WIDTH, GREATER_THAN, 2) | border);
     }
     return hflow(std::move(entries));
@@ -420,7 +425,7 @@ int main(int argc, const char* argv[]) {
   auto paragraph_renderer_left = Renderer([&] {
     std::string str =
         "Lorem Ipsum is simply dummy text of the printing and typesetting "
-        "industry. Lorem Ipsum has been the industry's standard dummy text "
+        "industry.\nLorem Ipsum has been the industry's standard dummy text "
         "ever since the 1500s, when an unknown printer took a galley of type "
         "and scrambled it to make a type specimen book.";
     return vbox({
@@ -486,36 +491,42 @@ int main(int argc, const char* argv[]) {
       },
       &tab_index);
 
+  auto exit_button =
+      Button("Exit", [&] { screen.Exit(); }, ButtonOption::Animated());
+
   auto main_container = Container::Vertical({
-      tab_selection,
+      Container::Horizontal({
+          tab_selection,
+          exit_button,
+      }),
       tab_content,
   });
 
   auto main_renderer = Renderer(main_container, [&] {
     return vbox({
         text("FTXUI Demo") | bold | hcenter,
-        tab_selection->Render(),
+        hbox({
+            tab_selection->Render() | flex,
+            exit_button->Render(),
+        }),
         tab_content->Render() | flex,
     });
   });
 
-  bool refresh_ui_continue = true;
-  std::thread refresh_ui([&] {
-    while (refresh_ui_continue) {
-      using namespace std::chrono_literals;
-      std::this_thread::sleep_for(0.05s);
-      shift++;
-      screen.PostEvent(Event::Custom);
-    }
-  });
+  Loop loop(&screen, main_renderer);
+  while (!loop.HasQuitted()) {
+    // Update the state of the application.
+    shift++;
 
-  screen.Loop(main_renderer);
-  refresh_ui_continue = false;
-  refresh_ui.join();
+    // Request a new frame to be drawn.
+    screen.RequestAnimationFrame();
+
+    // Execute events, and draw the next frame.
+    loop.RunOnce();
+
+    // Sleep for a short duration to control the frame rate (60 FPS).
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 60));
+  }
 
   return 0;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

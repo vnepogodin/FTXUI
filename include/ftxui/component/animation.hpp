@@ -1,22 +1,33 @@
+// Copyright 2022 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #ifndef FTXUI_ANIMATION_HPP
 #define FTXUI_ANIMATION_HPP
 
 #include <chrono>      // for milliseconds, duration, steady_clock, time_point
 #include <functional>  // for function
 
-#include <ftxui/component/event.hpp>
-
 namespace ftxui::animation {
-// Components who haven't completed their animation can call this function to
-// request a new frame to be drawn later.
-//
-// When there is no new events and no animations to complete, no new frame is
-// drawn.
+/// @brief RequestAnimationFrame is a function that requests a new frame to be
+/// drawn in the next animation cycle.
+///
+/// @note This function is typically called by components that need to
+/// update their state or appearance over time, such as animations or
+/// transitions. This is useful when the change doesn't depend depend on the
+/// events seen by the terminal, but rather on the passage of time.
+///
+/// Components who haven't completed their animation can call this function to
+/// request a new frame to be drawn later.
+///
+/// When there is no new events and no animations to complete, no new frame is
+/// drawn.
+///
+/// @ingroup component
 void RequestAnimationFrame();
 
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
-using Duration = std::chrono::duration<double>;
+using Duration = std::chrono::duration<float>;
 
 // Parameter of Component::OnAnimation(param).
 class Params {
@@ -24,7 +35,7 @@ class Params {
   explicit Params(Duration duration) : duration_(duration) {}
 
   /// The duration this animation step represents.
-  [[nodiscard]] Duration duration() const noexcept { return duration_; }
+  Duration duration() const { return duration_; }
 
  private:
   Duration duration_;
@@ -89,36 +100,14 @@ float BounceInOut(float p);
 class Animator {
  public:
   explicit Animator(float* from,
-           float to = 0.f,
-           Duration duration = std::chrono::milliseconds(250),
-           easing::Function easing_function = easing::Linear,
-           Duration delay = std::chrono::milliseconds(0))
-      : value_(from),
-        from_(*from),
-        to_(to),
-        duration_(duration),
-        easing_function_(std::move(easing_function)),
-        current_(-delay)
-    { RequestAnimationFrame(); }
+                    float to = 0.f,
+                    Duration duration = std::chrono::milliseconds(250),
+                    easing::Function easing_function = easing::Linear,
+                    Duration delay = std::chrono::milliseconds(0));
 
-  void OnAnimation(const Params& params) noexcept {
-    current_ += params.duration();
+  void OnAnimation(Params&);
 
-    if (current_ >= duration_) {
-      *value_ = to_;
-      return;
-    }
-
-    if (current_ <= Duration()) {
-      *value_ = from_;
-    } else {
-      *value_ = from_ + (to_ - from_) * easing_function_(static_cast<float>(current_ / duration_));
-    }
-
-    RequestAnimationFrame();
-  }
-
-  [[nodiscard]] constexpr inline float to() const noexcept { return to_; }
+  float to() const { return to_; }
 
  private:
   float* value_;
@@ -129,10 +118,6 @@ class Animator {
   Duration current_;
 };
 
-}  // namespace ftxui
+}  // namespace ftxui::animation
 
 #endif /* end of include guard: FTXUI_ANIMATION_HPP */
-
-// Copyright 2022 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

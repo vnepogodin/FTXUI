@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <stddef.h>  // for size_t
 #include <memory>    // for shared_ptr, __shared_ptr_access, allocator
 #include <string>  // for string, basic_string, to_string, operator+, char_traits
@@ -13,7 +16,7 @@
 
 using namespace ftxui;
 
-int main(int argc, const char* argv[]) {
+int main() {
   auto screen = ScreenInteractive::Fullscreen();
 
   int direction_index = 0;
@@ -79,10 +82,12 @@ int main(int argc, const char* argv[]) {
                    size(WIDTH, EQUAL, dimx) | size(HEIGHT, EQUAL, dimy) |
                    bgcolor(Color::HSV(index * 25, 255, 255)) |
                    color(Color::Black);
-    if (element_xflex_grow)
+    if (element_xflex_grow) {
       element = element | xflex_grow;
-    if (element_yflex_grow)
+    }
+    if (element_yflex_grow) {
       element = element | yflex_grow;
+    }
     return element;
   };
 
@@ -116,10 +121,12 @@ int main(int argc, const char* argv[]) {
 
     group = group | notflex;
 
-    if (!group_xflex_grow)
+    if (!group_xflex_grow) {
       group = hbox(group, filler());
-    if (!group_yflex_grow)
+    }
+    if (!group_yflex_grow) {
       group = vbox(group, filler());
+    }
 
     group = group | flex;
     return group;
@@ -186,7 +193,3 @@ int main(int argc, const char* argv[]) {
 
   return 0;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

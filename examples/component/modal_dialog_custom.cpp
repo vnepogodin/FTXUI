@@ -1,3 +1,6 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <memory>  // for allocator, shared_ptr, __shared_ptr_access
 #include <string>  // for string, basic_string, char_traits, operator+
 #include <vector>  // for vector
@@ -8,7 +11,7 @@
 #include "ftxui/component/screen_interactive.hpp"  // for ScreenInteractive
 #include "ftxui/dom/elements.hpp"  // for operator|, Element, filler, text, hbox, separator, center, vbox, bold, border, clear_under, dbox, size, GREATER_THAN, HEIGHT
 
-int main(int argc, const char* argv[]) {
+int main() {
   using namespace ftxui;
   auto screen = ScreenInteractive::TerminalOutput();
 
@@ -88,7 +91,3 @@ int main(int argc, const char* argv[]) {
   screen.Loop(main_renderer);
   return 0;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,4 +1,6 @@
-#include <memory>  // for shared_ptr
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
 #include <string>  // for operator+, to_string
 
 #include "ftxui/component/captured_mouse.hpp"  // for ftxui
@@ -6,12 +8,12 @@
 #include "ftxui/component/component_base.hpp"      // for Component
 #include "ftxui/component/component_options.hpp"   // for ButtonOption
 #include "ftxui/component/screen_interactive.hpp"  // for ScreenInteractive
-#include "ftxui/dom/elements.hpp"  // for separator, Element, text, border
+#include "ftxui/dom/elements.hpp"  // for Element, separator, text, border
 #include "ftxui/screen/color.hpp"  // for Color, Color::Blue, Color::Green, Color::Red
 
 using namespace ftxui;
 
-int main(int argc, const char* argv[]) {
+int main() {
   int value = 0;
   auto action = [&] { value++; };
   auto action_renderer =
@@ -62,7 +64,3 @@ int main(int argc, const char* argv[]) {
   screen.Loop(buttons);
   return 0;
 }
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.

@@ -1,30 +1,17 @@
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+#include <algorithm>  // for max, min
 #include <cstddef>    // for size_t
-#include <memory>  // for __shared_ptr_access, shared_ptr, make_unique, allocator_traits<>::value_type
+#include <memory>  // for __shared_ptr_access, shared_ptr, make_shared, allocator_traits<>::value_type
+#include <utility>  // for move
 #include <vector>   // for vector, __alloc_traits<>::value_type
 
-#include <ftxui/dom/box_helper.hpp>   // for Element, Compute
-#include <ftxui/dom/elements.hpp>     // for Elements, filler, Element, gridbox
-#include <ftxui/dom/node.hpp>         // for Node
-#include <ftxui/dom/requirement.hpp>  // for Requirement
-#include <ftxui/screen/box.hpp>       // for Box
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-#include <range/v3/algorithm/max.hpp>
-#include <range/v3/algorithm/min.hpp>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include "ftxui/dom/box_helper.hpp"   // for Element, Compute
+#include "ftxui/dom/elements.hpp"     // for Elements, filler, Element, gridbox
+#include "ftxui/dom/node.hpp"         // for Node
+#include "ftxui/dom/requirement.hpp"  // for Requirement
+#include "ftxui/screen/box.hpp"       // for Box
 
 namespace ftxui {
 class Screen;
@@ -38,35 +25,31 @@ namespace {
 int Integrate(std::vector<int>& elements) {
   int accu = 0;
   for (auto& i : elements) {
-    int old_accu = accu;
+    const int old_accu = accu;
     accu += i;
     i = old_accu;
   }
   return accu;
 }
-}  // namespace
 
 class GridBox : public Node {
  public:
   explicit GridBox(std::vector<Elements> lines) : lines_(std::move(lines)) {
     y_size = static_cast<int>(lines_.size());
-    for (const auto& line : lines_)
-      x_size = ranges::max(x_size, static_cast<int>(line.size()));
+    for (const auto& line : lines_) {
+      x_size = std::max(x_size, int(line.size()));
+    }
+
+    // Fill in empty cells, in case the user did not used the API correctly:
     for (auto& line : lines_) {
-      while (line.size() < static_cast<size_t>(x_size)) {
+      while (line.size() < size_t(x_size)) {
         line.push_back(filler());
       }
     }
   }
 
   void ComputeRequirement() noexcept override {
-    requirement_.min_x = 0;
-    requirement_.min_y = 0;
-    requirement_.flex_grow_x = 0;
-    requirement_.flex_grow_y = 0;
-    requirement_.flex_shrink_x = 0;
-    requirement_.flex_shrink_y = 0;
-
+    requirement_ = Requirement{};
     for (auto& line : lines_) {
       for (auto& cell : line) {
         cell->ComputeRequirement();
@@ -78,32 +61,28 @@ class GridBox : public Node {
     std::vector<int> size_y(y_size, 0);
     for (int x = 0; x < x_size; ++x) {
       for (int y = 0; y < y_size; ++y) {
-        size_x[x] = ranges::max(size_x[x], lines_[y][x]->requirement().min_x);
-        size_y[y] = ranges::max(size_y[y], lines_[y][x]->requirement().min_y);
+        size_x[x] = std::max(size_x[x], lines_[y][x]->requirement().min_x);
+        size_y[y] = std::max(size_y[y], lines_[y][x]->requirement().min_y);
       }
     }
 
     requirement_.min_x = Integrate(size_x);
     requirement_.min_y = Integrate(size_y);
 
-    // Forward the selected/focused child state:
-    requirement_.selection = Requirement::NORMAL;
+    // Forward the focused/focused child state:
     for (int x = 0; x < x_size; ++x) {
       for (int y = 0; y < y_size; ++y) {
-        if (requirement_.selection >= lines_[y][x]->requirement().selection) {
+        if (requirement_.focused.enabled ||
+            !lines_[y][x]->requirement().focused.enabled) {
           continue;
         }
-        requirement_.selection = lines_[y][x]->requirement().selection;
-        requirement_.selected_box = lines_[y][x]->requirement().selected_box;
-        requirement_.selected_box.x_min += size_x[x];
-        requirement_.selected_box.x_max += size_x[x];
-        requirement_.selected_box.y_min += size_y[y];
-        requirement_.selected_box.y_max += size_y[y];
+        requirement_.focused = lines_[y][x]->requirement().focused;
+        requirement_.focused.box.Shift(size_x[x], size_y[y]);
       }
     }
   }
 
-  void SetBox(const Box& box) noexcept override {
+  void SetBox(Box box) noexcept override {
     Node::SetBox(box);
 
     box_helper::Element init;
@@ -119,14 +98,12 @@ class GridBox : public Node {
         const auto& requirement = cell->requirement();
         auto& e_x = elements_x[x];
         auto& e_y = elements_y[y];
-        e_x.min_size = ranges::max(e_x.min_size, requirement.min_x);
-        e_y.min_size = ranges::max(e_y.min_size, requirement.min_y);
-        e_x.flex_grow = ranges::min(e_x.flex_grow, requirement.flex_grow_x);
-        e_y.flex_grow = ranges::min(e_y.flex_grow, requirement.flex_grow_y);
-        e_x.flex_shrink =
-            ranges::min(e_x.flex_shrink, requirement.flex_shrink_x);
-        e_y.flex_shrink =
-            ranges::min(e_y.flex_shrink, requirement.flex_shrink_y);
+        e_x.min_size = std::max(e_x.min_size, requirement.min_x);
+        e_y.min_size = std::max(e_y.min_size, requirement.min_y);
+        e_x.flex_grow = std::min(e_x.flex_grow, requirement.flex_grow_x);
+        e_y.flex_grow = std::min(e_y.flex_grow, requirement.flex_grow_y);
+        e_x.flex_shrink = std::min(e_x.flex_shrink, requirement.flex_shrink_x);
+        e_y.flex_shrink = std::min(e_y.flex_shrink, requirement.flex_shrink_y);
       }
     }
 
@@ -153,7 +130,7 @@ class GridBox : public Node {
     }
   }
 
-  void Render(Screen& screen) noexcept override {
+  void Render(Screen& screen) override {
     for (auto& line : lines_) {
       for (auto& cell : line) {
         cell->Render(screen);
@@ -165,7 +142,8 @@ class GridBox : public Node {
   int y_size = 0;
   std::vector<Elements> lines_;
 };
-
+}  // namespace
+   //
 /// @brief A container displaying a grid of elements.
 /// @param lines A list of lines, each line being a list of elements.
 /// @return The container.
@@ -182,22 +160,18 @@ class GridBox : public Node {
 /// ```
 /// Output:
 /// ```
-///╭──────────╮╭──────╮╭──────────╮
-///│north-west││north ││north-east│
-///╰──────────╯╰──────╯╰──────────╯
-///╭──────────╮╭──────╮╭──────────╮
-///│west      ││center││east      │
-///╰──────────╯╰──────╯╰──────────╯
-///╭──────────╮╭──────╮╭──────────╮
-///│south-west││south ││south-east│
-///╰──────────╯╰──────╯╰──────────╯
+/// ╭──────────╮╭──────╮╭──────────╮
+/// │north-west││north ││north-east│
+/// ╰──────────╯╰──────╯╰──────────╯
+/// ╭──────────╮╭──────╮╭──────────╮
+/// │west      ││center││east      │
+/// ╰──────────╯╰──────╯╰──────────╯
+/// ╭──────────╮╭──────╮╭──────────╮
+/// │south-west││south ││south-east│
+/// ╰──────────╯╰──────╯╰──────────╯
 /// ```
-Element gridbox(const std::vector<Elements>& lines) noexcept {
-  return std::make_unique<GridBox>(lines);
+Element gridbox(std::vector<Elements> lines) {
+  return std::make_shared<GridBox>(std::move(lines));
 }
 
 }  // namespace ftxui
-
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
